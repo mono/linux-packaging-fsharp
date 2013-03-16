@@ -17,10 +17,10 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - compiler for the CLI
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
- This package contains an F# compiler targetting the CLI runtime.
+ This package contains an F# compiler targeting the CLI runtime.
 
 Package: fsharp-console
 Architecture: all
@@ -29,10 +29,10 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - interactive compiler
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
- This package contains an interactive F# console targetting the CLI runtime.
+ This package contains an interactive F# console targeting the CLI runtime.
 
 Package: libfsharp-build4.3-cil
 Architecture: all
@@ -41,7 +41,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - build configuration
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains a runtime library with build configuration information.
@@ -53,7 +53,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - compiler library
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains a runtime library with helper routines for an
@@ -66,7 +66,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - interactive configuration
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains a runtime library with configuration routines for an
@@ -79,7 +79,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - server interaction library
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains a runtime library with routines for interacting with
@@ -92,7 +92,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends}
 Description: functional-first programming language - core runtime library
- F# is a multi-paradigm programming langugage, supporting functional,
+ F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains the core runtime library for F# binaries.
