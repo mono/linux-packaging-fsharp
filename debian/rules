@@ -16,6 +16,8 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
+override_dh_clideps:
+	dh_clideps --exclude-moduleref=mscoree.dll
 
 %:
 	dh $@ --with=cli,autoreconf
