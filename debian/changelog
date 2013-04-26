@@ -7,6 +7,7 @@ fsharp (3.0.27+dfsg-1) UNRELEASED; urgency=low
   * Fix incorrect permissions more carefully
   * Bump standards version to 3.9.4 (no changes required)
   * Properly mark as team-maintained
+  * Make watch file more robust
 
  -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 26 Apr 2013 14:57:21 +1000
 
