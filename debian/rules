@@ -19,9 +19,9 @@ export DH_OPTIONS
 override_dh_fixperms:
 	dh_fixperms
 	# Fix permissions of non-executable cruft
-	find debian -iname *.xml -exec chmod 644 {} +
-	find debian -iname *.sigdata -exec chmod 644 {} +
-	find debian -iname *.optdata -exec chmod 644 {} +
+	find debian -iname *.xml -type f -exec chmod 644 {} +
+	find debian -iname *.sigdata -type f -exec chmod 644 {} +
+	find debian -iname *.optdata -type f -exec chmod 644 {} +
 
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll
