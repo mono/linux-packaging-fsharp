@@ -1,0 +1,103 @@
+Index: fsharp/src/fsharp/FSharp.Build/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/FSharp.Build/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/FSharp.Build/Makefile.in	2013-04-26 12:18:05.106302702 +1000
+@@ -33,9 +33,9 @@
+ 
+ include $(topdir)/src/fsharp/targets.make
+ 
+-do-final: do-2-0 do-4-0 
++do-final: do-4-0 
+ 
+ clean: clean-2-0 clean-4-0
+ 
+-install: install-lib-2 install-lib-4 install-lib-4-5
++install: install-lib-4 install-lib-4-5
+ 
+Index: fsharp/src/fsharp/FSharp.Core/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/FSharp.Core/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/FSharp.Core/Makefile.in	2013-04-26 12:18:05.106302702 +1000
+@@ -103,10 +103,10 @@
+ 
+ include $(topdir)/src/fsharp/targets.make
+ 
+-do-final: do-4-0 do-2-0 do-2-1
++do-final: do-4-0
+ 
+ clean: clean-4-0 clean-2-0 clean-2-1
+ 
+-install: install-lib-4 install-lib-4-5 install-lib-2 install-lib-2-1
++install: install-lib-4 install-lib-4-5
+ 
+ 
+Index: fsharp/src/fsharp/policy.2.0.FSharp.Core/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/policy.2.0.FSharp.Core/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/policy.2.0.FSharp.Core/Makefile.in	2013-04-26 12:18:05.106302702 +1000
+@@ -20,10 +20,10 @@
+ 	cp policy.2.0.FSharp.Core.dll.config $(@D)
+ 	al /link:policy.2.0.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
+ 
+-do-final: do-2-0 do-4-0 
++do-final: do-4-0 
+ 
+ clean: clean-2-0 clean-4-0
+ 
+-install: install-lib-2 install-lib-4
++install: install-lib-4
+ 
+ 
+Index: fsharp/src/fsharp/policy.2.3.FSharp.Core/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/policy.2.3.FSharp.Core/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/policy.2.3.FSharp.Core/Makefile.in	2013-04-26 12:18:05.106302702 +1000
+@@ -20,10 +20,10 @@
+ 	cp policy.2.3.FSharp.Core.dll.config $(@D)
+ 	al /link:policy.2.3.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
+ 
+-do-final: do-2-0 do-4-0 
++do-final: do-4-0 
+ 
+ clean: clean-2-0 clean-4-0
+ 
+-install: install-lib-2 install-lib-4
++install: install-lib-4
+ 
+ 
+Index: fsharp/src/fsharp/policy.4.0.FSharp.Core/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/policy.4.0.FSharp.Core/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/policy.4.0.FSharp.Core/Makefile.in	2013-04-26 12:18:05.106302702 +1000
+@@ -20,11 +20,11 @@
+ 	cp policy.4.0.FSharp.Core.dll.config $(@D)
+ 	al /link:policy.4.0.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
+ 
+-do-final: do-2-0 do-4-0 
++do-final: do-4-0 
+ 
+ clean: clean-2-0 clean-4-0
+ 
+-install: install-lib-2 install-lib-4
++install: install-lib-4
+ 
+ 
+ 
+Index: fsharp/src/fsharp/policy.4.3.FSharp.Core/Makefile.in
+===================================================================
+--- fsharp.orig/src/fsharp/policy.4.3.FSharp.Core/Makefile.in	2013-04-26 12:18:05.114302734 +1000
++++ fsharp/src/fsharp/policy.4.3.FSharp.Core/Makefile.in	2013-04-26 12:18:05.110302713 +1000
+@@ -20,11 +20,11 @@
+ 	cp policy.4.3.FSharp.Core.dll.config $(@D)
+ 	al /link:policy.4.3.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
+ 
+-do-final: do-2-0 do-4-0 
++do-final: do-4-0 
+ 
+ clean: clean-2-0 clean-4-0
+ 
+-install: install-lib-2 install-lib-4
++install: install-lib-4
+ 
+ 
+ 
