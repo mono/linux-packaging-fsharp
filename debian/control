@@ -1,7 +1,8 @@
 Source: fsharp
 Section: cli-mono
 Priority: optional
-Maintainer: Christopher James Halse Rogers <raof@ubuntu.com>
+Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
+Uploaders: Christopher James Halse Rogers <raof@ubuntu.com>
 Build-Depends: debhelper (>= 8.0.0),
   dh-autoreconf,
   cli-common-dev,
