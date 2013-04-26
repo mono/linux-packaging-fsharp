@@ -51,7 +51,8 @@ Architecture: all
 Depends:
   ${cli:Depends},
   ${shlibs:Depends},
-  ${misc:Depends}
+  ${misc:Depends},
+  libfsharp-core-cil-dev,
 Description: functional-first programming language - compiler library
  F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
@@ -96,6 +97,18 @@ Description: functional-first programming language - core runtime library
  imperative, and object-oriented structures.
  .
  This package contains the core runtime library for F# binaries.
+
+Package: libfsharp-core-cil-dev
+Architecture: all
+Depends:
+  libfsharp-core4.3-cil (= ${binary:Version}),
+  ${misc:Depends}
+Description: functional-first programming language - development files
+ F# is a multi-paradigm programming language, supporting functional,
+ imperative, and object-oriented structures.
+ .
+ This package contains the development symlinks required for building
+ F# code.
 
 Package: libfsharp-data-typeproviders4.3-cil
 Architecture: all
