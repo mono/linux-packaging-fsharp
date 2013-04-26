@@ -1,0 +1,7 @@
+ * The upstream tarball has been repacked to remove the dependencies/ folder,
+   containing binary Silverlight and MonoDroid core libraries.
+   
+   These are probably redistributable, but are not built from source, and we
+   don't need them.
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>, Fri, 26 Apr 2013 10:23:05 +1000
