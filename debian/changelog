@@ -10,8 +10,10 @@ fsharp (3.0.30+dfsg-1) UNRELEASED; urgency=low
   * Make watch file more robust
   * Use new cli-common infrastructure to install core libraries in framework paths
     (Closes: 705906, 706683)
+  * Debian CLI policy fixes for fsharpc and fsharpi - now supports parallel
+    mono installations!
 
- -- Christopher James Halse Rogers <raof@ubuntu.com>  Sun, 27 Oct 2013 20:47:14 +1100
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Sun, 27 Oct 2013 21:16:52 +1100
 
 fsharp (3.0.26-1) unstable; urgency=low
 
