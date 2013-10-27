@@ -5,7 +5,7 @@ Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.
 Uploaders: Christopher James Halse Rogers <raof@ubuntu.com>
 Build-Depends: debhelper (>= 8.0.0),
   dh-autoreconf,
-  cli-common-dev,
+  cli-common-dev (>= 0.9),
 Standards-Version: 3.9.4
 Homepage: http://fsharp.org
 Vcs-Git: git://anongit.debian.org/pkg-cli-apps/packages/fsharp.git

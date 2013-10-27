@@ -1,4 +1,2 @@
 usr/bin/fsharpi
-usr/lib/mono/gac/fsi
-usr/lib/mono/4.0/fsi.*
-usr/lib/mono/4.0/FSharp.Compiler.Interactive.Settings.*
+usr/lib/mono/gac/fsi/4.3*/*	/usr/lib/cli/fsharp-console

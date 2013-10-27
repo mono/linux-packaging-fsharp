@@ -1,4 +1,2 @@
 usr/bin/fsharpc
-usr/lib/mono/gac/fsc
-usr/lib/mono/4.0/fsc.*
-usr/lib/mono/4.0/FSharp.Core.*
+usr/lib/mono/gac/fsc/4.3*/*	/usr/lib/cli/fsharp

@@ -1,0 +1,5 @@
+40 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.dll
+40 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.sigdata
+40 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.optdata
+# Add the compiler binary, as tools may look for it here
+40 /usr/lib/cli/fsharp/fsc.exe
