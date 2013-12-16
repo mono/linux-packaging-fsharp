@@ -1,4 +1,4 @@
-fsharp (3.0.30+dfsg-1) UNRELEASED; urgency=low
+fsharp (3.0.31+dfsg-1) UNRELEASED; urgency=low
 
   * New upstream release
   * Add README.source, documenting the +dfsg
