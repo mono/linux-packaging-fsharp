@@ -14,7 +14,6 @@ Vcs-Browser: http://anongit.debian.org/?p=pkg-cli-apps/packages/fsharp.git;a=sum
 Package: fsharp
 Architecture: all
 Depends:
-  libfsharp-core4.3-cil (= ${binary:Version}),
   ${cli:Depends},
   ${shlibs:Depends},
   ${misc:Depends}
