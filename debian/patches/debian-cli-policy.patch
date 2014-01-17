@@ -8,15 +8,15 @@
 +SILLY_ENV_HACK_FOR_REGEX=mono $EXEC cli $DEBUG $MONO_OPTIONS $MONO_GC_OPTIONS @DIR@/@TOOL@ "$@"
 --- a/src/fsharp/targets.make
 +++ b/src/fsharp/targets.make
-@@ -221,8 +221,14 @@
+@@ -221,9 +221,14 @@
  
  # The binaries fsc.exe and fsi.exe only get installed for Mono 4.0 profile
  # This also installs 'fsharpc' and 'fsharpi'
 +#
 +# Debian patch - Point fsharpc and fsharpi at our install paths, not the GAC.
  install-bin-4:
+ 	chmod +x $(outdir)$(ASSEMBLY)
 -	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
-+	@echo NAME is: $(NAME)
 +	if [ "$(NAME)" = "fsc" ] ; then INSTALL_DIR="/usr/lib/cli/fsharp" ; \
 +	elif [ "$(NAME)" = "fsi" ] ; then INSTALL_DIR="/usr/lib/cli/fsharp-console" ; \
 +	fi ;\
