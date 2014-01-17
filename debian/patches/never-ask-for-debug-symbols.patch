@@ -1,0 +1,37 @@
+commit 11080dbd25c36e7159aeacecbd0d4f1da68b2d7b
+Author: Christopher James Halse Rogers <raof@ubuntu.com>
+Date:   Fri Jan 17 13:09:19 2014 +1100
+
+    Never generate debug symbols for dynamic assemblies on Mono.
+    
+    Mono does not support generating symbols for dynamic code, and has no
+    current plans to do so (cf: https://bugzilla.xamarin.com/show_bug.cgi?id=5186).
+    
+    This causes fsi to die with a ‘The assembly for default symbol writer cannot be loaded’
+    exception shortly after loading when debugging info is requested, which it is
+    by default.
+
+diff --git a/src/absil/ilreflect.fs b/src/absil/ilreflect.fs
+index e496c47..5ad6458 100755
+--- a/src/absil/ilreflect.fs
++++ b/src/absil/ilreflect.fs
+@@ -2104,7 +2104,8 @@ let mkDynamicAssemblyAndModule (assemblyName, optimize, debugInfo) =
+         let daBuilder = new CustomAttributeBuilder(daCtor, [| System.Diagnostics.DebuggableAttribute.DebuggingModes.DisableOptimizations ||| System.Diagnostics.DebuggableAttribute.DebuggingModes.Default  |])
+         asmB.SetCustomAttributeAndLog(daBuilder);
+     
+-    let modB = asmB.DefineDynamicModuleAndLog(assemblyName,filename,debugInfo)
++    // Mono does not support emitting debug symbols for dynamic modules - https://bugzilla.xamarin.com/show_bug.cgi?id=5186
++    let modB = asmB.DefineDynamicModuleAndLog(assemblyName,filename,if runningOnMono then false else debugInfo)
+ #endif    
+     asmB,modB
+ 
+@@ -2113,7 +2114,8 @@ type EntryDelegate = delegate of unit -> unit
+ #endif
+ 
+ let emitModuleFragment (ilg, emEnv, asmB : AssemblyBuilder, modB : ModuleBuilder, modul : IL.ILModuleDef, debugInfo : bool, resolvePath) =
+-    let cenv = { ilg = ilg ; generatePdb = debugInfo; resolvePath=resolvePath }
++    // Mono does not support emitting debug symbols for dynamic modules - https://bugzilla.xamarin.com/show_bug.cgi?id=5186
++    let cenv = { ilg = ilg ; resolvePath=resolvePath ; generatePdb = if runningOnMono then false else debugInfo ; }
+ 
+     let emEnv = buildModuleFragment cenv emEnv asmB modB modul
+     match modul.Manifest with 
