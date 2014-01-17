@@ -9,14 +9,14 @@ fsharp (3.0.34+dfsg-1) experimental; urgency=low
   * Properly mark as team-maintained
   * Make watch file more robust
   * Use new cli-common infrastructure to install core libraries in framework paths
-    (Closes: 705906, 706683)
+    (Closes: #705906, #706683)
   * Debian CLI policy fixes for fsharpc and fsharpi - now supports parallel
     mono installations!
   * debian/patches/never-ask-for-debug-symbols.patch: Disable request of debug
     symbols for dynamically generated code by fsharpi - Mono does not implement
     this (cf: https://github.com/fsharp/fsharp/issues/241)
 
- -- Christopher James Halse Rogers <raof@ubuntu.com>  Sun, 27 Oct 2013 21:16:52 +1100
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 17 Jan 2014 16:20:20 +1100
 
 fsharp (3.0.26-1) unstable; urgency=low
 
