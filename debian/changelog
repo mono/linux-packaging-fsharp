@@ -1,11 +1,11 @@
-fsharp (3.0.31+dfsg-1) UNRELEASED; urgency=low
+fsharp (3.0.34+dfsg-1) experimental; urgency=low
 
   * New upstream release
   * Add README.source, documenting the +dfsg
   * Add Vcs-Git headers
   * Don't build 2.0- and 3.5-profile F# libraries
   * Fix incorrect permissions more carefully
-  * Bump standards version to 3.9.4 (no changes required)
+  * Bump standards version to 3.9.5 (no changes required)
   * Properly mark as team-maintained
   * Make watch file more robust
   * Use new cli-common infrastructure to install core libraries in framework paths
