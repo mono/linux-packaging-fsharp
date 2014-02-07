@@ -10,6 +10,7 @@ Standards-Version: 3.9.4
 Homepage: http://fsharp.org
 Vcs-Git: git://anongit.debian.org/pkg-cli-apps/packages/fsharp.git
 Vcs-Browser: http://anongit.debian.org/?p=pkg-cli-apps/packages/fsharp.git;a=summary
+XS-Testsuite: autopkgtest
 
 Package: fsharp
 Architecture: all

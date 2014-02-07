@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "BasicXBuildTest", "BasicXBuildTest\FSharpTest.fsproj", "{1F2C4886-C6BA-4530-AAFE-470E7EA8113B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1F2C4886-C6BA-4530-AAFE-470E7EA8113B}.Debug|x86.ActiveCfg = Debug|x86
+		{1F2C4886-C6BA-4530-AAFE-470E7EA8113B}.Debug|x86.Build.0 = Debug|x86
+		{1F2C4886-C6BA-4530-AAFE-470E7EA8113B}.Release|x86.ActiveCfg = Release|x86
+		{1F2C4886-C6BA-4530-AAFE-470E7EA8113B}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = FSharpTest\FSharpTest.fsproj
+	EndGlobalSection
+EndGlobal
