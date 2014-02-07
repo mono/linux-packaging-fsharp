@@ -1,0 +1,4 @@
+# F#'s compiler resolution logic is twine and duct tape. Until it's fixed
+# ensure it can resolve fsc.exe in the same place as fsi.exe
+
+usr/lib/cli/fsharp/fsc.exe    usr/lib/cli/fsharp-console/fsc.exe

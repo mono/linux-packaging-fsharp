@@ -17,7 +17,8 @@ Architecture: all
 Depends:
   ${cli:Depends},
   ${shlibs:Depends},
-  ${misc:Depends}
+  ${misc:Depends},
+  fsharp-console
 Description: functional-first programming language - compiler for the CLI
  F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
