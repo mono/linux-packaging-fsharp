@@ -1,3 +1,11 @@
+fsharp (3.0.34+dfsg-2) experimental; urgency=medium
+
+  * Install F# xbuild project infrastructure
+  * Add basic DEP-8 testsuite, checking that a minimal F# project can be built by xbuild
+  * Add (temporary) links between fsharp and fsharp-console to fix xbuild projects.
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 07 Feb 2014 07:43:43 +0100
+
 fsharp (3.0.34+dfsg-1) experimental; urgency=low
 
   * New upstream release
