@@ -1,5 +1,5 @@
-40 /usr/lib/cli/FSharp.Compiler.Interative.Settings-4.3/FSharp.Compiler.Interactive.Settings.dll
-45 /usr/lib/cli/FSharp.Compiler.Interative.Settings-4.3/FSharp.Compiler.Interactive.Settings.dll
+40 /usr/lib/cli/FSharp.Compiler.Interactive.Settings-4.3/FSharp.Compiler.Interactive.Settings.dll
+45 /usr/lib/cli/FSharp.Compiler.Interactive.Settings-4.3/FSharp.Compiler.Interactive.Settings.dll
 
 # Add the interpreter binary, as tools may look for it here.
 40 /usr/lib/cli/fsharp-console/fsi.exe
