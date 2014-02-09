@@ -18,78 +18,13 @@ Depends:
   ${cli:Depends},
   ${shlibs:Depends},
   ${misc:Depends},
-  fsharp-console
+Breaks: fsharp-console (<< 3.0.34+dfsg-3)
+Replaces: fsharp-console (<< 3.0.34+dfsg-3)
 Description: functional-first programming language - compiler for the CLI
  F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
  .
  This package contains an F# compiler targeting the CLI runtime.
-
-Package: fsharp-console
-Architecture: all
-Depends:
-  fsharp,
-  libfsharp-compiler-interactive-settings4.3-cil (= ${binary:Version}),
-  libmono-compilerservices-symbolwriter4.0-cil,
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - interactive compiler
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains an interactive F# console targeting the CLI runtime.
-
-Package: libfsharp-build4.3-cil
-Architecture: all
-Depends:
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - build configuration
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains a runtime library with build configuration information.
-
-Package: libfsharp-compiler4.3-cil
-Architecture: all
-Depends:
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends},
-Description: functional-first programming language - compiler library
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains a runtime library with helper routines for an
- F# compiler
-
-Package: libfsharp-compiler-interactive-settings4.3-cil
-Architecture: all
-Depends:
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - interactive configuration
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains a runtime library with configuration routines for an
- interactive F# session
-
-Package: libfsharp-compiler-server-shared4.3-cil
-Architecture: all
-Depends:
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - server interaction library
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains a runtime library with routines for interacting with
- a shared interactive F# compiler service
 
 Package: libfsharp-core4.3-cil
 Architecture: all

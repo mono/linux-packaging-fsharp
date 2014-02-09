@@ -1,6 +1,12 @@
 usr/bin/fsharpc
-usr/lib/mono/gac/fsc/4.3*/*	/usr/lib/cli/fsharp
+usr/bin/fsharpi
+usr/lib/mono/gac/fsc/4.3*/*					/usr/lib/cli/fsharp
+usr/lib/mono/gac/fsi/4.3*/*					/usr/lib/cli/fsharp
 usr/lib/mono/Microsoft?F#
 usr/lib/mono/Microsoft?SDKs
 usr/lib/mono/xbuild
-usr/lib/mono/4.0/Microsoft.*.Targets
+usr/lib/mono/4.0/Microsoft.*.Targets				/usr/lib/cli/fsharp
+usr/lib/mono/gac/FSharp.Build/4.3*/*				/usr/lib/cli/fsharp
+usr/lib/mono/gac/FSharp.Compiler.Interactive.Settings/4.3*/*    /usr/lib/cli/fsharp
+usr/lib/mono/gac/FSharp.Compiler.Server.Shared/4.3*/*   	/usr/lib/cli/fsharp
+usr/lib/mono/gac/FSharp.Compiler/4.3*/*       			/usr/lib/cli/fsharp

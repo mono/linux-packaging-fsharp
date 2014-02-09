@@ -8,8 +8,20 @@
 45 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.optdata
 
 # Build targets for xbuild support
-40 /usr/lib/cli/FSharp.Build-4.3/FSharp.Build.dll
+40 /usr/lib/cli/fsharp/FSharp.Build.dll
+40 /usr/lib/cli/fsharp/Microsoft.FSharp.Targets
+40 /usr/lib/cli/fsharp/Microsoft.Portable.FSharp.Targets
+
+## The lines above are mandatory for correct functionality
+## The lines below are optional - these replicate the upstream
+## layout, but aren't used by any tools I'm aware of.
 
 # Add the compiler binary, as tools may look for it here
 40 /usr/lib/cli/fsharp/fsc.exe
-45 /usr/lib/cli/fsharp/fsc.exe
+40 /usr/lib/cli/fsharp/fsi.exe
+
+# Compiler infrastructure
+40 /usr/lib/cli/fsharp/FSharp.Compiler.dll
+40 /usr/lib/cli/fsharp/FSharp.Compiler.Interactive.Settings.dll
+40 /usr/lib/cli/fsharp/FSharp.Compiler.Server.Shared.dll
+
