@@ -1,6 +1,6 @@
 # format version number, currently 3; this line is compulsory!
 version=3
 
-opts=dversionmangle=s/\+dfsg// \
+opts="dversionmangle=s/\+dfsg//,filenamemangle=s_.*/(\d[\d\.]*)\.tar\.gz_fsharp-$1.tar.gz_" \
 https://github.com/fsharp/fsharp/tags .*/(\d[\d\.]*)\.tar\.gz
 
