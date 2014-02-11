@@ -1,3 +1,15 @@
+fsharp (3.0.34+dfsg-3) unstable; urgency=medium
+
+  * Fix typo in FSharp.Compiler.Interactive.Settings install dir (LP: #1251253)
+  * Drop disable-debug-symbols patch; replace with dependency on
+    compilerservices-symbolwriter. (LP: #1259230)
+  * Drop FSharp.Build.dll & FSharp.Compiler.* from the GAC and bundle them into
+    the fsharp package.
+  * Bump Standards-Version to 3.9.5 (no changes needed)
+  * Improve watch file
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Tue, 11 Feb 2014 01:06:06 +0100
+
 fsharp (3.0.34+dfsg-2) experimental; urgency=medium
 
   * Install F# xbuild project infrastructure
