@@ -22,6 +22,7 @@ override_dh_fixperms:
 	find debian -iname *.xml -type f -exec chmod 644 {} +
 	find debian -iname *.sigdata -type f -exec chmod 644 {} +
 	find debian -iname *.optdata -type f -exec chmod 644 {} +
+	find debian -iname *.targets -type f -exec chmod 644 {} +
 
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll
