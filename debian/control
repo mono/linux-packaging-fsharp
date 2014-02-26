@@ -32,7 +32,8 @@ Architecture: all
 Depends:
   ${cli:Depends},
   ${shlibs:Depends},
-  ${misc:Depends}
+  ${misc:Depends},
+  mono-runtime-common | mono-runtime,
 Description: functional-first programming language - core runtime library
  F# is a multi-paradigm programming language, supporting functional,
  imperative, and object-oriented structures.
