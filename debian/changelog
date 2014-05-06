@@ -1,3 +1,15 @@
+fsharp (3.0.34+dfsg-4) UNRELEASED; urgency=medium
+
+  * Make DEP-8 test depend on only fsharp package to pick up any dependency
+    breakage
+  * Add missing libmono-compilerservices-symbolwriter4.0-cil dependency to
+    fsharp (Closes: 746585)
+  * Add fsharpc/fsharpi manpages
+  * Strip executable bit from xbuild .Targets files; now lintian clean!
+  * Temporarily add Depends on mono-runtime/-common to fix GAC install bug
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Tue, 06 May 2014 11:29:49 +1000
+
 fsharp (3.0.34+dfsg-3) unstable; urgency=medium
 
   * Fix typo in FSharp.Compiler.Interactive.Settings install dir (LP: #1251253)
