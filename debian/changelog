@@ -1,4 +1,4 @@
-fsharp (3.0.34+dfsg-4) UNRELEASED; urgency=medium
+fsharp (3.0.34+dfsg-4) unstable; urgency=medium
 
   * Make DEP-8 test depend on only fsharp package to pick up any dependency
     breakage
