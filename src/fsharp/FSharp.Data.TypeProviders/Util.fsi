@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 namespace Microsoft.FSharp.Data.TypeProviders.Utility
 module internal Util =
     open System
@@ -13,9 +15,6 @@ module internal Util =
     val dataSvcUtilExe : unit -> string
     val edmGenExe : unit -> string
     val svcUtilExe : unit -> string
-    val xsdExe : unit -> string
-
-    val sdkPath : unit -> string
 
     val sdkUtil : string -> string
 

@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //----------------------------------------------------------------------------
 // Open up the compiler as an incremental service for lexing.
@@ -105,9 +96,6 @@ type TokenInformation = {
 //--------------------------------------------------------------------------
 
 module internal Flags = 
-#if SILVERLIGHT
-    let init ()= ()
-#else
 #if DEBUG
     let loggingTypes             = System.Environment.GetEnvironmentVariable("mFSharp_Logging")
     let logging                  = not (String.IsNullOrEmpty(loggingTypes))
@@ -197,7 +185,6 @@ module internal Flags =
 
     //let stripFSharpCoreReferences   = not (String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("mFSharp_StripFSharpCoreReferences")))
     let init() = doInit
-#endif
         
 open Flags
 
@@ -539,11 +526,12 @@ type SingleLineTokenState =
 
 /// Split a line into tokens and attach information about the tokens. This information is used by Visual Studio.
 [<Sealed>]
-type (* internal *) LineTokenizer(lexbuf: UnicodeLexing.Lexbuf, 
-                                  maxLength: int option,
-                                  filename : string, 
-                                  lexArgsLightOn : lexargs,
-                                  lexArgsLightOff : lexargs) = 
+type internal LineTokenizer(lexbuf: UnicodeLexing.Lexbuf, 
+                            maxLength: int option,
+                            filename : string, 
+                            lexArgsLightOn : lexargs,
+                            lexArgsLightOff : lexargs
+                            ) = 
 
     let skip = false   // don't skip whitespace in the lexer 
     

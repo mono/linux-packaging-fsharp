@@ -2,14 +2,11 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
-    <ProductVersion>10.0.0</ProductVersion>
-    <UsePartialTypes>False</UsePartialTypes>
   </PropertyGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowCrossTargeting>true</AllowCrossTargeting>
     <TargetFrameworkVersion Condition="'$(TargetFramework)'=='cli/2.0'">v3.5</TargetFrameworkVersion>
     <ReferenceMSBuildAssemblies>true</ReferenceMSBuildAssemblies>
@@ -23,6 +20,8 @@
     <OtherFlags>$(OtherFlags) --optimize- --maxerrors:100</OtherFlags>
     <DefineConstants>EXTENSIONTYPING;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <Compile Include="..\InternalCollections.fsi">
       <Link>Internal.Utilities.Collections.fsi</Link>

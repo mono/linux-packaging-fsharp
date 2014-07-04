@@ -1,15 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //-------------------------------------------------------------------------
 // Expression and Type Specifications.  These are what we save
@@ -191,6 +180,7 @@ let mkFieldSet ((d1,d2),tyargs,args) = CombExpr(FieldSetOp(d1,d2),tyargs,args)
 let mkCtorCall   (d,tyargs,args) = CombExpr(CtorCallOp(d),tyargs,args)
 let mkMethodCall (d,tyargs,args) = CombExpr(MethodCallOp(d),tyargs,args)
 let mkAttributedExpression(e,attr) = AttrExpr(e,[attr])
+let isAttributedExpression e = match e with AttrExpr(_, _) -> true | _ -> false
 
 //---------------------------------------------------------------------------
 // Pickle/unpickle expression and type specifications in a stable format

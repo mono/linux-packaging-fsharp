@@ -1,16 +1,8 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-         ToolsVersion="4.0">
-<!--
-# Copyright (c) 2002-2011 Microsoft Corporation. 
-#
--->
-
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFramework)'==''">net40</TargetFramework>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'sl5-compiler' ">
-    <ProjectFiles Include="fsharp\FSharp.Compiler.Silverlight\FSharp.Compiler.Silverlight.fsproj"/>
-  </ItemGroup>
 
   <!-- Compiler: .NET 2.0 and 4.0 only -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net40'">

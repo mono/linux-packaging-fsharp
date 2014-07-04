@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //----------------------------------------------------------------------------
 // Some general F# utilities for mangling / unmangling / manipulating names.
@@ -402,11 +393,13 @@ module internal Microsoft.FSharp.Compiler.PrettyNaming
         (nm.IndexOf '|' = 0) &&
         nm.Length >= 3 &&
         (nm.LastIndexOf '|' = nm.Length - 1) &&
-        (let core = nm.Substring(1,nm.Length - 2) 
-         // no operator characters except '|'
-         core |> String.forall (fun c -> c = '|' || not (opCharDict.ContainsKey c)) &&
-         // at least one non-operator character
-         core |> String.exists (fun c -> not (opCharDict.ContainsKey c)))
+        (
+           let core = nm.Substring(1, nm.Length - 2) 
+           // no operator characters except '|' and ' '
+           core |> String.forall (fun c -> c = '|' || c = ' ' || not (opCharDict.ContainsKey c)) &&
+           // at least one non-operator or space character
+           core |> String.exists (fun c -> c = ' ' || not (opCharDict.ContainsKey c))
+        )
 
     //IsActivePatternName "|+|" = false
     //IsActivePatternName "|ABC|" = true

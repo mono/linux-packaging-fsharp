@@ -1,15 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Compiler.Interactive
 
@@ -78,12 +67,8 @@ type InteractiveSession()  =
     let mutable evLoop = (new SimpleEventLoop() :> IEventLoop)
     let mutable showIDictionary = true
     let mutable showDeclarationValues = true
-    let mutable args =
-#if SILVERLIGHT
-        [|"fsi.exe"|]
-#else                   
-        System.Environment.GetCommandLineArgs()
-#endif            
+    let mutable args =                
+        System.Environment.GetCommandLineArgs()         
     let mutable fpfmt = "g10"
     let mutable fp = (System.Globalization.CultureInfo.InvariantCulture :> System.IFormatProvider)
     let mutable printWidth = 78
@@ -120,22 +105,16 @@ type InteractiveSession()  =
 
     member self.AddPrintTransformer(printer : 'T -> obj) =
       addedPrinters <- Choice2Of2 (typeof<'T>, (fun (x:obj) -> printer (unbox x))) :: addedPrinters
-
-#if SILVERLIGHT
-#else      
+    
 [<assembly: CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly", Scope="member", Target="Microsoft.FSharp.Compiler.Interactive.InteractiveSession.#ThreadException")>]
 do()
-#endif
   
   
 module Settings = 
     let fsi = new InteractiveSession()
-
-#if SILVERLIGHT
-#else      
+   
     [<assembly: AutoOpen("Microsoft.FSharp.Compiler.Interactive.Settings")>]
     do()
-#endif
 
 module RuntimeHelpers = 
     open System
@@ -145,6 +124,3 @@ module RuntimeHelpers =
     let SaveIt (x:'T) = (savedIt := (typeof<'T>, box x))
     let internal GetSavedIt () = snd !savedIt
     let internal GetSavedItType () = fst !savedIt
-#if SILVERLIGHT
-    let GetSimpleEventLoop() = new SimpleEventLoop() :> IEventLoop
-#endif

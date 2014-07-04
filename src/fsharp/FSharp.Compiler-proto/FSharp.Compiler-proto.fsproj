@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-# Copyright (c) 2002-2011 Microsoft Corporation. 
-#
-# 
-# 
-# 
-#
-#
-# You must not remove this notice, or any other, from this software.
--->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+         ToolsVersion="4.0">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
     <Configuration Condition=" '$(Configuration)' == '' ">Proto</Configuration>
-    <ProductVersion>10.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <UsePartialTypes>False</UsePartialTypes>
   </PropertyGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.Settings.targets" />
   <PropertyGroup>
@@ -31,8 +20,8 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <!-- MonoDevelop likes these here to recognise the configurations -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <FsSrGen Include="..\FSComp.txt">
       <Link>FSComp.txt</Link>
@@ -413,30 +402,36 @@
     <Compile Include="..\fscopts.fs">
       <Link>fscopts.fs</Link>
     </Compile>
+<!--
     <Compile Include="..\vs\IncrementalBuild.fsi">
       <Link>IncrementalBuild.fsi</Link>
     </Compile>
     <Compile Include="..\vs\IncrementalBuild.fs">
       <Link>IncrementalBuild.fs</Link>
     </Compile>
+-->
     <Compile Include="..\fsc.fs">
       <Link>fsc.fs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="Fsharp.Core" />
+    <Reference Include="FSharp.Core">
+      <HintPath>$(FSharpSourcesRoot)\..\lib\bootstrap\4.0\FSharp.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="Microsoft.Build.Framework" Condition="'$(TargetFramework)'=='net40'" />
+    <Reference Include="Microsoft.Build.Engine" Condition="'$(TargetFramework)'=='net40'" />
     <Reference Include="System.Numerics" Condition="'$(TargetFramework)' == 'net40'" />
     <Reference Include="ISymWrapper, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(TargetFramework)'=='net40'" />
     <Reference Include="Microsoft.Build" Condition="'$(TargetFramework)'=='net40'" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" Condition="'$(TargetFramework)'=='net40'" />
     <Reference Include="Microsoft.Build.Tasks.v4.0" Condition="'$(TargetFramework)'=='net40'" />
+
   </ItemGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
   <Import Project="$(LkgPath)\..\2.0\FSharp.PowerPack.targets" />

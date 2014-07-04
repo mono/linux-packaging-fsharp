@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Collections
     #nowarn "52" // The value has been copied to ensure the original is not mutated by this operation
@@ -229,7 +220,7 @@ namespace Microsoft.FSharp.Collections
                   if !index = unstarted then notStarted()
                   if !index = completed then alreadyFinished()
                   match box !current with 
-                  | null -> current := Lazy.Create(fun () -> f !index); 
+                  | null -> current := Lazy<_>.Create(fun () -> f !index); 
                   | _ ->  ()
                   // forced or re-forced immediately.          
                   (!current).Force() 
@@ -1194,17 +1185,24 @@ namespace Microsoft.FSharp.Collections
         let windowed windowSize (source: seq<_>) =    
             checkNonNull "source" source
             if windowSize <= 0 then invalidArg "windowSize" (SR.GetString(SR.inputMustBeNonNegative))
-            seq { let arr = Microsoft.FSharp.Primitives.Basics.Array.zeroCreateUnchecked windowSize 
-                  let r = ref (windowSize-1)
-                  let i = ref 0 
-                  use e = source.GetEnumerator() 
-                  while e.MoveNext() do 
-                      arr.[!i] <- e.Current
-                      i := (!i + 1) % windowSize
-                      if !r = 0 then 
-                          yield Array.init windowSize (fun j -> arr.[(!i+j) % windowSize])
-                      else 
-                      r := (!r - 1) }
+            seq { 
+                let arr = Array.zeroCreateUnchecked windowSize
+                let r = ref (windowSize - 1)
+                let i = ref 0
+                use e = source.GetEnumerator()
+                while e.MoveNext() do
+                    arr.[!i] <- e.Current
+                    i := (!i + 1) % windowSize
+                    if !r = 0 then
+                        if windowSize < 32 then
+                            yield Array.init windowSize (fun j -> arr.[(!i+j) % windowSize])
+                        else
+                            let result = Array.zeroCreateUnchecked windowSize
+                            Array.Copy(arr, !i, result, 0, windowSize - !i)
+                            Array.Copy(arr, 0, result, windowSize - !i, !i)
+                            yield result
+                    else r := (!r - 1)
+            }
 
         [<CompiledName("Cache")>]
         let cache (source : seq<'T>) = 

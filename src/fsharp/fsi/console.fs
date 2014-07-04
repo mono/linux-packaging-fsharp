@@ -1,5 +1,4 @@
-// Copyright (c) Microsoft Corporation. Apache 2.0 License.
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Compiler.Interactive
 
@@ -444,7 +443,11 @@ type internal ReadLineConsole() =
                 change()
             // Control-d
             | (ConsoleModifiers.Control, '\004') ->
-                exit 0 //quit
+                if (input.Length = 0) then
+                    exit 0 //quit
+                else
+                    delete()
+                    change()
             | _ ->
                 // Note: If KeyChar=0, the not a proper char, e.g. it could be part of a multi key-press character,
                 //       e.g. e-acute is ' and e with the French (Belgium) IME and US Intl KB.

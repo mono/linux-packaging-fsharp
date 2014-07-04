@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module FSharp.Core.Unittests.LibraryTestFx
 
@@ -49,6 +50,7 @@ let CheckThrowsArgumentNullException f = CheckThrowsExn<ArgumentNullException>  
 let CheckThrowsArgumentNullException2 s f  = CheckThrowsExn2<ArgumentNullException>  s  f
 let CheckThrowsKeyNotFoundException  f = CheckThrowsExn<KeyNotFoundException>     f
 let CheckThrowsDivideByZeroException f = CheckThrowsExn<DivideByZeroException>    f
+let CheckThrowsOverflowException     f = CheckThrowsExn<OverflowException>        f
 let CheckThrowsInvalidOperationExn   f = CheckThrowsExn<InvalidOperationException> f
 let CheckThrowsFormatException       f = CheckThrowsExn<FormatException>           f
 

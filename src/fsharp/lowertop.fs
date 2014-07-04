@@ -1,14 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.Lowertop 
 
@@ -82,13 +72,13 @@ let mkUnitDelayLambda g m e =
 
 let callNonOverloadedMethod g amap m methName ty args =
     match TryFindIntrinsicMethInfo (InfoReader(g,amap)) m AccessibleFromSomeFSharpCode methName ty  with 
-    | [] -> error(InternalError("No method called '"^methName^"' was found",m));
+    | [] -> error(InternalError("No method called '"+methName+"' was found",m));
     | ILMeth(g,ilMethInfo,_) :: _  -> 
         // REVIEW: consider if this should ever be a constrained call. At the moment typecheck limitations in the F# typechecker
         // ensure the enumerator type used within computation expressions is not a struct type
         BuildILMethInfoCall g amap m false ilMethInfo NormalValUse  [] false args |> fst
     | _  -> 
-        error(InternalError("The method called '"^methName^"' resolved to a non-IL type",m))
+        error(InternalError("The method called '"+methName+"' resolved to a non-IL type",m))
                 
 
 type LoweredSeqFirstPhaseResult = 

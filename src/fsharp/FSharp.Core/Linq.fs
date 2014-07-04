@@ -1,8 +1,4 @@
-// Copyright (c) Microsoft Corporation 2005-2008.
-// This sample code is provided "as is" without warranty of any kind. 
-// We disclaim all warranties, either express or implied, including the 
-// warranties of merchantability and fitness for a particular purpose. 
-//
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #nowarn "1204"
 
@@ -151,6 +147,11 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
 open Microsoft.FSharp.Quotations.DerivedPatterns
 
+#if FX_RESHAPED_REFLECTION
+open PrimReflectionAdapters
+open ReflectionAdapters
+#endif
+
 module LeafExpressionConverter =
 
     // The following is recognized as a LINQ 'member intialization pattern' in a quotation.
@@ -197,7 +198,12 @@ module LeafExpressionConverter =
         let d = Map.ofArray (Array.zip x y) 
         q.Substitute(fun v -> v |> d.TryFind |> Option.map (fun x -> Expr.Value(x, v.Type))) |> Expr.Cast
  
-    let showAll = BindingFlags.Public ||| BindingFlags.NonPublic 
+    let showAll = 
+#if FX_RESHAPED_REFLECTION
+        true
+#else
+        BindingFlags.Public ||| BindingFlags.NonPublic 
+#endif
 
     let NullableConstructor   = typedefof<Nullable<int>>.GetConstructors().[0]
 
@@ -212,7 +218,7 @@ module LeafExpressionConverter =
 #if FX_NO_REFLECTION_METADATA_TOKENS
 #else
                         minfo.MetadataToken = minfo2.MetadataToken &&
-#endif                                          
+#endif
                         if isg1 then minfo2.IsGenericMethod && gmd = minfo2.GetGenericMethodDefinition()
                         else minfo = minfo2
                      ) -> 
@@ -403,20 +409,10 @@ module LeafExpressionConverter =
         | Patterns.Coerce(x, toTy) -> 
             let converted = ConvExprToLinqInContext env x 
             
-            // Linq to Entities doesn't like 'TypeAs' expressions (coercion from
-            // IQueryable<T> to IEnumerable<T>) that are generated e.g. in:
-            //
-            //     seq { for p in dx.Products do
-            //                for c in dx.Categories do yield p }
-            //
-            // However, the expression tree has 'C# semantics' so we don't need 
-            // explicit TypeAs if the coercion is statically type-safe. The rules are subtle,
-            // so we don't generate TypeAs (at least) in a simple case when both are 
-            // reference types and the assignment is statically safe.
-            // (see also ``Join using nested 'for' with 'String.Concat' call`` test in v40 build)
-
-            if not toTy.IsValueType && not x.Type.IsValueType && toTy.IsAssignableFrom(x.Type) then converted
-            else Expression.TypeAs(ConvExprToLinqInContext env x, toTy) |> asExpr
+            // Most of conversion scenarios in C# are covered by Expression.Convert
+            if x.Type.Equals toTy then converted // source and target types match - do nothing
+            elif not (x.Type.IsValueType || toTy.IsValueType) && toTy.IsAssignableFrom x.Type then converted // converting reference type to supertype - do nothing
+            else Expression.Convert(converted, toTy) |> asExpr // emit Expression.Convert
 
         | Patterns.TypeTest(x, toTy) -> 
             Expression.TypeIs(ConvExprToLinqInContext env x, toTy) |> asExpr
@@ -733,15 +729,19 @@ module LeafExpressionConverter =
         | Patterns.Lambda(v, body) -> 
             let vP = ConvVarToLinq v
             let env = { env with varEnv = Map.add v (vP |> asExpr) env.varEnv }
+            let bodyP = ConvExprToLinqInContext env body
+            let lambdaTy, tyargs =
+                if bodyP.Type = typeof<System.Void> then
+                    let tyargs = [| vP.Type |]
+                    typedefof<Action<_>>, tyargs
+                else
+                    let tyargs = [| vP.Type; bodyP.Type |]
 #if FX_NO_CONVERTER             
-            let tyargs = [| v.Type; body.Type |]
-            let bodyP = ConvExprToLinqInContext env body    
-            let convType = typedefof<Func<_, _>>.MakeGenericType tyargs
+                    typedefof<Func<_, _>>, tyargs
 #else
-            let tyargs = [| v.Type; body.Type |]
-            let bodyP = ConvExprToLinqInContext env body   
-            let convType = typedefof<System.Converter<obj, obj>>.MakeGenericType tyargs
+                    typedefof<System.Converter<_, _>>, tyargs
 #endif            
+            let convType = lambdaTy.MakeGenericType tyargs
             let convDelegate = Expression.Lambda(convType, bodyP, [| vP |]) |> asExpr
             Expression.Call(typeof<FuncConvert>,"ToFSharpFunc", tyargs,[| convDelegate |]) |> asExpr
 

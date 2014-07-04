@@ -1,17 +1,8 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 {
 
 module internal Microsoft.FSharp.Compiler.Lexer
-
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
 // The Lexer.  Some of the complication arises from the fact it is 
@@ -152,6 +143,10 @@ let tryAppendXmlDoc (buff:option<System.Text.StringBuilder>) (s:string) =
 
 let shouldStartLine args lexbuf (m:range) err tok = 
     if (m.StartColumn <> 0) then fail args lexbuf err tok
+    else tok
+    
+let shouldStartFile args lexbuf (m:range) err tok = 
+    if (m.StartColumn <> 0 || m.StartLine <> 1) then fail args lexbuf err tok
     else tok
     
 let extractIdentFromHashIf (lexed:string) =
@@ -583,6 +578,11 @@ rule token args skip = parse
  | ignored_op_char* ('!' | '~' )               op_char* { checkExprOp lexbuf; PREFIX_OP(lexeme lexbuf) }
  | ".[]"  | ".[]<-" | ".[,]<-" | ".[,,]<-" | ".[,,,]<-" | ".[,,,]" | ".[,,]" | ".[,]" | ".[..]" | ".[..,..]" | ".[..,..,..]" | ".[..,..,..,..]"
  | ".()"  | ".()<-"  { FUNKY_OPERATOR_NAME(lexeme lexbuf) }
+ | "#!" op_char* 
+   { // Treat shebangs like regular comments, but they are only allowed at the start of a file
+       let m = lexbuf.LexemeRange
+       let tok = shouldStartFile args lexbuf m (0,FSComp.SR.lexHashBangMustBeFirstInFile()) (LINE_COMMENT (LexCont.SingleLineComment(!args.ifdefStack,1,m)))
+       if not skip then tok else singleLineComment (None,1,m,args) skip lexbuf }
 
  | "#light" anywhite* 
  | ("#indent" | "#light") anywhite+ "\"on\""

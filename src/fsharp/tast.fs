@@ -1,14 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
   
 module internal Microsoft.FSharp.Compiler.Tast 
 
@@ -2975,7 +2965,7 @@ and
       TypeForwarders : CcuTypeForwarderTable }
 
 /// Represents a table of .NET CLI type forwarders for an assembly
-and CcuTypeForwarderTable = Lazy<Map<string[] * string, EntityRef>>
+and CcuTypeForwarderTable = Map<string[] * string, Lazy<EntityRef>>
 
 and CcuReference =  string // ILAssemblyRef
 
@@ -3054,7 +3044,7 @@ and CcuThunk =
     member ccu.Contents            = ccu.Deref.Contents
 
     /// The table of type forwarders for this assembly
-    member ccu.TypeForwarders : Map<string[] * string, EntityRef>  = ccu.Deref.TypeForwarders.Force()
+    member ccu.TypeForwarders : Map<string[] * string, Lazy<EntityRef>>  = ccu.Deref.TypeForwarders
 
     /// The table of modules and namespaces at the "root" of the assembly
     member ccu.RootModulesAndNamespaces = ccu.Contents.ModuleOrNamespaceType.ModuleAndNamespaceDefinitions
@@ -3094,7 +3084,9 @@ and CcuThunk =
     /// Try to resolve a path into the CCU by referencing the .NET/CLI type forwarder table of the CCU
     member ccu.TryForward(nlpath:string[],item:string) : EntityRef option  = 
         ccu.EnsureDerefable(nlpath)
-        ccu.TypeForwarders.TryFind(nlpath,item) 
+        match ccu.TypeForwarders.TryFind(nlpath,item) with
+        | Some entity -> Some(entity.Force())
+        | None -> None
         //printfn "trying to forward %A::%s from ccu '%s', res = '%A'" p n ccu.AssemblyName res.IsSome
 
     /// Used to make forward calls into the type/assembly loader when comparing member signatures during linking

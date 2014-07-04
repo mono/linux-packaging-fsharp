@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.AbstractIL.Internal.Support 
 
@@ -15,13 +6,6 @@ module internal Microsoft.FSharp.Compiler.AbstractIL.Internal.Support
 let DateTime1970Jan01 = new System.DateTime(1970,1,1,0,0,0,System.DateTimeKind.Utc) (* ECMA Spec (Oct2002), Part II, 24.2.2 PE File Header. *)
 let absilWriteGetTimeStamp () = (System.DateTime.UtcNow - DateTime1970Jan01).TotalSeconds |> int
 
-
-#if SILVERLIGHT
-type PdbReader = | NeverImplemented
-let pdbReadClose (_pdb:PdbReader) = ()
-type PdbWriter = | NeverImplemented
-let pdbInitialize (_:string) (_:string) = PdbWriter.NeverImplemented
-#else
 
 open Internal.Utilities
 open Microsoft.FSharp.Compiler.AbstractIL 
@@ -53,9 +37,9 @@ let check _action (hresult) =
 // of the debug symbols file. This function takes output file name and returns debug file name.
 let getDebugFileName outfile = 
   if IL.runningOnMono then 
-      outfile^".mdb"
+      outfile+".mdb"
   else 
-      (Filename.chopExtension outfile)^".pdb" 
+      (Filename.chopExtension outfile)+".pdb" 
 
 type PEFileType = X86 | X64
 
@@ -897,8 +881,8 @@ type IMetadataEmit =
 [< Guid("B01FAFEB-C450-3A4D-BEEC-B4CEEC01E006") ; InterfaceType(ComInterfaceType.InterfaceIsIUnknown) >]
 [< ComVisible(false) >]
 type ISymUnmanagedDocumentWriter =
-    abstract SetSource : sourceSize : int * source : byte[] -> unit
-    abstract SetCheckSum : algorithmId : System.Guid * checkSumSize : int * checkSum : byte [] -> unit
+    abstract SetSource : sourceSize : int *  [<MarshalAs(UnmanagedType.LPArray)>] source : byte[] -> unit
+    abstract SetCheckSum : algorithmId : System.Guid * checkSumSize : int * [<MarshalAs(UnmanagedType.LPArray)>]  checkSum : byte [] -> unit
 
 // Struct used to retrieve info on the debug output    
 [<Struct; StructLayout(LayoutKind.Sequential)>]
@@ -1023,7 +1007,6 @@ type ISymUnmanagedWriter2 =
                           isect : int *
                           offset : int -> unit
 
-
 type PdbWriter = { symWriter : ISymUnmanagedWriter2 }
 type PdbDocumentWriter = { symDocWriter : ISymUnmanagedDocumentWriter }  (* pointer to pDocumentWriter COM object *)
 
@@ -1060,6 +1043,10 @@ let pdbInitialize (binaryName:string) (pdbName:string) =
 [<assembly:System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", Scope="member", Target="Microsoft.FSharp.Compiler.AbstractIL.Internal.Support.#pdbClose(Microsoft.FSharp.Compiler.AbstractIL.Internal.Support+PdbWriter)", MessageId="System.GC.Collect")>]
 do()
 
+let pdbCloseDocument(documentWriter : PdbDocumentWriter) = 
+    Marshal.ReleaseComObject (documentWriter.symDocWriter)
+    |> ignore
+
 [<System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId="System.GC.Collect")>]
 let pdbClose (writer:PdbWriter) =
     writer.symWriter.Close()
@@ -1071,7 +1058,6 @@ let pdbClose (writer:PdbWriter) =
     // The SymReader class gets around this problem  by implementing the ISymUnmanagedDispose
     // interface, which the SymWriter class, unfortunately, does not.
     // Right now, take the same approach as mdbg, and manually forcing a collection.
-      
     let rc = Marshal.ReleaseComObject(writer.symWriter)
     for i = 0 to (rc - 1) do
       Marshal.ReleaseComObject(writer.symWriter) |> ignore
@@ -1091,6 +1077,23 @@ let pdbClose (writer:PdbWriter) =
 let pdbSetUserEntryPoint (writer:PdbWriter) (entryMethodToken:int32) =
     writer.symWriter.SetUserEntryPoint((uint32)entryMethodToken)
 
+// Document checksum algorithms
+
+let guidSourceHashMD5 = System.Guid(0x406ea660u, 0x64cfus, 0x4c82us, 0xb6uy, 0xf0uy, 0x42uy, 0xd4uy, 0x81uy, 0x72uy, 0xa7uy, 0x99uy) //406ea660-64cf-4c82-b6f0-42d48172a799
+let hashSizeOfMD5 = 16
+
+// If the FIPS algorithm policy is enabled on the computer (e.g., for US government employees and contractors)
+// then obtaining the MD5 implementation in BCL will throw. 
+// In this case, catch the failure, and not set a checksum. 
+let internal setCheckSum (url:string, writer:ISymUnmanagedDocumentWriter) =
+    try
+        use file = new FileStream(url, FileMode.Open, FileAccess.Read, FileShare.Read)
+        use md5 = System.Security.Cryptography.MD5.Create()
+        let checkSum = md5.ComputeHash(file)
+        if (checkSum.Length = hashSizeOfMD5) then
+            writer.SetCheckSum (guidSourceHashMD5, hashSizeOfMD5, checkSum)
+    with _ -> ()
+
 let pdbDefineDocument (writer:PdbWriter) (url:string) = 
      //3F5162F8-07C6-11D3-9053-00C04FA302A1
     //let mutable corSymLanguageTypeCSharp = System.Guid(0x3F5162F8u, 0x07C6us, 0x11D3us, 0x90uy, 0x53uy, 0x00uy, 0xC0uy, 0x4Fuy, 0xA3uy, 0x02uy, 0xA1uy)
@@ -1099,6 +1102,7 @@ let pdbDefineDocument (writer:PdbWriter) (url:string) =
     let mutable corSymDocumentTypeText = System.Guid(0x5a869d0bu, 0x6611us, 0x11d3us, 0xbduy, 0x2auy, 0x0uy, 0x0uy, 0xf8uy, 0x8uy, 0x49uy, 0xbduy)
     let mutable docWriter = Unchecked.defaultof<ISymUnmanagedDocumentWriter>
     writer.symWriter.DefineDocument(url, &corSymLanguageTypeFSharp, &corSymLanguageVendorMicrosoft, &corSymDocumentTypeText, &docWriter)
+    setCheckSum (url, docWriter)
     { symDocWriter = docWriter }
 
 let pdbOpenMethod (writer:PdbWriter) (methodToken:int32) = 
@@ -1181,7 +1185,7 @@ let pdbReadOpen (moduleName:string) (path:string) :  PdbReader =
         with _ ->  
             { symReader = null } 
 #else 
-        let symbolBinder = System.Diagnostics.SymbolStore.SymBinder() 
+        let symbolBinder = new System.Diagnostics.SymbolStore.SymBinder() 
         { symReader = symbolBinder.GetReader(importerPtr, moduleName, path) } 
 #endif
     finally
@@ -1486,4 +1490,3 @@ let signerSignFileWithKeyContainer fileName kcName =
     let iclrSN = getICLRStrongName()
     iclrSN.StrongNameSignatureGeneration(fileName, kcName, Unchecked.defaultof<byte[]>, 0u, ppb, &pcb) |> ignore
     iclrSN.StrongNameSignatureVerificationEx(fileName, true, &ok) |> ignore
-#endif

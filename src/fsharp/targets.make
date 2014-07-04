@@ -1,209 +1,114 @@
 SOURCES := $(patsubst $(srcdir)$(tmpdir)%,$(tmpdir)%,$(patsubst %,$(srcdir)%,$(sources)))
 
-.PHONY: install install-bin install-bin-2 install-bin-4 install-lib
+.PHONY: install install-lib-net20 install-lib-monodroid install-lib-net40
 
-clean-2-0: TARGET := $(TARGET_2_0)
-clean-2-0:
-	-rm -rf $(tmpdir)
-	-rm -rf $(objdir)
-	-rm -f $(outdir)$(ASSEMBLY)
-	-rm -f $(outdir)$(ASSEMBLY).mdb
-	-rm -f $(outdir)$(NAME).xml
-	-rm -f $(outdir)$(NAME).sigdata
-	-rm -f $(outdir)$(NAME).optdata
+build:
+	MONO_ENV_OPTIONS=$(monoopts) xbuild /p:Configuration=$(Configuration) /p:TargetFramework=$(TargetFramework) /p:MonoLibDir40=$(monogacdir40) /p:FSharpCoreBackVersion=$(FSharpCoreBackVersion)
 
-clean-2-1: TARGET := $(TARGET_2_1)
-clean-2-1:
-	-rm -rf $(tmpdir)
-	-rm -rf $(objdir)
-	-rm -f $(outdir)$(ASSEMBLY)
-	-rm -f $(outdir)$(ASSEMBLY).mdb
-	-rm -f $(outdir)$(NAME).xml
-	-rm -f $(outdir)$(NAME).sigdata
-	-rm -f $(outdir)$(NAME).optdata
-
-clean-4-0: TARGET := $(TARGET_4_0)
-clean-4-0:
-	-rm -rf $(tmpdir)
-	-rm -rf $(objdir)
-	-rm -f $(outdir)$(ASSEMBLY)
-	-rm -f $(outdir)$(ASSEMBLY).mdb
-	-rm -f $(outdir)$(NAME).xml
-	-rm -f $(outdir)$(NAME).sigdata
-	-rm -f $(outdir)$(NAME).optdata
-
-do-2-0: DEFINES += $(DEFINES_2_0)
-do-2-0: REFERENCES += $(REFERENCES_2_0)
-do-2-0: FLAGS += $(FLAGS_2_0)
-do-2-0: TARGET := $(TARGET_2_0)
-do-2-0: VERSION := $(VERSION_2_0)
-do-2-0: monogacdirXX = $(monogacdir20)
-do-2-0: gacdirXX = $(gacdir20)
-do-2-0: $(objdir) $(objdir)$(TARGET_2_0) $(objdir)$(TARGET_4_0) $(objdir)$(TARGET_2_0)/$(ASSEMBLY)
-	@mkdir -p $(outdir)
-	@cp $(objdir)$(ASSEMBLY) $(outdir)
-	@if test -e $(objdir)$(ASSEMBLY).xml; then \
-	    cp $(objdir)$(NAME).xml $(outdir); \
-	fi
-	@if test -e $(objdir)$(ASSEMBLY).mdb; then \
-	    cp $(objdir)$(ASSEMBLY).mdb $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).sigdata; then \
-		cp $(objdir)$(NAME).sigdata $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).optdata; then \
-		cp $(objdir)$(NAME).optdata $(outdir); \
-	fi
-	@if test "x$(DELAY_SIGN)" = "x1"; then \
-		sn -q -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk; \
-	fi
-
-do-2-1: DEFINES += $(DEFINES_2_1)
-do-2-1: REFERENCES += $(REFERENCES_2_1)
-do-2-1: FLAGS += $(FLAGS_2_1)
-do-2-1: TARGET := $(TARGET_2_1)
-do-2-1: VERSION := $(VERSION_2_1)
-do-2-1: monogacdirXX = $(monogacdir20)
-do-2-1: gacdirXX = $(gacdir20)
-do-2-1: $(objdir) $(objdir)$(TARGET_2_1) $(objdir)$(TARGET_4_0) $(objdir)$(TARGET_2_1)/$(ASSEMBLY)
-	@mkdir -p $(outdir)
-	@cp $(objdir)$(ASSEMBLY) $(outdir)
-	@if test -e $(objdir)$(NAME).xml; then \
-	    cp $(objdir)$(NAME).xml $(outdir); \
-	fi
-	@if test -e $(objdir)$(ASSEMBLY).mdb; then \
-	    cp $(objdir)$(ASSEMBLY).mdb $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).sigdata; then \
-		cp $(objdir)$(NAME).sigdata $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).optdata; then \
-		cp $(objdir)$(NAME).optdata $(outdir); \
-	fi
-	@if test "x$(DELAY_SIGN)" = "x1"; then \
-		sn -q -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk; \
-	fi
-
-do-4-0: DEFINES += $(DEFINES_4_0)
-do-4-0: REFERENCES += $(REFERENCES_4_0)
-do-4-0: FLAGS += $(FLAGS_4_0)
-do-4-0: TARGET := $(TARGET_4_0)
-do-4-0: VERSION := $(VERSION_4_0)
-do-4-0: monogacdirXX = $(monogacdir40)
-do-4-0: gacdirXX = $(gacdir40)
-do-4-0: $(objdir) $(objdir)$(TARGET_2_0) $(objdir)$(TARGET_4_0) $(objdir)$(TARGET_4_0)/$(ASSEMBLY)
-	@mkdir -p $(outdir)
-	@cp $(objdir)$(ASSEMBLY) $(outdir)
-	@if test -e $(objdir)$(NAME).xml; then \
-	    cp $(objdir)$(NAME).xml $(outdir); \
-	fi
-	@if test -e $(objdir)$(ASSEMBLY).mdb; then \
-	    cp $(objdir)$(ASSEMBLY).mdb $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).sigdata; then \
-		cp $(objdir)$(NAME).sigdata $(outdir); \
-	fi
-	@if test -e $(objdir)$(NAME).optdata; then \
-		cp $(objdir)$(NAME).optdata $(outdir); \
-	fi
-	@if test "x$(DELAY_SIGN)" = "x1"; then \
-		sn -q -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk; \
-	fi
-	@if test -e Microsoft.FSharp.Targets; then \
-		cp Microsoft.FSharp.Targets $(outdir)Microsoft.FSharp.Targets; \
-	fi
-	@if test -e Microsoft.Portable.FSharp.Targets; then \
-		cp Microsoft.Portable.FSharp.Targets $(outdir)Microsoft.Portable.FSharp.Targets; \
-	fi
-
-install-lib-2: TARGET := $(TARGET_2_0)
-install-lib-2: VERSION := $(VERSION_2_0)
-
-install-lib-2-1: TARGET := $(TARGET_2_1)
-install-lib-2-1: VERSION := $(VERSION_2_1)
-
-install-lib-4: TARGET := $(TARGET_4_0)
-install-lib-4: VERSION := $(VERSION_4_0)
-
-install-bin-2: TARGET := $(TARGET_2_0)
-install-bin-2: VERSION := 2
-
-install-bin-2-1: TARGET := $(TARGET_2_1)
-install-bin-2-1: VERSION := 2.1
-
-install-bin-4: TARGET := $(TARGET_4_0)
-
+clean:
+	xbuild /p:Configuration=$(Configuration) /p:TargetFramework=$(TargetFramework) /t:Clean
 
 # Install the library binaries in the GAC and the framework directory, 
 # Install .optdata/.sigdata if they exist (they go alongside FSharp.Core)
 # Install the .Targets file. The XBuild targets file gets installed into the place(s) expected for standard F# project
 # files. For F# 2.0 project files this is
-#     .../Microsoft F#/v4.0/Microsoft.FSharp.Targets
+#     /usr/lib/mono/Microsoft F#/v4.0/Microsoft.FSharp.Targets
 # For F# 3.0 project files this is
-#     .../Microsoft SDKs/F#/3.0/Framework/v4.0/Microsoft.FSharp.Targets
-# 
+#     /usr/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0/Microsoft.FSharp.Targets
 # For F# 3.1 project files this is
-#     .../lib/mono/xbuild/Microsoft/VisualStudio/v$(VisualStudioVersion)/FSharp/Microsoft.FSharp.Targets
+#     /usr/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp/Microsoft.FSharp.Targets
 # 
-# xbuild sets 'VisualStudioVersion' to empty.
+# Here 12.0 is 'VisualStudioVersion'. xbuild should set this to 12.0, copying MSBuild.
+#
+# We put the F# 3.1 targets and link the SDK DLLs for all three locations
 #
 # We put a forwarding targets file into all three locations. We also put one in 
 #     .../lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp/Microsoft.FSharp.Targets
 # since this is the correct location, and 'xbuild' may in future start setting VisualStudioVersion to this value.
-install-lib-2 install-lib-2-1 install-lib-4:
+
+install-lib:
 	@echo "Installing $(ASSEMBLY)"
 	@mkdir -p $(DESTDIR)$(gacdir)/$(TARGET)
-	gacutil -i $(outdir)$(ASSEMBLY) -root $(DESTDIR)$(libdir) -package $(TARGET)
-	@if test -e $(outdir)Microsoft.FSharp.Targets; then \
-	    $(INSTALL_LIB) $(outdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/$(TARGET)/; \
+	@if test "x$(DELAY_SIGN)" = "x1"; then \
+	    echo "Signing $(outdir)$(ASSEMBLY) with Mono key"; \
+	    sn -q -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk; \
+	fi
+	@if test x-$(NAME) = x-FSharp.Build; then \
+	    echo "Installing Microsoft.FSharp.Targets and Microsoft.Portable.FSharp.Targets into install locations matching Visual Studio"; \
+	    echo " --> $(DESTDIR)$(gacdir)/$(TARGET)/"; \
+	    echo " --> $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/"; \
+	    echo " --> $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v$(TARGET)/"; \
+	    echo " --> $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v$(TARGET)/"; \
+	    echo " --> $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/"; \
+	    echo " --> $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/"; \
+	    \
 	    mkdir -p $(tmpdir); \
-	    echo '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">' > $(tmpdir)Microsoft.FSharp.Targets; \
-	    echo '    <Import Project="$(gacdir)/$(TARGET)/Microsoft.FSharp.Targets" />' >> $(tmpdir)Microsoft.FSharp.Targets; \
-	    echo '</Project>' >> $(tmpdir)Microsoft.FSharp.Targets; \
 	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
 	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v$(TARGET)/; \
 	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v$(TARGET)/; \
 	    mkdir -p $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/; \
 	    mkdir -p $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
+	    \
+	    $(INSTALL_LIB) $(outdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/$(TARGET)/; \
+	    $(INSTALL_LIB) $(outdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/$(TARGET)/; \
+	    \
+	    echo '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">' > $(tmpdir)Microsoft.FSharp.Targets; \
+	    echo '    <Import Project="$(gacdir)/$(TARGET)/Microsoft.FSharp.Targets" />' >> $(tmpdir)Microsoft.FSharp.Targets; \
+	    echo '</Project>' >> $(tmpdir)Microsoft.FSharp.Targets; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/; \
-	fi
-	@if test -e $(outdir)Microsoft.Portable.FSharp.Targets; then \
-	    $(INSTALL_LIB) $(outdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/$(TARGET)/; \
+	    \
 	    echo '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">' > $(tmpdir)Microsoft.Portable.FSharp.Targets; \
 	    echo '    <Import Project="$(gacdir)/$(TARGET)/Microsoft.Portable.FSharp.Targets" />' >> $(tmpdir)Microsoft.Portable.FSharp.Targets; \
 		echo '</Project>' >> $(tmpdir)Microsoft.Portable.FSharp.Targets; \
-	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v$(TARGET)/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v$(TARGET)/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/; \
-	    mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v$(TARGET)/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/; \
 	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/; \
-	fi
-	@if test -e $(outdir)$(NAME).xml; then \
-		$(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN); \
+	    \
+	    echo $(INSTALL_LIB) $(outdir)$(ASSEMBLY) $(DESTDIR)$((gacdir)/$(TARGET); \
+	    $(INSTALL_LIB) $(outdir)$(ASSEMBLY) $(DESTDIR)$(gacdir)/$(TARGET); \
+	    $(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/$(TARGET); \
+	else \
+	    gacutil -i $(outdir)$(ASSEMBLY) -root $(DESTDIR)$(libdir) -package $(TARGET); \
+	    if test -e $(outdir)$(NAME).xml; then \
+		$(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN)/; \
 		ln -fs  ../gac/$(NAME)/$(VERSION)__$(TOKEN)/$(NAME).xml $(DESTDIR)$(gacdir)/$(TARGET)/$(NAME).xml; \
+	    fi; \
 	fi
 	@if test -e $(outdir)$(NAME).sigdata; then \
-		$(INSTALL_LIB) $(outdir)$(NAME).sigdata $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN); \
+		$(INSTALL_LIB) $(outdir)$(NAME).sigdata $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN)/; \
 		ln -fs  ../gac/$(NAME)/$(VERSION)__$(TOKEN)/$(NAME).sigdata $(DESTDIR)$(gacdir)/$(TARGET)/$(NAME).sigdata; \
-	fi
-	@if test -e $(outdir)$(NAME).optdata; then \
-		$(INSTALL_LIB) $(outdir)$(NAME).optdata $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN); \
+		$(INSTALL_LIB) $(outdir)$(NAME).optdata $(DESTDIR)$(gacdir)/gac/$(NAME)/$(VERSION)__$(TOKEN)/; \
 		ln -fs ../gac/$(NAME)/$(VERSION)__$(TOKEN)/$(NAME).optdata $(DESTDIR)$(gacdir)/$(TARGET)/$(NAME).optdata; \
 	fi
+	@if test x-$(PCLPATH) != x- &&  test x-$(NAME) = x-FSharp.Core; then \
+	    echo "Installing FSharp.Core $(VERSION) PCL assembly into install location matching Visual Studio"; \
+	    echo " --> $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION)"; \
+	    mkdir -p $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION); \
+	    $(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION)/$(NAME).xml; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).sigdata $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION)/$(NAME).sigdata; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).optdata $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION)/$(NAME).optdata; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).dll $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/$(PCLPATH)/$(VERSION)/$(NAME).dll; \
+	fi
+	@if test x-$(PCLPATH) != x- &&  test x-$(NAME) = x-FSharp.Core && test x-$(FSharpCoreBackVersion) = x-3.0 ; then \
+	    echo "Installing FSharp.Core $(VERSION) PCL assembly into install location matching Visual Studio 2012"; \
+	    echo " --> $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)"; \
+	    mkdir -p $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH); \
+	    $(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).xml; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).sigdata $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).sigdata; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).optdata $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).optdata; \
+	    $(INSTALL_LIB) $(outdir)$(NAME).dll $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).dll; \
+	fi
 
-install-lib-4-5: install-lib-4
-	@if test -e $(DESTDIR)$(gacdir)/4.5/; then \
+# Also place some .NET 4.0 libraries into .NET 4.5
+install-lib-net45: 
+	@if test '$(TargetFramework)' = 'net40'; then \
+	  if test -e $(DESTDIR)$(gacdir)/4.5/; then \
 		ln -fs ../4.0/$(ASSEMBLY) $(DESTDIR)$(gacdir)/4.5/$(ASSEMBLY); \
 		if test -e $(DESTDIR)$(gacdir)/4.0/$(ASSEMBLY).config; then \
 		    ln -fs ../4.0/$(ASSEMBLY).config $(DESTDIR)$(gacdir)/4.5/$(ASSEMBLY).config; \
@@ -217,28 +122,18 @@ install-lib-4-5: install-lib-4
 		if test -e $(DESTDIR)$(gacdir)/4.0/$(NAME).optdata; then \
 		    ln -fs ../4.0/$(NAME).optdata $(DESTDIR)$(gacdir)/4.5/$(NAME).optdata; \
 		fi; \
+	  fi \
 	fi
 
 # The binaries fsc.exe and fsi.exe only get installed for Mono 4.0 profile
 # This also installs 'fsharpc' and 'fsharpi'
-install-bin-4:
+install-bin:
 	chmod +x $(outdir)$(ASSEMBLY)
-	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
-	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
+	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
+	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))
 	@mkdir -p $(DESTDIR)$(gacdir)/$(TARGET)
 	@mkdir -p $(DESTDIR)$(bindir)
 	$(INSTALL_BIN) $(outdir)$(ASSEMBLY) $(DESTDIR)$(gacdir)/$(TARGET)
-	$(INSTALL_BIN) $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION) $(DESTDIR)$(bindir)
+	$(INSTALL_BIN) $(outdir)$(subst fs,fsharp,$(NAME)) $(DESTDIR)$(bindir)
 
 
-$(objdir) $(objdir)$(TARGET_2_0) $(objdir)$(TARGET_2_1) $(objdir)$(TARGET_4_0):
-	mkdir -p $@
-
-$(objdir)$(TARGET_2_0)/$(ASSEMBLY): $(RESOURCES) $(SOURCES)
-	mono $(MONO_OPTIONS) $(FSC) -o:$(objdir)$(ASSEMBLY) $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
-
-$(objdir)$(TARGET_2_1)/$(ASSEMBLY): $(RESOURCES) $(SOURCES)
-	mono $(MONO_OPTIONS) $(FSC) -o:$(objdir)$(ASSEMBLY) $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
-
-$(objdir)$(TARGET_4_0)/$(ASSEMBLY):  $(RESOURCES) $(SOURCES)
-	mono $(MONO_OPTIONS) $(FSC) -o:$(objdir)$(ASSEMBLY) $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)

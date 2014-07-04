@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //----------------------------------------------------------------------------
 // API to the compiler as an incremental service for parsing,
@@ -25,11 +16,10 @@ open Microsoft.FSharp.Compiler.Nameres
 open Microsoft.FSharp.Compiler.Tast
 open Microsoft.FSharp.Compiler.Tastops
 
-
 /// Describe a comment as either a block of text or a file+signature reference into an intellidoc file.
 //
 // Note: instances of this type do not hold any references to any compiler resources.
-type (* internal *) XmlComment =
+type internal XmlComment =
     | XmlCommentNone
     | XmlCommentText of string
     | XmlCommentSignature of (*File:*) string * (*Signature:*)string
@@ -37,10 +27,12 @@ type (* internal *) XmlComment =
 /// A single data tip display element
 //
 // Note: instances of this type do not hold any references to any compiler resources.
-type (* internal *) DataTipElement = 
+type internal DataTipElement = 
     | DataTipElementNone
     /// A single type, method, etc with comment.
     | DataTipElement of (* text *) string * XmlComment
+    /// A parameter of a method.
+    | DataTipElementParameter of string * XmlComment * string
     /// For example, a method overload group.
     | DataTipElementGroup of ((* text *) string * XmlComment) list
     /// An error occurred formatting this element
@@ -49,20 +41,20 @@ type (* internal *) DataTipElement =
 /// Information for building a data tip box.
 //
 // Note: instances of this type do not hold any references to any compiler resources.
-type (* internal *) DataTipText = 
+type internal DataTipText = 
     /// A list of data tip elements to display.
     | DataTipText of DataTipElement list  
     
 [<Sealed>]
 // Note: this type holds a weak reference to compiler resources. 
-type (* internal *) Declaration =
+type internal Declaration =
     member Name : string
     member DescriptionText : DataTipText
     member Glyph : int
     
 [<Sealed>]
 // Note: this type holds a weak reference to compiler resources. 
-type (* internal *) DeclarationSet =
+type internal DeclarationSet =
     member Items : Declaration[]
 
     // Implementation details used by other code in the compiler    
