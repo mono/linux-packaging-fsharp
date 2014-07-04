@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // This file is compiled 4(!) times in the codebase
 //    - as the internal implementation of printf '%A' formatting 
@@ -228,7 +219,11 @@ namespace Microsoft.FSharp.Text.StructuredFormat
 #endif
 #endif
           FormatProvider: System.IFormatProvider
+#if FX_RESHAPED_REFLECTION
+          ShowNonPublic : bool
+#else
           BindingFlags: System.Reflection.BindingFlags
+#endif
           PrintWidth : int 
           PrintDepth : int 
           PrintLength : int
@@ -267,7 +262,12 @@ namespace Microsoft.FSharp.Text.StructuredFormat
         val output_any: writer:TextWriter -> value:'T -> unit
 
 #if RUNTIME   // FSharp.Core.dll: Most functions aren't needed in FSharp.Core.dll, but we add one entry for printf
+
+#if FX_RESHAPED_REFLECTION
+        val anyToStringForPrintf: options:FormatOptions -> showNonPublicMembers : bool -> value:'T -> string
+#else
         val anyToStringForPrintf: options:FormatOptions -> bindingFlags:System.Reflection.BindingFlags -> value:'T -> string
+#endif
 #else
         val any_to_layout   : options:FormatOptions -> value:'T -> Layout
         val squash_layout   : options:FormatOptions -> layout:Layout -> Layout

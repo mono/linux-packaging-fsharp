@@ -1,20 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-# Copyright (c) 2002-2011 Microsoft Corporation. 
-#
-# 
-# 
-# 
-#
-#
-# You must not remove this notice, or any other, from this software.
--->
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
-    <ProductVersion>10.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <UsePartialTypes>False</UsePartialTypes>
   </PropertyGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.Settings.targets" />
   <PropertyGroup>
@@ -28,23 +16,23 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <!-- MonoDevelop likes these here to recognise the configurations -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <FsSrGen Include="..\FSInteractiveSettings.txt">
       <Link>FSInteractiveSettings.txt</Link>
     </FsSrGen>
     <Compile Include="..\..\assemblyinfo\assemblyinfo.FSharp.Compiler.Interactive.Settings.dll.fs">
-      <Link>assemblyinfo.FSharp.Compiler.Interactive.Settings.dll.fs</Link>
-    </Compile>
-    <Compile Include="..\fsiaux.fsi">
-      <Link>fsiaux.fsi</Link>
-    </Compile>
-    <Compile Include="..\fsiaux.fs">
-      <Link>fsiaux.fs</Link>
+      <Link>Utilities/assemblyinfo.FSharp.Compiler.Interactive.Settings.dll.fs</Link>
     </Compile>
     <Compile Include="..\fsiattrs.fs">
-      <Link>fsiattrs.fs</Link>
+      <Link>Utilities/fsiattrs.fs</Link>
+    </Compile>
+    <Compile Include="..\fsiaux.fsi">
+      <Link>InteractiveSettings/fsiaux.fsi</Link>
+    </Compile>
+    <Compile Include="..\fsiaux.fs">
+      <Link>InteractiveSettings/fsiaux.fs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

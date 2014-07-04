@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 namespace Internal.Utilities
 open System
 open System.IO
@@ -40,6 +42,18 @@ module internal FSharpEnvironment =
             | "" -> None
             | s  -> Some(s)
         with _ -> None
+
+    // The F# team version number. This version number is used for
+    //     - the F# version number reported by the fsc.exe and fsi.exe banners in the CTP release
+    //     - the F# version number printed in the HTML documentation generator
+    //     - the .NET DLL version number for all VS2008 DLLs
+    //     - the VS2008 registry key, written by the VS2008 installer
+    //         HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\Microsoft.FSharp-" + FSharpTeamVersionNumber
+    // Also
+    //     - for Beta2, the language revision number indicated on the F# language spec
+    //
+    // It is NOT the version number listed on FSharp.Core.dll
+    let FSharpTeamVersionNumber = "2.0.0.0"
 
     [<DllImport("Advapi32.dll", CharSet = CharSet.Unicode, BestFitMapping = false)>]
     extern uint32 RegOpenKeyExW(UIntPtr _hKey, string _lpSubKey, uint32 _ulOptions, int _samDesired, UIntPtr & _phkResult);
@@ -239,7 +253,7 @@ module internal FSharpEnvironment =
 
         // On windows the location of the compiler is via a registry key
         let key20 = @"Software\Microsoft\FSharp\2.0\Runtime\v4.0"
-        let key40 = @"Software\Microsoft\FSharp\3.0\Runtime\v4.0"
+        let key40 = @"Software\Microsoft\FSharp\3.1\Runtime\v4.0"
         let key1,key2 = 
           match FSharpCoreLibRunningVersion with 
           | None -> key40,key20 
@@ -294,7 +308,7 @@ module internal FSharpEnvironment =
 
 
 #endif // SILVERLIGHT
-#if FX_ATLEAST_45
+#if FX_ATLEAST_45_COMPILER_LOCATION
     // Apply the given function to the registry entry corresponding to the subkey.
     // The reg key is dispoed at the end of the scope.
     let useKey subkey f =
@@ -307,10 +321,12 @@ module internal FSharpEnvironment =
 
     // Check if the framework version 4.5 or above is installed at the given key entry 
     let IsNetFx45OrAboveInstalledAt subkey =
+       try 
         useKey subkey (fun regkey ->
             match regkey with
             | null -> false
             | _ -> regkey.GetValue("Release", 0) :?> int |> (fun s -> s >= 0x50000)) // 0x50000 implies 4.5.0
+       with _ -> false
 
     // Check if the framework version 4.5 or above is installed
     let IsNetFx45OrAboveInstalled =

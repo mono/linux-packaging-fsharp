@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //----------------------------------------------------------------------------
 // Open up the compiler as an incremental service for parsing,
@@ -373,11 +364,15 @@ module internal AstTraversal =
                     |> pick expr
                 | SynExpr.DotIndexedGet(synExpr, synExprList, _range, _range2) -> 
                     [yield dive synExpr synExpr.Range traverseSynExpr
-                     yield! synExprList |> List.map (fun x -> dive x x.Range traverseSynExpr)]
+                     for synExpr in synExprList do 
+                         for x in synExpr.Exprs do 
+                             yield dive x x.Range traverseSynExpr]
                     |> pick expr
                 | SynExpr.DotIndexedSet(synExpr, synExprList, synExpr2, _, _range, _range2) -> 
                     [yield dive synExpr synExpr.Range traverseSynExpr
-                     yield! synExprList |> List.map (fun x -> dive x x.Range traverseSynExpr) 
+                     for synExpr in synExprList do 
+                         for x in synExpr.Exprs do 
+                             yield dive x x.Range traverseSynExpr
                      yield dive synExpr2 synExpr2.Range traverseSynExpr]
                     |> pick expr
                 | SynExpr.JoinIn(synExpr1, _range, synExpr2, _range2) -> 

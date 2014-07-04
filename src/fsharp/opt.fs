@@ -1,14 +1,5 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 //-------------------------------------------------------------------------
 // The F# expression simplifier. The main aim is to inline simple, known functions
 // and constant values, and to eliminate non-side-affecting bindings that 
@@ -77,7 +68,7 @@ let methodDefnTotalSize = 1  // Total cost of a method definition
 //------------------------------------------------------------------------- 
 
 type TypeValueInfo =
-  | UnknownTypeValue
+  | UnknownTypeValue 
 
 type ExprValueInfo =
   | UnknownValue
@@ -1316,6 +1307,7 @@ and OpHasEffect g op =
     | TOp.RefAddrGet -> false
     | TOp.ValFieldGet rfref  -> rfref.RecdField.IsMutable
     | TOp.ValFieldGetAddr _rfref  -> true (* check *)
+    | TOp.LValueOp (LGetAddr,lv) -> lv.IsMutable
     | TOp.UnionCaseFieldSet _
     | TOp.ExnFieldSet _
     | TOp.Coerce
@@ -1803,6 +1795,20 @@ and OptimizeExprOp cenv env (op,tyargs,args,m) =
             HasEffect = true;  
             MightMakeCriticalTailcall=false;
             Info=UnknownValue }
+    (* Handle addresses *)
+    | TOp.LValueOp (LGetAddr,lv),_,_ ->
+        let e,_ = OptimizeExpr cenv env (exprForValRef m lv)
+        let op' =
+            match e with
+            // Do not optimize if it's a top level static binding.
+            | Expr.Val (v,_,_) when not v.IsCompiledAsTopLevel -> TOp.LValueOp (LGetAddr,v)
+            | _ -> op
+        Expr.Op (op',tyargs,args,m),
+        { TotalSize = 1;
+          FunctionSize = 1;
+          HasEffect = OpHasEffect cenv.g op';
+          MightMakeCriticalTailcall = false;
+          Info = UnknownValue }
     (* Handle these as special cases since mutables are allowed inside their bodies *)
     | TOp.While (spWhile,marker),_,[Expr.Lambda(_,_,_,[_],e1,_,_);Expr.Lambda(_,_,_,[_],e2,_,_)]  -> OptimizeWhileLoop cenv env (spWhile,marker,e1,e2,m) 
     | TOp.For(spStart,dir),_,[Expr.Lambda(_,_,_,[_],e1,_,_);Expr.Lambda(_,_,_,[_],e2,_,_);Expr.Lambda(_,_,_,[v],e3,_,_)]  -> OptimizeFastIntegerForLoop cenv env (spStart,v,e1,dir,e2,e3,m) 
@@ -2965,10 +2971,16 @@ and OptimizeBinding cenv isRec env (TBind(v,e,spBind)) =
                // MarshalByRef methods may not be inlined
                (match v.ActualParent with 
                 | Parent tcref -> 
+                    match cenv.g.system_MarshalByRefObject_tcref with
+                    | None -> false
+                    | Some mbrTyconRef ->
                     // Check we can deref system_MarshalByRefObject_tcref. When compiling against the Silverlight mscorlib we can't
-                    cenv.g.system_MarshalByRefObject_tcref.TryDeref.IsSome &&
-                    // Check if this is a subtype of MarshalByRefObject
-                    ExistsSameHeadTypeInHierarchy cenv.g cenv.amap v.Range (generalizedTyconRef tcref) cenv.g.system_MarshalByRefObject_typ 
+                    if mbrTyconRef.TryDeref.IsSome then
+                        // Check if this is a subtype of MarshalByRefObject
+                        assert (cenv.g.system_MarshalByRefObject_typ.IsSome)
+                        ExistsSameHeadTypeInHierarchy cenv.g cenv.amap v.Range (generalizedTyconRef tcref) cenv.g.system_MarshalByRefObject_typ.Value
+                    else 
+                        false
                 | ParentNone -> false) ||
 
                // These values are given a special going-over by the optimizer and 

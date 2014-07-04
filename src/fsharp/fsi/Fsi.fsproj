@@ -1,20 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-# Copyright (c) 2002-2011 Microsoft Corporation. 
-#
-# 
-# 
-# 
-#
-#
-# You must not remove this notice, or any other, from this software.
--->
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
-    <ProductVersion>10.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <UsePartialTypes>False</UsePartialTypes>
   </PropertyGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.Settings.targets" />
   <PropertyGroup>
@@ -34,26 +22,26 @@
     <OtherFlags>$(OtherFlags) --warnon:1182</OtherFlags>
   </PropertyGroup>
   <!-- MonoDevelop likes these here to recognise the configurations -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <FsSrGen Include="FSIstrings.txt">
       <Link>FSIstrings.txt</Link>
     </FsSrGen>
     <Compile Include="..\..\assemblyinfo\assemblyinfo.fsi.exe.fs">
-      <Link>assemblyinfo.fsi.exe.fs</Link>
+      <Link>Utilities/assemblyinfo.fsi.exe.fs</Link>
     </Compile>
     <Compile Include="..\InternalCollections.fsi">
-      <Link>InternalCollections.fsi</Link>
+      <Link>Utilities/InternalCollections.fsi</Link>
     </Compile>
     <Compile Include="..\InternalCollections.fs">
-      <Link>InternalCollections.fs</Link>
+      <Link>Utilities/InternalCollections.fs</Link>
     </Compile>
     <Compile Include="console.fs">
-      <Link>console.fs</Link>
+      <Link>Console/console.fs</Link>
     </Compile>
     <Compile Include="fsi.fs">
-      <Link>fsi.fs</Link>
+      <Link>InteractiveSession/fsi.fs</Link>
     </Compile>
     <Compile Include="fsimain.fs">
       <Link>fsimain.fs</Link>

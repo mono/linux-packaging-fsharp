@@ -1,15 +1,4 @@
-
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 /// Loading initial context, reporting errors etc.
 module internal Microsoft.FSharp.Compiler.Build
@@ -87,12 +76,40 @@ type ErrorStyle =
     
 
 val RangeOfError : PhasedError -> range option
+val GetErrorNumber : PhasedError -> int
 val SplitRelatedErrors : PhasedError -> PhasedError * PhasedError list
 val OutputPhasedError : StringBuilder -> PhasedError -> bool -> unit
 val SanitizeFileName : filename:string -> implicitIncludeDir:string -> string
 val OutputErrorOrWarning : implicitIncludeDir:string * showFullPaths: bool * flattenErrors: bool * errorStyle: ErrorStyle *  warning:bool -> StringBuilder -> PhasedError -> unit
 val OutputErrorOrWarningContext : prefix:string -> fileLineFunction:(string -> int -> string) -> StringBuilder -> PhasedError -> unit
 
+type ErrorLocation =
+    {
+        Range : range
+        File : string
+        TextRepresentation : string
+        IsEmpty : bool
+    }
+
+type CanonicalInformation = 
+    {
+        ErrorNumber : int
+        Subcategory : string
+        TextRepresentation : string
+    }
+
+type DetailedIssueInfo = 
+    {
+        Location : ErrorLocation option
+        Canonical : CanonicalInformation
+        Message : string
+    }
+
+type ErrorOrWarning = 
+    | Short of bool * string
+    | Long of bool * DetailedIssueInfo
+
+val CollectErrorOrWarning : implicitIncludeDir:string * showFullPaths: bool * flattenErrors: bool * errorStyle: ErrorStyle *  warning:bool * PhasedError -> seq<ErrorOrWarning>
 
 //----------------------------------------------------------------------------
 // Options and configuration
@@ -138,6 +155,12 @@ exception DeprecatedCommandLineOptionNoDescription of string * range
 exception InternalCommandLineOption of string * range
 exception HashLoadedSourceHasIssues of (*warnings*) exn list * (*errors*) exn list * range
 exception HashLoadedScriptConsideredSource of range  
+
+type PrimaryAssembly = 
+    | Mscorlib
+    | NamedMscorlib of string
+    | DotNetCore
+    member Name : string
 
 type AssemblyReference = 
     | AssemblyReference of range * string 
@@ -186,7 +209,7 @@ type VersionFlag =
 
      
 type TcConfigBuilder =
-    { mutable mscorlibAssemblyName: string;
+    { mutable primaryAssembly : PrimaryAssembly;
       mutable autoResolveOpenDirectivesToDlls: bool;
       mutable noFeedback: bool;
       mutable stackReserveSize: int32 option;
@@ -307,8 +330,22 @@ type TcConfigBuilder =
 
       /// If true, indicates all type checking and code generation is in the context of fsi.exe
       isInteractive : bool 
-      isInvalidationSupported : bool }
-    static member CreateNew : defaultFSharpBinariesDir: string * optimizeForMemory: bool * implicitIncludeDir: string * isInteractive: bool * isInvalidationSupported: bool -> TcConfigBuilder
+      isInvalidationSupported : bool 
+      mutable sqmSessionGuid : System.Guid option
+      mutable sqmNumOfSourceFiles : int
+      sqmSessionStartedTime : int64
+      mutable emitDebugInfoInQuotations : bool
+      mutable exename : string option 
+      mutable shadowCopyReferences : bool }
+
+
+    static member CreateNew : 
+        defaultFSharpBinariesDir: string * 
+        optimizeForMemory: bool * 
+        implicitIncludeDir: string * 
+        isInteractive: bool * 
+        isInvalidationSupported: bool -> TcConfigBuilder
+
     member DecideNames : string list -> outfile: string * pdbfile: string option * assemblyName: string 
     member TurnWarningOff : range * string -> unit
     member TurnWarningOn : range * string -> unit
@@ -324,7 +361,7 @@ type TcConfigBuilder =
 [<Sealed>]
 // Immutable TcConfig
 type TcConfig =
-    member mscorlibAssemblyName: string;
+    member primaryAssembly: PrimaryAssembly
     member autoResolveOpenDirectivesToDlls: bool;
     member noFeedback: bool;
     member stackReserveSize: int32 option;
@@ -346,7 +383,6 @@ type TcConfig =
     member conditionalCompilationDefines: string list;
     member subsystemVersion : int * int
     member useHighEntropyVA : bool
-    
     member referencedDLLs: AssemblyReference list;
     member optimizeForMemory: bool;
     member inputCodePage: int option;
@@ -455,6 +491,12 @@ type TcConfig =
     member ResolveSourceFile : range * string * string -> string
     /// File system query based on TcConfig settings
     member MakePathAbsolute : string -> string
+
+    member sqmSessionGuid : System.Guid option
+    member sqmNumOfSourceFiles : int
+    member sqmSessionStartedTime : int64
+    member shadowCopyReferences : bool
+ 
     static member Create : TcConfigBuilder * validate: bool -> TcConfig
 
     member TargetMscorlibVersion : System.Version
@@ -629,8 +671,6 @@ val TypecheckSingleInputAndFinishEventually :
 val ParseCompilerOptions : (string -> unit) -> CompilerOptionBlock list -> string list -> unit
 val ReportWarning : int -> int list -> int list -> PhasedError -> bool
 val ReportWarningAsError : int -> int list -> int list -> int list -> int list -> bool -> PhasedError -> bool
-
-val highestInstalledNetFrameworkVersionMajorMinor : unit -> System.Version * string
 
 //----------------------------------------------------------------------------
 // #load closure

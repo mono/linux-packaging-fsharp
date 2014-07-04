@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 // Various tests for the:
 // Microsoft.FSharp.Control.Async module
 
@@ -376,9 +378,6 @@ type AsyncModule() =
 #if FSHARP_CORE_2_0
 // nothing
 #else
-#if SILVERLIGHT
-// nothing
-#else
 // we are on the desktop
     member this.RunExeAndExpectOutput(exeName, expected:string) =
         let curDir = (new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath |> System.IO.Path.GetDirectoryName
@@ -456,6 +455,5 @@ AwaitWaitHandleAlreadySignaled0 [|("ok", true); ("caught:boom", true)|]
 AwaitWaitHandleAlreadySignaled1 [|("ok", false); ("unhandled", false)|]
 """               )
 
-#endif
 #endif
 #endif

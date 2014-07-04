@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Compiler.Interactive
 
@@ -66,7 +67,3 @@ module RuntimeHelpers =
     val internal GetSavedIt : unit -> obj
     val internal GetSavedItType : unit -> System.Type
 (*    val openPaths : unit -> string[] *)
-
-#if SILVERLIGHT
-    val GetSimpleEventLoop : unit -> IEventLoop
-#endif

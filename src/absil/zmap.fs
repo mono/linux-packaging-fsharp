@@ -1,5 +1,4 @@
-(* (c) Microsoft Corporation. Apache 2.0 License  *)
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Compiler.AbstractIL.Internal
 
@@ -33,7 +32,7 @@ module internal Zmap =
 
     let isEmpty (m:Zmap<_,_>) = m.IsEmpty
 
-    let fmap f z (m:Zmap<_,_>) =
+    let foldMap f z (m:Zmap<_,_>) =
       let m,z = m.FoldAndMap (fun k v z -> let z,v' = f z k v in v',z) z in
       z,m
 

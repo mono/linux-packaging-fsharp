@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 // Various tests for the:
 // Microsoft.FSharp.Control.Async type
 
@@ -22,25 +24,7 @@ type RunWithContinuationsTest_WhatToDo =
 type AsyncType() =
 
     let ignoreSynchCtx f =
-#if SILVERLIGHT
-        use event = new ManualResetEvent(false)
-        let x : ref<exn> = ref null
-        ThreadPool.QueueUserWorkItem(fun _ ->
-                try 
-                    try
-                        f()
-                    with
-                        e -> x := e
-                finally
-                    event.Set() |> ignore
-        ) |> ignore
-        event.WaitOne() |> ignore
-        match !x with
-        |   null ->  ()
-        |   e -> raise <| e
-#else
         f ()
-#endif
 
 
     [<Test>]

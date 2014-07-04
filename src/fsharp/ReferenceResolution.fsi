@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 namespace Viz
 
 /// This type exists to have a concrete 'Target' type for a DebuggerVisualizerAttribute.
@@ -14,6 +16,9 @@ namespace Microsoft.FSharp.Compiler
 module internal MSBuildResolver = 
 
     exception ResolutionFailure
+
+    val SupportedNetFrameworkVersions : Set<string>
+    val HighestInstalledNetFrameworkVersionMajorMinor : unit -> int * string
     
     /// Describes the location where the reference was found.
     type ResolvedFrom =

@@ -1,17 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
-
-// Helper functions for the F# lexer lex.mll
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.Lexhelp
 
@@ -328,7 +315,7 @@ module Keywords =
             | "__SOURCE_DIRECTORY__" ->
                 let filename = fileOfFileIndex lexbuf.StartPos.FileIndex
                 let dirname  = if filename = stdinMockFilename then
-                                   System.IO.Directory.GetCurrentDirectory() // TODO: is this right for Silverlight?
+                                   System.IO.Directory.GetCurrentDirectory()
                                else
                                    filename |> FileSystem.SafeGetFullPath (* asserts that path is already absolute *)
                                             |> System.IO.Path.GetDirectoryName
