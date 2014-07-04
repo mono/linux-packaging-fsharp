@@ -1,14 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.ErrorLogger
 
@@ -111,14 +101,11 @@ type Exiter =
 
 let QuitProcessExiter = 
     { new Exiter with 
-        member x.Exit(n) = 
-#if SILVERLIGHT
-#else                    
+        member x.Exit(n) =                    
             try 
               System.Environment.Exit(n)
             with _ -> 
-              ()
-#endif              
+              ()            
             failwithf "%s" <| FSComp.SR.elSysEnvExitDidntExit() }
 
 /// Closed enumeration of build phases.
@@ -161,10 +148,7 @@ module BuildPhaseSubcategory =
 type PhasedError = { Exception:exn; Phase:BuildPhase } with
     /// Construct a phased error
     static member Create(exn:exn,phase:BuildPhase) : PhasedError =
-#if SILVERLIGHT
-#else
         System.Diagnostics.Debug.Assert(phase<>BuildPhase.DefaultPhase, sprintf "Compile error seen with no phase to attribute it to.%A %s %s" phase exn.Message exn.StackTrace )        
-#endif
         {Exception = exn; Phase=phase}
     member this.DebugDisplay() =
         sprintf "%s: %s" (this.Subcategory()) this.Exception.Message
@@ -239,6 +223,11 @@ type ErrorLogger(nameForDebugging:string) =
     member this.ErrorSink err =
         this.ErrorSinkImpl err
     member this.DebugDisplay() = sprintf "ErrorLogger(%s)" nameForDebugging
+    // record the reported error/warning numbers for SQM purpose
+    abstract ErrorNumbers : int list
+    abstract WarningNumbers : int list
+    default this.ErrorNumbers = []
+    default this.WarningNumbers = []
 
 let DiscardErrorsLogger = 
     { new ErrorLogger("DiscardErrorsLogger") with 
@@ -283,8 +272,6 @@ type internal CompileThreadStatic =
 module ErrorLoggerExtensions = 
     open System.Reflection
 
-#if SILVERLIGHT
-#else
     // Instruct the exception not to reset itself when thrown again.
     // Why don?t we just not catch these in the first place? Because we made the design choice to ask the user to send mail to fsbugs@microsoft.com. 
     // To achieve this, we need to catch the exception, report the email address and stack trace, and then reraise. 
@@ -311,7 +298,6 @@ module ErrorLoggerExtensions =
             PreserveStackTrace(exn)
             raise exn
         | _ -> ()
-#endif
 
     type ErrorLogger with  
         member x.ErrorR  exn = match exn with StopProcessing | ReportedError _ -> raise exn | _ -> x.ErrorSink(PhasedError.Create(exn,CompileThreadStatic.BuildPhase))
@@ -331,10 +317,7 @@ module ErrorLoggerExtensions =
             | _ ->
                 try  
                     x.ErrorR (AttachRange m exn) // may raise exceptions, e.g. an fsi error sink raises StopProcessing.
-#if SILVERLIGHT
-#else
                     ReraiseIfWatsonable(exn)
-#endif
                 with
                   | ReportedError _ | WrappedError(ReportedError _,_)  -> ()
         member x.StopProcessingRecovery (exn:exn) (m:range) =

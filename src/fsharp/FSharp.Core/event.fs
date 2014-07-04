@@ -1,13 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Control
 
@@ -19,6 +10,11 @@ namespace Microsoft.FSharp.Control
     open Microsoft.FSharp.Control
     open System.Reflection
     open System.Diagnostics
+
+#if FX_RESHAPED_REFLECTION
+    open ReflectionAdapters
+    type BindingFlags = ReflectionAdapters.BindingFlags
+#endif
 
 #if FX_NO_DELEGATE_DYNAMIC_METHOD 
 #else
@@ -145,7 +141,7 @@ namespace Microsoft.FSharp.Control
                     multicast <- System.Delegate.Remove(multicast, d)  :?> 'Delegate 
               interface System.IObservable<'Args> with 
                 member e.Subscribe(observer) = 
-                   let obj = new EventDelegee<'Args>(observer)   
+                   let obj = new EventDelegee<'Args>(observer)
                    let h = System.Delegate.CreateDelegate(typeof<'Delegate>, obj, invokeInfo) :?> 'Delegate
                    (e :?> IDelegateEvent<'Delegate>).AddHandler(h)
                    { new System.IDisposable with 

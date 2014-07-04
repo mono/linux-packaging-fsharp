@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 namespace FSharp.Core.Unittests.FSharp_Core.Microsoft_FSharp_Control
 #nowarn "52"
 open System
@@ -96,7 +98,6 @@ type CancellationType() =
             Assert.IsTrue(odeThrown)
         ()
         
-#if FIXED_GITHUB_FSHARP_FSHARP_ISSUES_221 // See https://github.com/fsharp/fsharp/issues/221
     [<Test>]    
     member this.CallbackOrder() = 
         use cts = new CancellationTokenSource()
@@ -125,7 +126,6 @@ type CancellationType() =
                 Assert.AreEqual(["2";"1";"0"], msgs)
         Assert.IsTrue exnThrown
         Assert.IsTrue cts.Token.IsCancellationRequested
-#endif
         
     [<Test>]
     member this.LinkedSources() =

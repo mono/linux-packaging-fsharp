@@ -1,9 +1,4 @@
-// ----------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation 2005-2011.
-// This sample code is provided "as is" without warranty of any kind. 
-// We disclaim all warranties, either express or implied, including the 
-// warranties of merchantability and fitness for a particular purpose. 
-// ----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Linq.RuntimeHelpers
 
@@ -22,6 +17,10 @@ open System.Collections.Generic
 open System.Linq
 open System.Linq.Expressions
 
+#if FX_RESHAPED_REFLECTION
+open PrimReflectionAdapters
+open ReflectionAdapters
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -194,7 +193,11 @@ module internal Adapters =
     let (|RecordFieldGetSimplification|_|) (expr:Expr) = 
         match expr with 
         | Patterns.PropertyGet(Some (Patterns.NewRecord(typ,els)),propInfo,[]) ->
+#if FX_RESHAPED_REFLECTION
+            let fields = Microsoft.FSharp.Reflection.FSharpType.GetRecordFields(typ, true) 
+#else
             let fields = Microsoft.FSharp.Reflection.FSharpType.GetRecordFields(typ,System.Reflection.BindingFlags.Public|||System.Reflection.BindingFlags.NonPublic) 
+#endif
             match fields |> Array.tryFindIndex (fun p -> p = propInfo) with 
             | None -> None
             | Some i -> if i < els.Length then Some els.[i] else None

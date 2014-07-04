@@ -1,14 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.Layout
 
@@ -243,33 +233,6 @@ type render<'a,'b> =
     abstract Finish   : 'b -> 'a
       
 let renderL (rr: render<_,_>) layout =
-#if SILVERLIGHT
-// Use non-indirect-tailcalling version on silverlight
-    let rec addL z pos i = function
-        (* pos is tab level *)
-      | Leaf (_,text,_)                 -> 
-          rr.AddText z (unbox text),i + (unbox<string> text).Length
-      | Node (_,l,_,r,_,Broken indent) -> 
-          let z,_i = addL z pos i l 
-          let z,i = rr.AddBreak z (pos+indent),(pos+indent) 
-          let z,i = addL z (pos+indent) i r 
-          z,i
-      | Node (_,l,jm,r,_,_)             -> 
-          let z,i = addL z pos i l 
-          let z,i = if jm then z,i else rr.AddText z " ",i+1 
-          let pos = i 
-          let z,i = addL z pos i r 
-          z,i
-      | Attr (tag,attrs,l)                -> 
-          let z   = rr.AddTag z (tag,attrs,true) 
-          let z,i = addL z pos i l 
-          let z   = rr.AddTag z (tag,attrs,false) 
-          z,i
-    let pos = 0 
-    let z,i = rr.Start(),0 
-    let z,_i = addL z pos i layout 
-    rr.Finish z
-#else
     let rec addL z pos i layout k = 
       match layout with
         (* pos is tab level *)
@@ -296,7 +259,6 @@ let renderL (rr: render<_,_>) layout =
     let z,i = rr.Start(),0 
     let z,_i = addL z pos i layout id
     rr.Finish z
-#endif
 
 /// string render 
 let stringR =

@@ -1,4 +1,4 @@
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Build
 
@@ -154,6 +154,8 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     let mutable utf8output : bool = false
     let mutable subsystemVersion : string = null
     let mutable highEntropyVA : bool = false
+    let mutable targetProfile : string = null
+    let mutable sqmSessionGuid : string = null
 
     let mutable capturedArguments : string list = []  // list of individual args, to pass to HostObject Compile()
     let mutable capturedFilenames : string list = []  // list of individual source filenames, to pass to HostObject Compile()
@@ -341,6 +343,14 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.HighEntropyVA
         with get() = highEntropyVA
         and set(p) = highEntropyVA <- p
+
+    member fsc.TargetProfile
+        with get() = targetProfile
+        and set(p) = targetProfile <- p
+
+    member fsc.SqmSessionGuid
+        with get() = sqmSessionGuid
+        and set(p) = sqmSessionGuid <- p
         
     // ToolTask methods
     override fsc.ToolName = "fsc.exe" 
@@ -521,7 +531,11 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
             builder.AppendSwitch("--highentropyva+")
         else
             builder.AppendSwitch("--highentropyva-")
-        
+
+        builder.AppendSwitchIfNotNull("--sqmsessionguid:", sqmSessionGuid)
+
+        builder.AppendSwitchIfNotNull("--targetprofile:", targetProfile)
+
         // OtherFlags - must be second-to-last
         builder.AppendSwitchUnquotedIfNotNull("", otherFlags)
         capturedArguments <- builder.CapturedArguments()
@@ -536,6 +550,11 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
         fsc.GenerateCommandLineCommands()
     member internal fsc.InternalExecuteTool(pathToTool, responseFileCommands, commandLineCommands) =
         fsc.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
+    member internal fsc.GetCapturedArguments() = 
+        [|
+            yield! capturedArguments
+            yield! capturedFilenames
+        |]
 
 module Attributes =
     //[<assembly: System.Security.SecurityTransparent>]

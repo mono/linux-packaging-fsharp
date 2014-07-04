@@ -1,14 +1,4 @@
-//----------------------------------------------------------------------------
-//
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 /// Binary reader.  Read a .NET binary and concert it to Abstract IL data
 /// structures.
@@ -48,7 +38,7 @@ type ILReaderOptions =
      ilGlobals: ILGlobals;
      optimizeForMemory: bool  (* normally off, i.e. optimize for startup-path speed *) }
 
-val defaults : ILReaderOptions
+val mkDefault :  ILGlobals -> ILReaderOptions
 
 // The non-memory resources (i.e. the file handle) associated with 
 // the read can be recovered by calling CloseILModuleReader.  Any reamining 

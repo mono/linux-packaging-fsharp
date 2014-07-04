@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 module internal Microsoft.FSharp.Compiler.Driver 
 
 open Microsoft.FSharp.Compiler.ErrorLogger
@@ -9,6 +11,6 @@ val internal runFromCommandLineToImportingAssemblies : (string -> unit) * string
 #if NO_COMPILER_BACKEND
 #else
 /// fsc.exe calls this
-val mainCompile : argv : string[] * bannerAlreadyPrinted : bool * exiter : Exiter * createErrorLogger:(TcConfigBuilder -> ErrorLogger) -> unit
+val mainCompile : argv : string[] * bannerAlreadyPrinted : bool * exiter : Exiter -> unit
 
 #endif

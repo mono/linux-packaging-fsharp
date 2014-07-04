@@ -1,15 +1,4 @@
-//----------------------------------------------------------------------------
-// Copyright (c) 2002-2012 Microsoft Corporation. 
-//
-// This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// By using this source code in any fashion, you are agreeing to be bound 
-// by the terms of the Apache License, Version 2.0.
-//
-// You must not remove this notice, or any other, from this software.
-//----------------------------------------------------------------------------
-
-
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Internal.Utilities.Collections.Tagged
 
@@ -631,26 +620,26 @@ namespace Internal.Utilities.Collections.Tagged
 
         static member Intersection((a: Set<'T,'ComparerTag>),(b: Set<'T,'ComparerTag>)) : Set<'T,'ComparerTag>  = 
             match b.Tree with 
-            | SetEmpty -> b  (* A INTER 0 = 0 *)
+            | SetEmpty -> b  // A INTER 0 = 0 
             | _ -> 
                match a.Tree with 
-               | SetEmpty -> a (* 0 INTER B = 0 *)
+               | SetEmpty -> a // 0 INTER B = 0 
                | _ -> SetTree.intersection a.Comparer  a.Tree b.Tree |> refresh a
            
         static member Union(a: Set<'T,'ComparerTag>,b: Set<'T,'ComparerTag>) : Set<'T,'ComparerTag>  = 
             match b.Tree with 
-            | SetEmpty -> a  (* A U 0 = A *)
+            | SetEmpty -> a  // A U 0 = A 
             | _ -> 
                match a.Tree with 
-               | SetEmpty -> b  (* 0 U B = B *)
+               | SetEmpty -> b  // 0 U B = B 
                | _ -> SetTree.union a.Comparer  a.Tree b.Tree |> refresh a
 
         static member Difference(a: Set<'T,'ComparerTag>,b: Set<'T,'ComparerTag>) : Set<'T,'ComparerTag>  = 
             match a.Tree with 
-            | SetEmpty -> a (* 0 - B = 0 *)
+            | SetEmpty -> a // 0 - B = 0 
             | _ -> 
                 match b.Tree with 
-                | SetEmpty -> a (* A - 0 = A *)
+                | SetEmpty -> a // A - 0 = A 
                 | _ -> SetTree.diff a.Comparer  a.Tree b.Tree |> refresh a
 
         static member Equality(a: Set<'T,'ComparerTag>,b: Set<'T,'ComparerTag>) = 
@@ -759,26 +748,26 @@ namespace Internal.Utilities.Collections.Tagged
 
         let rebalance t1 k v t2 =
             let t1h = height t1 
-            if  height t2 > t1h + 2 then (* right is heavier than left *)
+            if  height t2 > t1h + 2 then // right is heavier than left 
                 match t2 with 
                 | MapNode(t2k,t2v,t2l,t2r,_) -> 
-                   (* one of the nodes must have height > height t1 + 1 *)
-                   if height t2l > t1h + 1 then  (* balance left: combination *)
+                   // one of the nodes must have height > height t1 + 1 
+                   if height t2l > t1h + 1 then  // balance left: combination 
                      match t2l with 
                      | MapNode(t2lk,t2lv,t2ll,t2lr,_) ->
                         mk (mk t1 k v t2ll) t2lk t2lv (mk t2lr t2k t2v t2r) 
                      | _ -> failwith "rebalance"
-                   else (* rotate left *)
+                   else // rotate left 
                      mk (mk t1 k v t2l) t2k t2v t2r
                 | _ -> failwith "rebalance"
             else
                 let t2h = height t2 
-                if  t1h > t2h + 2 then (* left is heavier than right *)
+                if  t1h > t2h + 2 then // left is heavier than right 
                   match t1 with 
                   | MapNode(t1k,t1v,t1l,t1r,_) -> 
-                    (* one of the nodes must have height > height t2 + 1 *)
+                    // one of the nodes must have height > height t2 + 1 
                       if height t1r > t2h + 1 then 
-                      (* balance right: combination *)
+                      // balance right: combination 
                         match t1r with 
                         | MapNode(t1rk,t1rv,t1rl,t1rr,_) ->
                             mk (mk t1l t1k t1v t1rl) t1rk t1rv (mk t1rr k v t2)
