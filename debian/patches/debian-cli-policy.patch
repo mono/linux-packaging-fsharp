@@ -1,23 +1,23 @@
 --- a/launcher.in
 +++ b/launcher.in
-@@ -27,4 +27,4 @@
+@@ -21,4 +21,4 @@
  # location of the default FSharp install in order to find the FSharp compiler binaries (see 
  # fsharpbinding/MonoDevelop.FSharpBinding/Services/CompilerLocationUtils.fs). That's a pretty unfortunate
  # way of finding those binaries. And really should be changed.
--$EXEC mono $DEBUG $MONO_OPTIONS $MONO_GC_OPTIONS @DIR@/@TOOL@ "$@"
-+SILLY_ENV_HACK_FOR_REGEX=mono $EXEC cli $DEBUG $MONO_OPTIONS $MONO_GC_OPTIONS @DIR@/@TOOL@ "$@"
+-$EXEC mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename $0) "$@"
++SILLY_ENV_HACK_FOR_REGEX=mono $EXEC cli $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename $0) "$@"
 --- a/src/fsharp/targets.make
 +++ b/src/fsharp/targets.make
-@@ -221,9 +221,11 @@
+@@ -127,9 +127,11 @@
  
  # The binaries fsc.exe and fsi.exe only get installed for Mono 4.0 profile
  # This also installs 'fsharpc' and 'fsharpi'
 +#
 +# Debian patch - Point fsharpc and fsharpi at our install paths, not the GAC.
- install-bin-4:
+ install-bin:
  	chmod +x $(outdir)$(ASSEMBLY)
--	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
-+	sed -e "s,[@]DIR[@],/usr/lib/cli/fsharp,g" -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
- 	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))$(VERSION)
+-	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
++	sed -e "s,[@]DIR[@],/usr/lib/cli/fsharp,g" -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
+ 	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))
  	@mkdir -p $(DESTDIR)$(gacdir)/$(TARGET)
  	@mkdir -p $(DESTDIR)$(bindir)

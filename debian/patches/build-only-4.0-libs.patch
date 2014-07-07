@@ -1,77 +1,16 @@
---- a/src/fsharp/FSharp.Core/Makefile.in
-+++ b/src/fsharp/FSharp.Core/Makefile.in
-@@ -103,10 +103,10 @@
- 
- include $(topdir)/src/fsharp/targets.make
- 
--do-final: do-4-0 do-2-0 do-2-1
-+do-final: do-4-0
- 
- clean: clean-4-0 clean-2-0 clean-2-1
- 
--install: install-lib-4 install-lib-4-5 install-lib-2 install-lib-2-1
-+install: install-lib-4 install-lib-4-5
- 
- 
---- a/src/fsharp/policy.2.0.FSharp.Core/Makefile.in
-+++ b/src/fsharp/policy.2.0.FSharp.Core/Makefile.in
-@@ -20,10 +20,10 @@
- 	cp policy.2.0.FSharp.Core.dll.config $(@D)
- 	al /link:policy.2.0.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
- 
--do-final: do-2-0 do-4-0 
-+do-final: do-4-0 
- 
- clean: clean-2-0 clean-4-0
- 
--install: install-lib-2 install-lib-4
-+install: install-lib-4
- 
- 
---- a/src/fsharp/policy.2.3.FSharp.Core/Makefile.in
-+++ b/src/fsharp/policy.2.3.FSharp.Core/Makefile.in
-@@ -20,10 +20,10 @@
- 	cp policy.2.3.FSharp.Core.dll.config $(@D)
- 	al /link:policy.2.3.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
- 
--do-final: do-2-0 do-4-0 
-+do-final: do-4-0 
- 
- clean: clean-2-0 clean-4-0
- 
--install: install-lib-2 install-lib-4
-+install: install-lib-4
- 
- 
---- a/src/fsharp/policy.4.0.FSharp.Core/Makefile.in
-+++ b/src/fsharp/policy.4.0.FSharp.Core/Makefile.in
-@@ -20,11 +20,11 @@
- 	cp policy.4.0.FSharp.Core.dll.config $(@D)
- 	al /link:policy.4.0.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
- 
--do-final: do-2-0 do-4-0 
-+do-final: do-4-0 
- 
- clean: clean-2-0 clean-4-0
- 
--install: install-lib-2 install-lib-4
-+install: install-lib-4
- 
- 
- 
---- a/src/fsharp/policy.4.3.FSharp.Core/Makefile.in
-+++ b/src/fsharp/policy.4.3.FSharp.Core/Makefile.in
-@@ -20,11 +20,11 @@
- 	cp policy.4.3.FSharp.Core.dll.config $(@D)
- 	al /link:policy.4.3.FSharp.Core.dll.config /out:$@ /delaysign /keyfile:$(topdir)msfinal.pub /version:$(VERSION_4_0)
- 
--do-final: do-2-0 do-4-0 
-+do-final: do-4-0 
- 
- clean: clean-2-0 clean-4-0
- 
--install: install-lib-2 install-lib-4
-+install: install-lib-4
- 
- 
- 
+--- a/src/fsharp/Makefile.in
++++ b/src/fsharp/Makefile.in
+@@ -35,13 +35,7 @@
+ 	$(MAKE) -C policy.2.3.FSharp.Core $@
+ 	$(MAKE) -C policy.3.3.FSharp.Core $@
+ 	$(MAKE) -C policy.4.3.FSharp.Core $@
+-	$(MAKE) -C policy.2.0.FSharp.Core TargetFramework=net20 $@
+-	$(MAKE) -C policy.2.3.FSharp.Core TargetFramework=net20 $@
+-	$(MAKE) -C FSharp.Core TargetFramework=net20 $@
+-	$(MAKE) -C FSharp.Core TargetFramework=monodroid $@
+-	$(MAKE) -C FSharp.Core TargetFramework=monotouch $@
+ 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net40 $@
+-	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net20 $@
+ ifeq ("$(pclenabled47)", "yes")
+ 	$(MAKE) -C FSharp.Core TargetFramework=portable-net45+sl5+win8 $@
+ 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=portable-net45+sl5+win8 $@
