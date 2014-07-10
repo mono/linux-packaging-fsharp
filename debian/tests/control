@@ -1,3 +1,7 @@
 Tests: basic-xbuild-project
 Restrictions: 
 Depends: fsharp, mono-xbuild
+
+Tests: upstream-testsuite
+Restrictions:
+Depends: fsharp, mono-xbuild, nunit-console

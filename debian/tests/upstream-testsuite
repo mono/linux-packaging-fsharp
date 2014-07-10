@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+UNIT_TEST_DIR=tests/xplat/core/FsharpUnitTestProject
+OBJECT_REL_PATH=bin/Debug
+
+UNIT_TEST_DLLS=$UNIT_TEST_DIR/MonoFSharpLanguageUnitTests/$OBJECT_REL_PATH/MonoFSharpLanguageUnitTests.dll
+
+xbuild /target:MonoFSharpLanguageTests "$UNIT_TEST_DIR/F# Core Language Cross Platform Unit Tests.sln"
+
+exec nunit-console $UNIT_TEST_DLLS
