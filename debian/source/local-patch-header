@@ -1,0 +1,6 @@
+These are patches cherry-picked from upstream - https://github.com/fsharp/fsharp.git
+
+They are applied inline, rather than as separate patches, so that they
+automatically go away once the upstream release containing them is merged in.
+
+See the Debian git history for details
