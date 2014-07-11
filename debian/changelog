@@ -1,3 +1,14 @@
+fsharp (3.1.1.21+dfsg-1) UNRELEASED; urgency=medium
+
+  * Refresh patches for new upstream version
+  * Drop explicit FSharp.Core.dll reference from dep8 test solution
+  * Run upstream testsuite in autopkgtests
+  * Use single-debian-patch and cherry-picks from master
+  * Adapt to changes in install locations
+  * Cherry pick 0813299 from master to fix F# unit tests.
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 11 Jul 2014 16:30:53 +1000
+
 fsharp (3.0.34+dfsg-4) unstable; urgency=medium
 
   * Make DEP-8 test depend on only fsharp package to pick up any dependency
