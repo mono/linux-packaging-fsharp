@@ -4,4 +4,4 @@ Depends: fsharp, mono-xbuild
 
 Tests: upstream-testsuite
 Restrictions:
-Depends: fsharp, mono-xbuild, nunit-console
+Depends: fsharp, mono-xbuild, nunit-console, xvfb

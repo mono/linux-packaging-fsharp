@@ -9,4 +9,4 @@ UNIT_TEST_DLLS=$UNIT_TEST_DIR/MonoFSharpLanguageUnitTests/$OBJECT_REL_PATH/MonoF
 
 xbuild /target:MonoFSharpLanguageTests "$UNIT_TEST_DIR/F# Core Language Cross Platform Unit Tests.sln"
 
-exec nunit-console $UNIT_TEST_DLLS
+exec xvfb-run nunit-console $UNIT_TEST_DLLS
