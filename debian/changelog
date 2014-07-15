@@ -9,6 +9,12 @@ fsharp (3.1.1.21+dfsg-1) UNRELEASED; urgency=medium
 
  -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 11 Jul 2014 16:30:53 +1000
 
+fsharp (3.0.34+dfsg-5) unstable; urgency=low
+
+  * No change rebuild for transition
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Fri, 11 Jul 2014 16:37:34 +1000
+
 fsharp (3.0.34+dfsg-4) unstable; urgency=medium
 
   * Make DEP-8 test depend on only fsharp package to pick up any dependency
