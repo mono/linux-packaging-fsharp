@@ -1,4 +1,6 @@
-
+3.1.1.25
+  * Upstream fix: implement correct version number scheme for new PCL profiles
+  
 3.1.1.20
   * Upstream fix:: #! treated as a comment when it is at the start of an fsharp file
   * Upstream fix visualfsharp.codeplex.com issue #78 - allow space characters in active pattern case identifiers
@@ -40,7 +42,7 @@
 
 3.1.1.7
   * Build back versions of FSharp.Core 2.3.0.0, 2.3.5.0, 4.3.0.0 to include code generation fix.
-  * Build Profile7 (portable-net45+sl5+win8) FSharp.Core
+  * Build Profile7 (portable47) FSharp.Core
 
 3.0.30
   * Partial fix for allowing F# 3.1 projects to compile using xbuild (also 
