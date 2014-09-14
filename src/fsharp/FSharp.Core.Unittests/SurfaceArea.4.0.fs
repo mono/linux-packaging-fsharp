@@ -28,8 +28,7 @@ type SurfaceAreaTest() =
             |> Array.iter (fun s -> actual.Append(s) |> ignore
                                     actual.Append("\r\n") |> ignore)
 
-        let dev10 = Dev10Net40Baseline.dev10 
-        let postdev10 = @"
+        let expectedSurfaceArea = @"
 Microsoft.FSharp.Collections.Array2DModule: Boolean Equals(System.Object)
 Microsoft.FSharp.Collections.Array2DModule: Int32 Base1[T](T[,])
 Microsoft.FSharp.Collections.Array2DModule: Int32 Base2[T](T[,])
@@ -3317,14 +3316,10 @@ Microsoft.FSharp.Reflection.UnionCaseInfo: System.Type GetType()
 Microsoft.FSharp.Reflection.UnionCaseInfo: System.Type get_DeclaringType()
 "
         let normalize (s:string) =
-            s.Replace("\r\n\r\n", "\r\n").Trim([|'\r';'\n'|])
+            s.Replace("\r\n\r\n", "\r\n").Trim([|'\r';'\n'|]).Replace("\r\n","\n")
 
         let expected = 
-#if EXTENSIONTYPING 
-            postdev10 |> normalize
-#else
-            dev10 |> normalize
-#endif
+            expectedSurfaceArea |> normalize
 
         let act = actual.ToString() |> normalize
         if expected <> act then

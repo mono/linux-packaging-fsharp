@@ -3297,7 +3297,7 @@ System.IObserver`1[T]: Void OnCompleted()
 System.IObserver`1[T]: Void OnError(System.Exception)
 System.IObserver`1[T]: Void OnNext(T)"
         let normalize (s:string) =
-            s.Replace("\r\n\r\n", "\r\n").Trim([|'\r';'\n'|])
+            s.Replace("\r\n\r\n", "\r\n").Trim([|'\r';'\n'|]).Replace("\r\n","\n")
 
         let expected = 
             postdev10 |> normalize
@@ -3306,7 +3306,7 @@ System.IObserver`1[T]: Void OnNext(T)"
         // add padding to ensure diagnostics below don't get IndexOutOfRange
         let expected = expected + String.replicate 400 " "
         let act = act + String.replicate 400 " "
-        if expected <> act then
+        if expected.Replace("\r\n","\n") <> act.Replace("\r\n","\n") then
             let mutable indexFirstDiff = 0
             while indexFirstDiff < expected.Length && expected.[indexFirstDiff] = act.[indexFirstDiff] do
                 indexFirstDiff <- indexFirstDiff + 1
