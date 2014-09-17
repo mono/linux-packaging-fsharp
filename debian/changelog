@@ -1,3 +1,10 @@
+fsharp (3.1.1.26+dfsg-1~xamarin1) wheezy; urgency=medium
+
+  * Upload to Xamarin repository
+  * [ec23d10] Always append ~ to native package version numbers in build dependencies, for easier backporting.
+
+ -- Jo Shields <jo.shields@xamarin.com>  Wed, 17 Sep 2014 13:45:16 +0100
+
 fsharp (3.1.1.26+dfsg-1) unstable; urgency=medium
 
   * Refresh patches for new upstream version
