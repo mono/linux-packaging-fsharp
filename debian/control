@@ -3,9 +3,9 @@ Section: cli-mono
 Priority: optional
 Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
 Uploaders: Christopher James Halse Rogers <raof@ubuntu.com>
-Build-Depends: debhelper (>= 8.0.0),
+Build-Depends: debhelper (>= 8.0.0~),
   dh-autoreconf,
-  cli-common-dev (>= 0.9),
+  cli-common-dev (>= 0.9~),
 Standards-Version: 3.9.5
 Homepage: http://fsharp.org
 Vcs-Git: git://anongit.debian.org/pkg-cli-apps/packages/fsharp.git
