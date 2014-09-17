@@ -1,4 +1,4 @@
-fsharp (3.1.1.26+dfsg-1) UNRELEASED; urgency=medium
+fsharp (3.1.1.26+dfsg-1) unstable; urgency=medium
 
   * Refresh patches for new upstream version
   * Drop explicit FSharp.Core.dll reference from dep8 test solution
