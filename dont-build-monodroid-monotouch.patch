@@ -1,0 +1,12 @@
+diff -urNad fsharp-3.1.1.26.orig/src/fsharp/Makefile.in fsharp-3.1.1.26/src/fsharp/Makefile.in
+--- fsharp-3.1.1.26.orig/src/fsharp/Makefile.in	2014-09-03 10:09:08.000000000 +0000
++++ fsharp-3.1.1.26/src/fsharp/Makefile.in	2014-09-17 14:39:59.585670263 +0000
+@@ -38,8 +38,6 @@
+ 	$(MAKE) -C policy.2.0.FSharp.Core TargetFramework=net20 $@
+ 	$(MAKE) -C policy.2.3.FSharp.Core TargetFramework=net20 $@
+ 	$(MAKE) -C FSharp.Core TargetFramework=net20 $@
+-	$(MAKE) -C FSharp.Core TargetFramework=monodroid $@
+-	$(MAKE) -C FSharp.Core TargetFramework=monotouch $@
+ 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net40 $@
+ 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net20 $@
+ ifeq ("$(pclenabled47)", "yes")
