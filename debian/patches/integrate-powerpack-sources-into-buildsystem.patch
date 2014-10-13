@@ -1,0 +1,233 @@
+Index: fsharp-five/FsLex/FsLex.fsproj
+===================================================================
+--- fsharp-five.orig/FsLex/FsLex.fsproj	2014-10-14 19:50:55.681842036 +0100
++++ fsharp-five/FsLex/FsLex.fsproj	2014-10-14 19:50:55.673842036 +0100
+@@ -1,13 +1,14 @@
+ ﻿<?xml version="1.0" encoding="utf-8"?>
+ <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <PropertyGroup>
+-    <FSharpPowerPackSourcesRoot>..</FSharpPowerPackSourcesRoot>
++    <FSharpPowerPackSourcesRoot>..\src</FSharpPowerPackSourcesRoot>
++    <FSharpSourcesRoot>$(FSharpPowerPackSourcesRoot)</FSharpSourcesRoot>
+     <SccProjectName>SAK</SccProjectName>
+     <SccProvider>SAK</SccProvider>
+     <SccAuxPath>SAK</SccAuxPath>
+     <SccLocalPath>SAK</SccLocalPath>
+   </PropertyGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.Settings.targets" />
++  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpSource.Settings.targets" />
+   <PropertyGroup>
+     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+     <!-- Always use x86 emulation for this binary... -->
+@@ -20,7 +21,7 @@
+     <AssemblyName>FsLex</AssemblyName>
+     <DefineConstants>INTERNALIZED_POWER_PACK;$(DefineConstants)</DefineConstants>
+     <AllowCrossTargeting>true</AllowCrossTargeting>
+-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
++    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <PlatformTarget>x86</PlatformTarget>
+   </PropertyGroup>
+   <!-- These dummy entries are needed for F# Beta2 -->
+@@ -35,9 +36,6 @@
+     <FsYacc Include="fslexpars.fsy">
+       <OtherFlags>--internal --module FSharp.PowerPack.FsLex.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+     </FsYacc>
+-    <Compile Include="..\assemblyinfo.Common.fs">
+-      <Link>assemblyinfo.Common.fs</Link>
+-    </Compile>
+     <Compile Include="assemblyinfo.fslex.exe.fs" />
+     <Compile Include="..\FSharp.PowerPack\Lexing.fsi">
+       <Link>lexing.fsi</Link>
+@@ -68,8 +66,6 @@
+     <Reference Include="System.Core" />
+     <Reference Include="FSharp.Core" />
+   </ItemGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.targets" />
+-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\..\lkg\FSharp.PowerPack-$(LkgVersion)\bin\FSharp.PowerPack.targets" />
+-</Project>
+\ No newline at end of file
++  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
++  <Import Project="$(LkgPath)\..\2.0\FSharp.PowerPack.targets" />
++</Project>
+Index: fsharp-five/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj
+===================================================================
+--- fsharp-five.orig/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2014-10-14 19:50:55.681842036 +0100
++++ fsharp-five/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2014-10-14 19:50:55.673842036 +0100
+@@ -1,13 +1,14 @@
+ ﻿<?xml version="1.0" encoding="utf-8"?>
+ <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <PropertyGroup>
+-    <FSharpPowerPackSourcesRoot>..</FSharpPowerPackSourcesRoot>
++    <FSharpPowerPackSourcesRoot>..\src</FSharpPowerPackSourcesRoot>
++    <FSharpSourcesRoot>$(FSharpPowerPackSourcesRoot)</FSharpSourcesRoot>
+     <SccProjectName>SAK</SccProjectName>
+     <SccProvider>SAK</SccProvider>
+     <SccAuxPath>SAK</SccAuxPath>
+     <SccLocalPath>SAK</SccLocalPath>
+   </PropertyGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.Settings.targets" />
++  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpSource.Settings.targets" />
+   <PropertyGroup>
+     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+@@ -16,7 +17,7 @@
+     <OutputType>Library</OutputType>
+     <AssemblyName>FSharp.PowerPack.Build.Tasks</AssemblyName>
+     <AllowCrossTargeting>true</AllowCrossTargeting>
+-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
++    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <DocumentationFile>FSharp.PowerPack.Build.Tasks.xml</DocumentationFile>
+     <NoWarn>$(NoWarn);9;60;35;42;62;86;47;40</NoWarn>
+   </PropertyGroup>
+@@ -26,9 +27,6 @@
+   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+   </PropertyGroup>
+   <ItemGroup>
+-    <Compile Include="..\assemblyinfo.Common.fs">
+-      <Link>assemblyinfo.Common.fs</Link>
+-    </Compile>
+     <Compile Include="assemblyinfo.FSharp.PowerPack.Build.Tasks.dll.fs">
+       <Link>assemblyinfo.FSharp.PowerPack.Build.Tasks.dll.fs</Link>
+     </Compile>
+@@ -52,7 +50,5 @@
+     <Reference Include="Microsoft.Build.Utilities" />
+     <Reference Include="FSharp.Core" />
+   </ItemGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.targets" />
+-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-</Project>
+\ No newline at end of file
++  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
++</Project>
+Index: fsharp-five/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
+===================================================================
+--- fsharp-five.orig/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2014-10-14 19:50:55.681842036 +0100
++++ fsharp-five/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2014-10-14 19:51:16.141842046 +0100
+@@ -1,9 +1,10 @@
+ ﻿<?xml version="1.0" encoding="utf-8"?>
+ <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <PropertyGroup>
+-    <FSharpPowerPackSourcesRoot>..\..\..\src\</FSharpPowerPackSourcesRoot>
++    <FSharpPowerPackSourcesRoot>..\src</FSharpPowerPackSourcesRoot>
++    <FSharpSourcesRoot>$(FSharpPowerPackSourcesRoot)</FSharpSourcesRoot>
+   </PropertyGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.Settings.targets" />
++  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpSource.Settings.targets" />
+   <PropertyGroup>
+     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+@@ -13,7 +14,7 @@
+     <OutputType>library</OutputType>
+     <RootNamespace>FSharp.SRGen.Build.Tasks</RootNamespace>
+     <AssemblyName>FSharp.SRGen.Build.Tasks</AssemblyName>
+-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
++    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <FileAlignment>512</FileAlignment>
+     <Name>FSharp.SRGen.Build.Tasks</Name>
+   </PropertyGroup>
+@@ -46,10 +47,7 @@
+     <Reference Include="System" />
+     <Reference Include="System.Core" />
+   </ItemGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.targets" />
+-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  
++  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
+   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+ 	     Other similar extension points exist, see Microsoft.Common.targets.
+ 	<Target Name="BeforeBuild">
+Index: fsharp-five/FsSrGen/FsSrGen.fsproj
+===================================================================
+--- fsharp-five.orig/FsSrGen/FsSrGen.fsproj	2014-10-14 19:50:55.681842036 +0100
++++ fsharp-five/FsSrGen/FsSrGen.fsproj	2014-10-14 19:51:25.349842051 +0100
+@@ -1,9 +1,10 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <PropertyGroup>
+-    <FSharpPowerPackSourcesRoot>..\..\..\src\</FSharpPowerPackSourcesRoot>
++    <FSharpPowerPackSourcesRoot>..\src</FSharpPowerPackSourcesRoot>
++    <FSharpSourcesRoot>$(FSharpPowerPackSourcesRoot)</FSharpSourcesRoot>
+   </PropertyGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.Settings.targets" />
++  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpSource.Settings.targets" />
+   <PropertyGroup>
+     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+@@ -12,7 +13,7 @@
+     <OutputType>Exe</OutputType>
+     <RootNamespace>FsSrGen</RootNamespace>
+     <AssemblyName>FsSrGen</AssemblyName>
+-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
++    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <FileAlignment>512</FileAlignment>
+     <Name>FsSrGen</Name>
+     <OtherFlags>--standalone</OtherFlags>
+@@ -46,9 +47,7 @@
+     <Reference Include="System.Xml" />
+   </ItemGroup>
+ 
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.targets" />
+-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
++  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
+ 
+   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+ 	     Other similar extension points exist, see Microsoft.Common.targets.
+Index: fsharp-five/FsYacc/FsYacc.fsproj
+===================================================================
+--- fsharp-five.orig/FsYacc/FsYacc.fsproj	2014-10-14 19:50:55.681842036 +0100
++++ fsharp-five/FsYacc/FsYacc.fsproj	2014-10-14 19:50:55.673842036 +0100
+@@ -1,14 +1,15 @@
+ ﻿<?xml version="1.0" encoding="utf-8"?>
+ <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <PropertyGroup>
+-    <FSharpPowerPackSourcesRoot>..</FSharpPowerPackSourcesRoot>
++    <FSharpPowerPackSourcesRoot>..\src</FSharpPowerPackSourcesRoot>
++    <FSharpSourcesRoot>$(FSharpPowerPackSourcesRoot)</FSharpSourcesRoot>
+     <TargetFrameworkProfile />
+     <SccProjectName>SAK</SccProjectName>
+     <SccProvider>SAK</SccProvider>
+     <SccAuxPath>SAK</SccAuxPath>
+     <SccLocalPath>SAK</SccLocalPath>
+   </PropertyGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.Settings.targets" />
++  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpSource.Settings.targets" />
+   <PropertyGroup>
+     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+     <!-- Always use x86 emulation for this binary... -->
+@@ -21,7 +22,7 @@
+     <!-- 5310 tracks reenabling -->
+     <DefineConstants>INTERNALIZED_POWER_PACK;$(DefineConstants)</DefineConstants>
+     <AllowCrossTargeting>true</AllowCrossTargeting>
+-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
++    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+     <PlatformTarget>x86</PlatformTarget>
+   </PropertyGroup>
+   <!-- These dummy entries are needed for F# Beta2 -->
+@@ -36,9 +37,6 @@
+     <FsYacc Include="fsyaccpars.fsy">
+       <OtherFlags>--internal --module FSharp.PowerPack.FsYacc.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+     </FsYacc>
+-    <Compile Include="..\assemblyinfo.Common.fs">
+-      <Link>assemblyinfo.Common.fs</Link>
+-    </Compile>
+     <Compile Include="assemblyinfo.fsyacc.exe.fs">
+       <Link>assemblyinfo.fsyacc.exe.fs</Link>
+     </Compile>
+@@ -71,8 +69,6 @@
+     <Reference Include="System.Core" />
+     <Reference Include="FSharp.Core" />
+   </ItemGroup>
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\FSharpPowerPackSource.targets" />
+-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+-  <Import Project="$(FSharpPowerPackSourcesRoot)\..\lkg\FSharp.PowerPack-$(LkgVersion)\bin\FSharp.PowerPack.targets" />
+-</Project>
+\ No newline at end of file
++  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
++  <Import Project="$(LkgPath)\..\2.0\FSharp.PowerPack.targets" />
++</Project>

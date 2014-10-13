@@ -24,6 +24,14 @@ override_dh_fixperms:
 	find debian -iname *.optdata -type f -exec chmod 644 {} +
 	find debian -iname *.targets -type f -exec chmod 644 {} +
 
+override_dh_auto_build:
+	dh_auto_build
+	xbuild FsLex/FsLex.fsproj
+	xbuild FsYacc/FsYacc.fsproj
+	xbuild FsSrGen/FsSrGen.fsproj
+	xbuild FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
+	xbuild FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj
+
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll
 
