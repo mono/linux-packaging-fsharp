@@ -10,3 +10,11 @@ usr/lib/mono/4.0/FSharp.Build.dll				/usr/lib/cli/fsharp
 usr/lib/mono/gac/FSharp.Compiler.Interactive.Settings/4.3*/*    /usr/lib/cli/fsharp
 usr/lib/mono/gac/FSharp.Compiler.Server.Shared/4.3*/*   	/usr/lib/cli/fsharp
 usr/lib/mono/gac/FSharp.Compiler/4.3*/*       			/usr/lib/cli/fsharp
+FsLex/obj/debug/FsLex.exe					/usr/lib/cli/fsharp
+FsYacc/obj/debug/FsYacc.exe					/usr/lib/cli/fsharp
+FsSrGen/obj/debug/FsSrGen.exe					/usr/lib/cli/fsharp
+FSharp.SRGen.Build.Tasks/obj/debug/FSharp.SRGen.Build.Tasks.dll	/usr/lib/cli/fsharp
+FSharp.PowerPack.Build.Tasks/obj/debug/FSharp.PowerPack.Build.Tasks.dll	/usr/lib/cli/fsharp
+lib/release/fslex						/usr/bin
+lib/release/fsyacc						/usr/bin
+lib/release/fssrgen						/usr/bin
