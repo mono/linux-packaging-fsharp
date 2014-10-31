@@ -1,3 +1,12 @@
+fsharp (3.1.1.26+dfsg2-2~xamarin1) wheezy; urgency=medium
+
+  * [ff746a8] Imported Upstream version 3.1.1.26+dfsg2
+  * [e6e52aa] Compile missing pieces of bootstrap
+  * [36669fd] Add bootstrap-required binaries to fsharp binary package
+  * [b394f55] Ensure 4.3.0 assembly gets installed (Closes: #767265)
+
+ -- Jo Shields <jo.shields@xamarin.com>  Fri, 31 Oct 2014 14:10:02 +0000
+
 fsharp (3.1.1.26+dfsg-1~xamarin1) wheezy; urgency=medium
 
   * Upload to Xamarin repository
