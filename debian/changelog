@@ -1,3 +1,11 @@
+fsharp (3.1.1.26+dfsg2-3~xamarin1) wheezy; urgency=medium
+
+  * [7dd454c] Install sigdata/optdata into the GAC. (Closes: #767507)
+  * [b0af3f2] Depend on Mono 3.2.8+dfsg-8 for installation, since that 
+    is the minimum version to support sigdata/optdata in the GAC.
+
+ -- Jo Shields <jo.shields@xamarin.com>  Thu, 06 Nov 2014 11:02:30 +0000
+
 fsharp (3.1.1.26+dfsg2-2~xamarin1) wheezy; urgency=medium
 
   * [ff746a8] Imported Upstream version 3.1.1.26+dfsg2
