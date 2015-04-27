@@ -35,12 +35,9 @@ open Microsoft.FSharp.Compiler.Ilxgen
 module Attributes = 
     open System.Runtime.CompilerServices
 
-#if SILVERLIGHT
-#else
     //[<assembly: System.Security.SecurityTransparent>]
     [<Dependency("FSharp.Core",LoadHint.Always)>] 
     do()
-#endif
 
 let lexFilterVerbose = false
 let mutable enableConsoleColoring = true // global state
@@ -466,10 +463,7 @@ let internalFlags (tcConfigB:TcConfigBuilder) =
         ()
 #endif
     ), Some(InternalCommandLineOption("--stamps", rangeCmdArgs)), None);
-#if SILVERLIGHT
-#else
     CompilerOption("ranges", tagNone, OptionSet Tastops.DebugPrint.layoutRanges, Some(InternalCommandLineOption("--ranges", rangeCmdArgs)), None);  
-#endif
     CompilerOption("terms" , tagNone, OptionUnit (fun () -> tcConfigB.showTerms <- true), Some(InternalCommandLineOption("--terms", rangeCmdArgs)), None);
     CompilerOption("termsfile" , tagNone, OptionUnit (fun () -> tcConfigB.writeTermsToFiles <- true), Some(InternalCommandLineOption("--termsfile", rangeCmdArgs)), None);
     CompilerOption("use-incremental-build", tagNone, OptionUnit (fun () -> tcConfigB.useIncrementalBuilder <- true), None, None)
@@ -482,7 +476,6 @@ let internalFlags (tcConfigB:TcConfigBuilder) =
     CompilerOption("simulateException", tagNone, OptionString (fun s -> tcConfigB.simulateException <- Some(s)), Some(InternalCommandLineOption("--simulateException", rangeCmdArgs)), Some "Simulate an exception from some part of the compiler");    
     CompilerOption("stackReserveSize", tagNone, OptionString (fun s -> tcConfigB.stackReserveSize <- Some(int32 s)), Some(InternalCommandLineOption("--stackReserveSize", rangeCmdArgs)), Some ("for an exe, set stack reserve size"));
     CompilerOption("tlr", tagInt, OptionInt (setFlag (fun v -> tcConfigB.doTLR <- v)), Some(InternalCommandLineOption("--tlr", rangeCmdArgs)), None);
-    CompilerOption("mscorlibAssemblyName", tagNone, OptionString (fun s -> tcConfigB.primaryAssembly <- PrimaryAssembly.NamedMscorlib s ), None, None);
     CompilerOption("finalSimplify", tagInt, OptionInt (setFlag (fun v -> tcConfigB.doFinalSimplify <- v)), Some(InternalCommandLineOption("--finalSimplify", rangeCmdArgs)), None);
 #if TLR_LIFT
     CompilerOption("tlrlift", tagNone, OptionInt (setFlag  (fun v -> Tlr.liftTLR := v)), Some(InternalCommandLineOption("--tlrlift", rangeCmdArgs)), None);
@@ -592,10 +585,7 @@ let DisplayBannerText tcConfigB =
 let displayHelpFsc tcConfigB (blocks:CompilerOptionBlock list) =
     DisplayBannerText tcConfigB;
     printCompilerOptionBlocks blocks
-#if SILVERLIGHT
-#else        
     exit 0
-#endif
       
 let miscFlagsBoth tcConfigB = 
     [   CompilerOption("nologo", tagNone, OptionUnit (fun () -> tcConfigB.showBanner <- false), None, Some (FSComp.SR.optsNologo()));
@@ -794,18 +784,13 @@ let ReportTime (tcConfig:TcConfig) descr =
         | Some("fsc-ma") -> raise(System.MemberAccessException())
         | Some("fsc-ni") -> raise(System.NotImplementedException())
         | Some("fsc-nr") -> raise(System.NullReferenceException())
-#if SILVERLIGHT
-#else        
         | Some("fsc-oc") -> raise(System.OperationCanceledException())
-#endif
         | Some("fsc-fail") -> failwith "simulated"
         | _ -> ()
 
 
 
 
-#if SILVERLIGHT
-#else
     if (tcConfig.showTimes || verbose) then 
         // Note that timing calls are relatively expensive on the startup path so we don't
         // make this call unless showTimes has been turned on.
@@ -827,7 +812,6 @@ let ReportTime (tcConfig:TcConfig) descr =
 
         | _ -> ()
         tPrev := Some (timeNow,gcNow)
-#endif
 
     nPrev := Some descr
 
@@ -944,9 +928,7 @@ let GenerateIlxCode (ilxBackend, isInteractiveItExpr, isInteractiveOnMono, tcCon
     if !progress then dprintf "Generating ILX code...\n";
     let ilxGenOpts : IlxGenOptions = 
         { generateFilterBlocks = tcConfig.generateFilterBlocks;
-          emitConstantArraysUsingStaticDataBlobs = 
-              // Don't use static array blobs for dynamic code on Mono or Silverlight
-              not isInteractiveOnMono && not (ilxBackend = IlxGenBackend.IlReflectBackend && tcConfig.TargetIsSilverlight);  
+          emitConstantArraysUsingStaticDataBlobs = not isInteractiveOnMono;
           workAroundReflectionEmitBugs=tcConfig.isInteractive; // REVIEW: is this still required? 
           generateDebugSymbols= tcConfig.debuginfo;
           fragName = fragName;
@@ -985,10 +967,6 @@ let fsharpModuleName (t:CompilerTarget) (s:string) =
 let ignoreFailureOnMono1_1_16 f = try f() with _ -> ()
 
 let DoWithErrorColor isWarn f =
-#if SILVERLIGHT
-    ignore (isWarn : bool)
-    f()
-#else    
     if not enableConsoleColoring then
         f()
     else
@@ -1009,7 +987,6 @@ let DoWithErrorColor isWarn f =
                 f();
               finally
                 ignoreFailureOnMono1_1_16 (fun () -> Console.ForegroundColor <- c)
-#endif
 
 
           
