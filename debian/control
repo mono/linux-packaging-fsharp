@@ -19,6 +19,7 @@ Depends:
   ${shlibs:Depends},
   ${misc:Depends},
   libmono-compilerservices-symbolwriter4.0-cil,
+  mono-devel (>= 4.0.0~)
 Breaks: fsharp-console (<< 3.0.34+dfsg-3)
 Replaces: fsharp-console (<< 3.0.34+dfsg-3)
 Description: functional-first programming language - compiler for the CLI
