@@ -1,3 +1,16 @@
+fsharp (3.1.1.31-0xamarin1) wheezy; urgency=medium
+
+  * [4473d4c] Shuffle around for Mono 4.0
+  * [b113d21] Quilt refreshes, for fuzz
+  * [812a0e4] Imported Upstream version 3.1.1.31
+  * [74a3d04] handle new location of bootstrap code
+  * [aff3789] fix up install
+  * [02a7d3a] Refresh patches
+  * [f3b3500] Don't build MonoDroid
+  * [1e74e6c] Fix path used to find .targets in bootstrap builder fsprojes
+
+ -- Jo Shields <jo.shields@xamarin.com>  Mon, 27 Apr 2015 23:37:22 +0100
+
 fsharp (3.1.1.26+dfsg2-3~xamarin1) wheezy; urgency=medium
 
   * [7dd454c] Install sigdata/optdata into the GAC. (Closes: #767507)
