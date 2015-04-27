@@ -26,13 +26,12 @@ override_dh_fixperms:
 
 override_dh_auto_build:
 	dh_auto_build
-	xbuild FsLex/FsLex.fsproj
-	xbuild FsYacc/FsYacc.fsproj
-	xbuild FsSrGen/FsSrGen.fsproj
-	xbuild FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
-	xbuild FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj
-	sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsLex.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fslex
-	sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsYacc.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fsyacc
+	#xbuild FsLex/FsLex.fsproj
+	#xbuild FsYacc/FsYacc.fsproj
+	xbuild lib/bootstrap/src/FsSrGen/FsSrGen.fsproj
+	xbuild lib/bootstrap/src/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
+	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsLex.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fslex
+	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsYacc.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fsyacc
 	sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsSrGen.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fssrgen
 
 override_dh_clideps:
