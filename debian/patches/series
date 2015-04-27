@@ -1,2 +1,3 @@
+dont-build-monodroid.patch
 fix-mono-4.0-installation.patch
 debian-cli-policy.patch
