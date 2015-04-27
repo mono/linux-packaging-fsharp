@@ -1,7 +1,7 @@
-Index: fsharp-five/FsLex/FsLex.fsproj
+Index: xamarin-pkg-fsharp/FsLex/FsLex.fsproj
 ===================================================================
---- fsharp-five.orig/FsLex/FsLex.fsproj	2014-10-14 19:50:55.681842036 +0100
-+++ fsharp-five/FsLex/FsLex.fsproj	2014-10-14 19:50:55.673842036 +0100
+--- xamarin-pkg-fsharp.orig/FsLex/FsLex.fsproj	2015-04-27 21:39:33.734459865 +0100
++++ xamarin-pkg-fsharp/FsLex/FsLex.fsproj	2015-04-27 21:39:33.730459865 +0100
 @@ -1,13 +1,14 @@
  ﻿<?xml version="1.0" encoding="utf-8"?>
  <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -51,10 +51,10 @@ Index: fsharp-five/FsLex/FsLex.fsproj
 +  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
 +  <Import Project="$(LkgPath)\..\2.0\FSharp.PowerPack.targets" />
 +</Project>
-Index: fsharp-five/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj
+Index: xamarin-pkg-fsharp/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj
 ===================================================================
---- fsharp-five.orig/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2014-10-14 19:50:55.681842036 +0100
-+++ fsharp-five/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2014-10-14 19:50:55.673842036 +0100
+--- xamarin-pkg-fsharp.orig/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2015-04-27 21:39:33.734459865 +0100
++++ xamarin-pkg-fsharp/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsproj	2015-04-27 21:39:33.730459865 +0100
 @@ -1,13 +1,14 @@
  ﻿<?xml version="1.0" encoding="utf-8"?>
  <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -102,10 +102,10 @@ Index: fsharp-five/FSharp.PowerPack.Build.Tasks/FSharp.PowerPack.Build.Tasks.fsp
 \ No newline at end of file
 +  <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
 +</Project>
-Index: fsharp-five/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
+Index: xamarin-pkg-fsharp/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
 ===================================================================
---- fsharp-five.orig/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2014-10-14 19:50:55.681842036 +0100
-+++ fsharp-five/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2014-10-14 19:51:16.141842046 +0100
+--- xamarin-pkg-fsharp.orig/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2015-04-27 21:39:33.734459865 +0100
++++ xamarin-pkg-fsharp/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj	2015-04-27 21:39:33.730459865 +0100
 @@ -1,9 +1,10 @@
  ﻿<?xml version="1.0" encoding="utf-8"?>
  <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -140,10 +140,10 @@ Index: fsharp-five/FSharp.SRGen.Build.Tasks/FSharp.SRGen.Build.Tasks.fsproj
    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
  	     Other similar extension points exist, see Microsoft.Common.targets.
  	<Target Name="BeforeBuild">
-Index: fsharp-five/FsSrGen/FsSrGen.fsproj
+Index: xamarin-pkg-fsharp/FsSrGen/FsSrGen.fsproj
 ===================================================================
---- fsharp-five.orig/FsSrGen/FsSrGen.fsproj	2014-10-14 19:50:55.681842036 +0100
-+++ fsharp-five/FsSrGen/FsSrGen.fsproj	2014-10-14 19:51:25.349842051 +0100
+--- xamarin-pkg-fsharp.orig/FsSrGen/FsSrGen.fsproj	2015-04-27 21:39:33.734459865 +0100
++++ xamarin-pkg-fsharp/FsSrGen/FsSrGen.fsproj	2015-04-27 21:39:33.730459865 +0100
 @@ -1,9 +1,10 @@
  <?xml version="1.0" encoding="utf-8"?>
  <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -177,10 +177,10 @@ Index: fsharp-five/FsSrGen/FsSrGen.fsproj
  
    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
  	     Other similar extension points exist, see Microsoft.Common.targets.
-Index: fsharp-five/FsYacc/FsYacc.fsproj
+Index: xamarin-pkg-fsharp/FsYacc/FsYacc.fsproj
 ===================================================================
---- fsharp-five.orig/FsYacc/FsYacc.fsproj	2014-10-14 19:50:55.681842036 +0100
-+++ fsharp-five/FsYacc/FsYacc.fsproj	2014-10-14 19:50:55.673842036 +0100
+--- xamarin-pkg-fsharp.orig/FsYacc/FsYacc.fsproj	2015-04-27 21:39:33.734459865 +0100
++++ xamarin-pkg-fsharp/FsYacc/FsYacc.fsproj	2015-04-27 21:39:33.730459865 +0100
 @@ -1,14 +1,15 @@
  ﻿<?xml version="1.0" encoding="utf-8"?>
  <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">

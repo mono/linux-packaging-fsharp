@@ -1,7 +1,7 @@
 Index: xamarin-pkg-fsharp/src/fsharp/Makefile.in
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/Makefile.in	2015-04-27 21:36:10.330451799 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/Makefile.in	2015-04-27 21:36:10.326451798 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/Makefile.in	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/Makefile.in	2015-04-27 21:39:38.610460059 +0100
 @@ -35,13 +35,7 @@
  	$(MAKE) -C policy.2.3.FSharp.Core $@
  	$(MAKE) -C policy.3.3.FSharp.Core $@
@@ -18,8 +18,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/Makefile.in
  	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=portable47 $@
 Index: xamarin-pkg-fsharp/FSharp.PowerPack/FSharp.PowerPack.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/FSharp.PowerPack/FSharp.PowerPack.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/FSharp.PowerPack/FSharp.PowerPack.fsproj	2015-04-27 21:36:28.582452522 +0100
+--- xamarin-pkg-fsharp.orig/FSharp.PowerPack/FSharp.PowerPack.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/FSharp.PowerPack/FSharp.PowerPack.fsproj	2015-04-27 21:39:38.610460059 +0100
 @@ -15,7 +15,7 @@
      <ProjectGuid>{649FA588-F02E-457C-9FCF-87E46407481F}</ProjectGuid>
      <OutputType>Library</OutputType>
@@ -38,8 +38,8 @@ Index: xamarin-pkg-fsharp/FSharp.PowerPack/FSharp.PowerPack.fsproj
 +</Project>
 Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj	2015-04-27 21:36:35.026452778 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj	2015-04-27 21:39:38.610460059 +0100
 @@ -14,7 +14,7 @@
      <DefineConstants>BUILDING_WITH_LKG;$(DefineConstants)</DefineConstants>
      <BuildWith>LKG</BuildWith>
@@ -51,8 +51,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fspro
    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
 Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto.fsproj	2015-04-27 21:36:43.938453131 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto.fsproj	2015-04-27 21:39:38.610460059 +0100
 @@ -17,7 +17,7 @@
      <BuildWith>LKG</BuildWith>
      <AllowCrossTargeting>true</AllowCrossTargeting>
@@ -64,8 +64,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler-proto/FSharp.Compiler-proto
    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
 Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp.Compiler.Interactive.Settings.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp.Compiler.Interactive.Settings.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp.Compiler.Interactive.Settings.fsproj	2015-04-27 21:36:46.714453242 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp.Compiler.Interactive.Settings.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp.Compiler.Interactive.Settings.fsproj	2015-04-27 21:39:38.610460059 +0100
 @@ -10,7 +10,7 @@
      <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
      <ProjectGuid>{649FA588-F02E-457C-9FCF-87E46407481E}</ProjectGuid>
@@ -77,8 +77,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Compiler.Interactive.Settings/FSharp
      <FileAlignment>512</FileAlignment>
 Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp.Data.TypeProviders.DesignTime.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp.Data.TypeProviders.DesignTime.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp.Data.TypeProviders.DesignTime.fsproj	2015-04-27 21:36:41.506453035 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp.Data.TypeProviders.DesignTime.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp.Data.TypeProviders.DesignTime.fsproj	2015-04-27 21:39:38.614460059 +0100
 @@ -13,7 +13,7 @@
      <AllowCrossTargeting>true</AllowCrossTargeting>
      <!-- This DLL always targets .NET 4.0, no matter what, because it is a type provider design-time DLL -->
@@ -97,8 +97,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders.DesignTime/FSharp
 +</Project>
 Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeProviders.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeProviders.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeProviders.fsproj	2015-04-27 21:36:50.354453386 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeProviders.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeProviders.fsproj	2015-04-27 21:39:38.614460059 +0100
 @@ -11,7 +11,7 @@
      <OutputType>Library</OutputType>
      <AssemblyName>FSharp.Data.TypeProviders</AssemblyName>
@@ -110,8 +110,8 @@ Index: xamarin-pkg-fsharp/src/fsharp/FSharp.Data.TypeProviders/FSharp.Data.TypeP
     </PropertyGroup>
 Index: xamarin-pkg-fsharp/src/fsharp/Fsc-proto/Fsc-proto.fsproj
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/Fsc-proto/Fsc-proto.fsproj	2015-04-27 21:36:01.822451461 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/Fsc-proto/Fsc-proto.fsproj	2015-04-27 21:36:38.698452924 +0100
+--- xamarin-pkg-fsharp.orig/src/fsharp/Fsc-proto/Fsc-proto.fsproj	2015-04-27 21:39:38.614460059 +0100
++++ xamarin-pkg-fsharp/src/fsharp/Fsc-proto/Fsc-proto.fsproj	2015-04-27 21:39:38.614460059 +0100
 @@ -20,7 +20,7 @@
      <ProjectGuid>{9D7C9060-9263-40EB-8FE3-1E4E3C6D941C}</ProjectGuid>
      <AllowCrossTargeting>true</AllowCrossTargeting>

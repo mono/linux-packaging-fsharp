@@ -1,8 +1,8 @@
-diff --git a/config.make.in b/config.make.in
-index 040bf1c..da8e788 100644
---- a/config.make.in
-+++ b/config.make.in
-@@ -42,7 +42,7 @@ endif
+Index: xamarin-pkg-fsharp/config.make.in
+===================================================================
+--- xamarin-pkg-fsharp.orig/config.make.in	2015-04-27 21:39:30.194459725 +0100
++++ xamarin-pkg-fsharp/config.make.in	2015-04-27 21:39:30.190459725 +0100
+@@ -42,7 +42,7 @@
  
  ifeq (x-$(TargetFramework)-$(FSharpCoreBackVersion),x-net40-)
  VERSION = 4.3.1.0
@@ -11,11 +11,11 @@ index 040bf1c..da8e788 100644
  outsuffix = .
  endif
  
-diff --git a/src/fsharp/targets.make b/src/fsharp/targets.make
-index 2bf9071..3fc8e38 100644
---- a/src/fsharp/targets.make
-+++ b/src/fsharp/targets.make
-@@ -105,27 +105,27 @@ install-lib:
+Index: xamarin-pkg-fsharp/src/fsharp/targets.make
+===================================================================
+--- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-27 21:39:30.194459725 +0100
++++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-27 21:39:30.190459725 +0100
+@@ -105,27 +105,27 @@
  	    $(INSTALL_LIB) $(outdir)$(NAME).dll $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).dll; \
  	fi
  
