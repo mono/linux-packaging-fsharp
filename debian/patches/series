@@ -1,4 +1,2 @@
 fix-mono-4.0-installation.patch
-integrate-powerpack-sources-into-buildsystem.patch
-build-only-4.5-libs.patch
 debian-cli-policy.patch
