@@ -1,3 +1,9 @@
+fsharp (3.1.1.31-0xamarin2) wheezy; urgency=medium
+
+  * [151cbdf] Ensure mono-devel is installed
+
+ -- Jo Shields <jo.shields@xamarin.com>  Tue, 28 Apr 2015 00:06:22 +0100
+
 fsharp (3.1.1.31-0xamarin1) wheezy; urgency=medium
 
   * [4473d4c] Shuffle around for Mono 4.0
