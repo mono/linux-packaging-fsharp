@@ -1,3 +1,9 @@
+fsharp (3.1.1.31-0xamarin5) wheezy; urgency=medium
+
+  * [38abe83] Fix lib & target install locations
+
+ -- Jo Shields <jo.shields@xamarin.com>  Tue, 28 Apr 2015 17:14:25 +0100
+
 fsharp (3.1.1.31-0xamarin4) wheezy; urgency=medium
 
   * [f109ce9] Make debian/patches/fix-mono-4.0-installation.patch relocatable
