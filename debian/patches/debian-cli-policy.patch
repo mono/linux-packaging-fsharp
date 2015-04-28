@@ -1,7 +1,7 @@
 Index: xamarin-pkg-fsharp/launcher.in
 ===================================================================
---- xamarin-pkg-fsharp.orig/launcher.in	2015-04-27 23:24:27.010709455 +0100
-+++ xamarin-pkg-fsharp/launcher.in	2015-04-27 23:25:05.322710974 +0100
+--- xamarin-pkg-fsharp.orig/launcher.in	2015-04-28 16:17:51.217120932 +0100
++++ xamarin-pkg-fsharp/launcher.in	2015-04-28 16:17:51.217120932 +0100
 @@ -21,4 +21,4 @@
  # location of the default FSharp install in order to find the FSharp compiler binaries (see 
  # fsharpbinding/MonoDevelop.FSharpBinding/Services/CompilerLocationUtils.fs). That's a pretty unfortunate
@@ -10,9 +10,9 @@ Index: xamarin-pkg-fsharp/launcher.in
 +SILLY_ENV_HACK_FOR_REGEX=mono $EXEC mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename "$0") "$@"
 Index: xamarin-pkg-fsharp/src/fsharp/targets.make
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-27 23:24:27.010709455 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-27 23:24:27.010709455 +0100
-@@ -127,9 +127,11 @@
+--- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-28 16:17:51.217120932 +0100
++++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-28 16:17:51.217120932 +0100
+@@ -139,9 +139,11 @@
  
  # The binaries fsc.exe and fsi.exe only get installed for Mono 4.5 profile
  # This also installs 'fsharpc' and 'fsharpi'
