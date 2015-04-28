@@ -15,18 +15,23 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
+%global _default_patch_fuzz 2
+
 Name:           fsharp
-Version:        3.1.1.26
-Release:        0
+Version:        3.1.1.31
+Release:        1
 License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
 Group:          Development/Languages/Other
-Source:         %{name}_%{version}+dfsg.orig.tar.gz
+Source:         %{name}_%{version}.orig.tar.bz2
 BuildRequires:  automake
-BuildRequires:  mono-devel >= 3.0.0
+BuildRequires:  mono-devel >= 4.0.0
+BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:         dont-build-monodroid-monotouch.patch
+Patch1:		fix-bootstrap-src-targets-path.patch
+Patch2:		fix-mono-4.0-installation.patch
 
 %description
 F# is a mature, open source, functional-first programming language
@@ -38,6 +43,8 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
 
 %build
 autoreconf
@@ -55,37 +62,36 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild
 %{_bindir}/fsharpc
 %{_bindir}/fsharpi
 %{_bindir}/fsharpiAnyCpu
-%{_prefix}/lib/mono/2.0/FSharp.Core.dll
-%{_prefix}/lib/mono/2.0/FSharp.Core.xml
-%{_prefix}/lib/mono/2.0/FSharp.Core.optdata
-%{_prefix}/lib/mono/2.0/FSharp.Core.sigdata
 %{_prefix}/lib/mono/2.0/policy.2.0.FSharp.Core.dll
 %{_prefix}/lib/mono/2.0/policy.2.3.FSharp.Core.dll
-%{_prefix}/lib/mono/2.0/policy.2.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/FSharp.Build.dll
-%{_prefix}/lib/mono/4.0/FSharp.Build.xml
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.Interactive.Settings.dll
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.Interactive.Settings.xml
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.Server.Shared.dll
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.Server.Shared.xml
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.dll
-%{_prefix}/lib/mono/4.0/FSharp.Compiler.xml
 %{_prefix}/lib/mono/4.0/FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/FSharp.Core.xml
 %{_prefix}/lib/mono/4.0/FSharp.Core.optdata
 %{_prefix}/lib/mono/4.0/FSharp.Core.sigdata
-%{_prefix}/lib/mono/4.0/FSharp.Data.TypeProviders.dll
-%{_prefix}/lib/mono/4.0/FSharp.Data.TypeProviders.xml
-%{_prefix}/lib/mono/4.0/Microsoft.FSharp.Targets
-%{_prefix}/lib/mono/4.0/Microsoft.Portable.FSharp.Targets
-%{_prefix}/lib/mono/4.0/fsc.exe
-%{_prefix}/lib/mono/4.0/fsi.exe
-%{_prefix}/lib/mono/4.0/fsiAnyCpu.exe
-%{_prefix}/lib/mono/4.0/policy.2.0.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/policy.2.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/policy.3.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/policy.4.0.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/policy.4.3.FSharp.Core.dll
+%{_prefix}/lib/mono/4.0/FSharp.Core.xml
+%{_prefix}/lib/mono/4.5/FSharp.Build.dll
+%{_prefix}/lib/mono/4.5/FSharp.Build.xml
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.Interactive.Settings.dll
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.Interactive.Settings.xml
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.Server.Shared.dll
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.Server.Shared.xml
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.dll
+%{_prefix}/lib/mono/4.5/FSharp.Compiler.xml
+%{_prefix}/lib/mono/4.5/FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/FSharp.Core.xml
+%{_prefix}/lib/mono/4.5/FSharp.Core.optdata
+%{_prefix}/lib/mono/4.5/FSharp.Core.sigdata
+%{_prefix}/lib/mono/4.5/FSharp.Data.TypeProviders.dll
+%{_prefix}/lib/mono/4.5/FSharp.Data.TypeProviders.xml
+%{_prefix}/lib/mono/4.5/Microsoft.FSharp.Targets
+%{_prefix}/lib/mono/4.5/Microsoft.Portable.FSharp.Targets
+%{_prefix}/lib/mono/4.5/fsc.exe
+%{_prefix}/lib/mono/4.5/fsi.exe
+%{_prefix}/lib/mono/4.5/fsiAnyCpu.exe
+%{_prefix}/lib/mono/4.5/policy.2.0.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.2.3.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.3.3.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.4.0.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.4.3.FSharp.Core.dll
 %{_prefix}/lib/mono/Microsoft*
 %{_prefix}/lib/mono/gac/FSharp.Compiler.Interactive.Settings/
 %{_prefix}/lib/mono/gac/FSharp.Compiler.Server.Shared/

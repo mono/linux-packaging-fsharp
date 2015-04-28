@@ -1,12 +1,27 @@
-diff -urNad fsharp-3.1.1.26.orig/src/fsharp/Makefile.in fsharp-3.1.1.26/src/fsharp/Makefile.in
---- fsharp-3.1.1.26.orig/src/fsharp/Makefile.in	2014-09-03 10:09:08.000000000 +0000
-+++ fsharp-3.1.1.26/src/fsharp/Makefile.in	2014-09-17 14:39:59.585670263 +0000
-@@ -38,8 +38,6 @@
+Index: xamarin-pkg-fsharp/src/fsharp/Makefile.in
+===================================================================
+--- xamarin-pkg-fsharp.orig/src/fsharp/Makefile.in	2015-04-27 23:23:59.538708365 +0100
++++ xamarin-pkg-fsharp/src/fsharp/Makefile.in	2015-04-27 23:35:13.606735099 +0100
+@@ -43,8 +43,8 @@
  	$(MAKE) -C policy.2.0.FSharp.Core TargetFramework=net20 $@
  	$(MAKE) -C policy.2.3.FSharp.Core TargetFramework=net20 $@
- 	$(MAKE) -C FSharp.Core TargetFramework=net20 $@
+ 	if test -e $MONOGACDIR20/mscorlib.dll; then $(MAKE) -C FSharp.Core TargetFramework=net20 $@;fi
 -	$(MAKE) -C FSharp.Core TargetFramework=monodroid $@
 -	$(MAKE) -C FSharp.Core TargetFramework=monotouch $@
++	#$(MAKE) -C FSharp.Core TargetFramework=monodroid $@
++	#$(MAKE) -C FSharp.Core TargetFramework=monotouch $@
  	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net40 $@
- 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net20 $@
+ 	if test -e $MONOGACDIR20/mscorlib.dll; then $(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net20 $@;fi
  ifeq ("$(pclenabled47)", "yes")
+Index: xamarin-pkg-fsharp/src/fsharp/targets.make
+===================================================================
+--- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-27 23:32:52.018729483 +0100
++++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-27 23:34:14.442732752 +0100
+@@ -1,6 +1,6 @@
+ SOURCES := $(patsubst $(srcdir)$(tmpdir)%,$(tmpdir)%,$(patsubst %,$(srcdir)%,$(sources)))
+ 
+-.PHONY: install install-lib-net20 install-lib-monodroid install-lib-net40
++.PHONY: install install-lib-net40
+ 
+ build:
+ 	MONO_ENV_OPTIONS=$(monoopts) xbuild /p:Configuration=$(Configuration) /p:TargetFramework=$(TargetFramework) /p:MonoLibDir40=$(monogacdir40) /p:FSharpCoreBackVersion=$(FSharpCoreBackVersion)
