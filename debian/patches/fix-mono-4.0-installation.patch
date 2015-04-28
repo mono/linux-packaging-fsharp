@@ -1,8 +1,8 @@
-diff --git a/config.make.in b/config.make.in
-index 040bf1c..da8e788 100644
---- a/config.make.in
-+++ b/config.make.in
-@@ -42,7 +42,7 @@ endif
+Index: xamarin-pkg-fsharp/config.make.in
+===================================================================
+--- xamarin-pkg-fsharp.orig/config.make.in	2015-04-28 16:50:06.385197680 +0100
++++ xamarin-pkg-fsharp/config.make.in	2015-04-28 16:50:06.381197680 +0100
+@@ -42,7 +42,7 @@
  
  ifeq (x-$(TargetFramework)-$(FSharpCoreBackVersion),x-net40-)
  VERSION = 4.3.1.0
@@ -11,11 +11,11 @@ index 040bf1c..da8e788 100644
  outsuffix = .
  endif
  
-diff --git a/src/fsharp/targets.make b/src/fsharp/targets.make
-index 2bf9071..0aee503 100644
---- a/src/fsharp/targets.make
-+++ b/src/fsharp/targets.make
-@@ -70,6 +70,18 @@ install-lib:
+Index: xamarin-pkg-fsharp/src/fsharp/targets.make
+===================================================================
+--- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-28 16:50:06.385197680 +0100
++++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-28 16:52:42.057203854 +0100
+@@ -70,6 +70,18 @@
  	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v/FSharp/; \
  	    $(INSTALL_LIB) $(tmpdir)Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/xbuild/Microsoft/VisualStudio/v12.0/FSharp/; \
  	    \
@@ -23,18 +23,18 @@ index 2bf9071..0aee503 100644
 +		mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.0/; \
 +		mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v4.0/; \
 +		mkdir -p $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v4.0/; \
-+		ln -fs $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v4.0/; \
++		ln -fs ../v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.0/; \
++		ln -fs ../../../../../Microsoft\ F#/v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v4.0/; \
++		ln -fs ../../../../../Microsoft\ F#/v4.5/Microsoft.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v4.0/; \
++		ln -fs ../v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ F#/v4.0/; \
++		ln -fs ../../../../../Microsoft\ F#/v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.0/Framework/v4.0/; \
++		ln -fs ../../../../../Microsoft\ F#/v4.5/Microsoft.Portable.FSharp.Targets $(DESTDIR)$(gacdir)/Microsoft\ SDKs/F#/3.1/Framework/v4.0/; \
 +	    fi; \
 +	    \
  	    echo $(INSTALL_LIB) $(outdir)$(ASSEMBLY) $(DESTDIR)$((gacdir)/$(TARGET); \
  	    $(INSTALL_LIB) $(outdir)$(ASSEMBLY) $(DESTDIR)$(gacdir)/$(TARGET); \
  	    $(INSTALL_LIB) $(outdir)$(NAME).xml $(DESTDIR)$(gacdir)/$(TARGET); \
-@@ -105,27 +117,27 @@ install-lib:
+@@ -105,27 +117,27 @@
  	    $(INSTALL_LIB) $(outdir)$(NAME).dll $(DESTDIR)$(gacdir)/Reference\ Assemblies/Microsoft/FSharp/3.0/Runtime/$(PCLPATH)/$(NAME).dll; \
  	fi
  
