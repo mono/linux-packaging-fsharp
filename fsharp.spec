@@ -19,7 +19,7 @@
 
 Name:           fsharp
 Version:        3.1.1.31
-Release:        1
+Release:        2
 License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
