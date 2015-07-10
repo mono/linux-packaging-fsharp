@@ -55,7 +55,6 @@ make
 %make_install
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monodroid
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
-rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild
 
 %files
 %defattr(-,root,root)
@@ -103,4 +102,5 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild
 %{_prefix}/lib/mono/gac/policy.3.3.FSharp.Core/
 %{_prefix}/lib/mono/gac/policy.4.0.FSharp.Core/
 %{_prefix}/lib/mono/gac/policy.4.3.FSharp.Core/
+%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/
 
