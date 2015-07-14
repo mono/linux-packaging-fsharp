@@ -29,9 +29,7 @@ BuildRequires:  automake
 BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
-Patch0:         dont-build-monodroid-monotouch.patch
-Patch1:		fix-bootstrap-src-targets-path.patch
-Patch2:		fix-mono-4.0-installation.patch
+Patch0:		fix-bootstrap-src-targets-path.patch
 
 %description
 F# is a mature, open source, functional-first programming language
@@ -43,8 +41,6 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
 
 %build
 autoreconf
