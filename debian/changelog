@@ -1,3 +1,11 @@
+fsharp (3.1.2.4-0xamarin1) wheezy; urgency=medium
+
+  * [c063129] Imported Upstream version 3.1.2.4
+  * [64da116] Delete obsolete patches
+  * [b81f2f4] Delete obsolete documentation file
+
+ -- Jo Shields <jo.shields@xamarin.com>  Tue, 14 Jul 2015 11:03:47 +0100
+
 fsharp (3.1.1.31-0xamarin5) wheezy; urgency=medium
 
   * [38abe83] Fix lib & target install locations
