@@ -1,38 +1,35 @@
 ## The Open Edition of the F# Compiler, Core Library & Tools
 
-The main purpose of this repository is to package the open editions of the F# compiler, core library 
+The main purpose of this repository is to package the open editions of the F# compiler, core library
 and core tools for use across multiple platforms.  
 
 ### Contributing to the F# Compiler, Core Library and Tools
 
 Most contributions to the F# compiler/library/tools go first via the  
-repository at http://visualfsharp.codeplex.com.  This ensures that the main
+repository at https://github.com/Microsoft/visualfsharp.  This ensures that the main
 packaging of F# on Windows (the Visual F# Tools) also includes any contributions that are made, and
 ensures that the versions do not diverge.
 
-If you are using Windows, you should fork that repo and contribute directly there. Your contributions will 
+If you are using Windows, you should fork that repo and contribute directly there. Your contributions will
 then be merged into this repo.
 
-If you are using Linux or OSX, you can prepare your contributions by forking this repository (the code is 
-essentially the same). This will give you access to the cross-platform testing 
+If you are using Linux or OSX, you can prepare your contributions by forking this repository (the code is
+essentially the same). This will give you access to the cross-platform testing
 available from this repo. At the moment the process is:
 
 1. Fork this repo.
 2. Build and test using the subset of tests available in this repo. If you like, submit a PR to this repo in order to trigger an automatic Travis run, or set up a Travis hook in your fork.
-3. Seek initial review by posting an issue in this repository or http://visualfsharp.codeplex.com. Make it clear you are working on Linux or OSX.
-4. Cherry-pick your changes into a pull request for http://visualfsharp.codeplex.com and submit for final testing and clearance.
+3. Seek initial review by posting an issue in this repository or https://github.com/Microsoft/visualfsharp. Make it clear you are working on Linux or OSX.
+4. Cherry-pick your changes into a pull request for https://github.com/Microsoft/visualfsharp and submit for final testing and clearance.
 5. The change will then be merged into this repo at a later point.
 
 If you don't have access to Windows in order to run final tests at step 4. If you need help, email fsharp-opensource@googlegroups.com and ask to make a final test run on Windows.
 
 Contributions specifically related to the packaging of the Open Edition should be made here.
 
-
-
 ## Status
 
-
-The `master` branch is for the latest version of F# (currently F# 3.1).
+The `master` branch is for F# 3.1. The `fsahrp4` branch is for F# 4.0.
 
 To bootstrap the compiler, binaries built from an earlier version of this project are used.
 
@@ -40,14 +37,48 @@ This codebase uses the Apache 2.0 license.
 
 ## Current Build Status
 
-Head (F# 3.1) (branch ``master``), Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=master)](https://travis-ci.org/fsharp/fsharp/branches)
+F# 3.1 (branch ``master``), Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=master)](https://travis-ci.org/fsharp/fsharp/branches)
+
+F# 4.0 (branch ``fsharp4``, Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp4)](https://travis-ci.org/fsharp/fsharp/branches)
 
 F# 3.0 (branch ``fsharp_30``), Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp_30)](https://travis-ci.org/fsharp/fsharp/branches)
 
-F# 4.0 work-in-progress (branch ``fsharp4``, Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp4)](https://travis-ci.org/fsharp/fsharp/branches)
+Head (branch ``master``), Windows Server 2012 (AppVeyor)  [![Build status](https://ci.appveyor.com/api/projects/status/7m5e2yr0snbbr7t9)](https://ci.appveyor.com/project/fsgit/fsharp)
+
+## NuGet Feed of FSharp.Core and FSharp.Compiler.Tools packages
+
+This repo is curently used to make two NuGet pacakges - FSharp.Core and FSharp.Compiler.Tools.
+
+Stable builds are available in the NuGet Gallery:
+[http://www.nuget.org/packages/FSharp.Core](http://www.nuget.org/packages/FSharp.Core) and [http://www.nuget.org/packages/FSharp.Compiler.Tools](http://www.nuget.org/packages/FSharp.Compiler.Tools).
 
 
-Head (branch ``master``), Windows Server 2012 (Appveyor)  [![Build status](https://ci.appveyor.com/api/projects/status/7m5e2yr0snbbr7t9)](https://ci.appveyor.com/project/fsgit/fsharp)
+The FSharp.Core NuGet package includes all of the FSharp.Core redistributables from Visual F#. In addition, they include assemblies for MonoAndroid and MonoTouch built from this repository.
+
+The FSharp.Compiler.Tools package includes the F# compiler `fsc.exe`, F# Interactive `fsi.exe`, build support,
+a copy of FSharp.Core used to run the tools, and related DLLs.
+
+A feed of nuget packages from builds is available from AppVeyor using the NuGet feed: https://ci.appveyor.com/nuget/fsgit-fsharp
+
+If using Paket, add the source at the top of `paket.dependencies`.
+
+```
+source https://www.nuget.org/api/v2
+source https://ci.appveyor.com/nuget/fsgit-fsharp
+```
+
+Add the dependency on `FSharp.Core` and run `paket update`. See the AppVeyor [build history](https://ci.appveyor.com/project/fsgit/fsharp/history) for a list of available versions. Here are some options for specifying the dependency:
+
+```
+nuget FSharp.Core
+nuget FSharp.Core prerelease
+nuget FSharp.Core 3.1.2.3
+nuget FSharp.Core 3.1.2.3-b208
+```
+
+If using NuGet Package Manager, add the source to the list of available package sources.
+
+![Available Package Sources](https://cloud.githubusercontent.com/assets/80104/8576204/3cf077f4-2555-11e5-80cc-5db185af7d1e.png)
 
 ## Build Requirements
 
@@ -68,7 +99,6 @@ make
 sudo make install
 ```
 By default that makes optimized binaries. To make debug, use ```make CONFIG=debug```
-
 
 ### OS X
 
@@ -93,7 +123,7 @@ This build the proto compiler, then the library, then the final compiler.
 You can also build these independently using:
 
     msbuild src\fsharp-proto-build.proj
-    ngen install ..\lib\proto\fsc-proto.exe 
+    ngen install ..\lib\proto\fsc-proto.exe
     msbuild src\fsharp-library-build.proj /p:Configuration=Release
     msbuild src\fsharp-compiler-build.proj /p:Configuration=Release
 
@@ -105,7 +135,7 @@ You can also build FSharp.Core.dll for other profiles:
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable78 /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable259 /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=sl5 /p:Configuration=Release
-    
+
     msbuild src\fsharp-library-build.proj /p:TargetFramework=monodroid /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=monotouch /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=net40-xna40-xbox360 /p:Configuration=Release
@@ -116,7 +146,7 @@ You can also build the FSharp.Core and FSharp.Compiler.Silverlight.dll for Silve
 
 Change to ``` /p:Configuration=Debug``` for debug binaries.
 
-Add ``` /p:FSharpCoreBackVersion=3.0``` to build a back version of FSharp.Core.dll with a 
+Add ``` /p:FSharpCoreBackVersion=3.0``` to build a back version of FSharp.Core.dll with a
 version number suitable for use when building libaries that have usable with both F# 3.0 and F# 3.1 libraries.
 
     msbuild src\fsharp-library-build.proj /p:TargetFramework=net20 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
@@ -130,21 +160,21 @@ version number suitable for use when building libaries that have usable with bot
     xbuild src\fsharp-compiler-build.proj
 
 Building using xbuild does not yet lay down a Mono-ready distribution (see src/fsharp/targets.make), so should only
-be used for private development rather than preparing distributions. 
+be used for private development rather than preparing distributions.
 
 ## Build Note: Strong Names
 
-The FSharp.Core.dll produced is only delay-signed (Mono does not require strong names). 
-If a strong-name signed FSharp.Core.dll is needed then use the one in 
+The FSharp.Core.dll produced is only delay-signed (Mono does not require strong names).
+If a strong-name signed FSharp.Core.dll is needed then use the one in
 
    lib\bootstrap\signed\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll
 
-## How to Install 
+## How to Install
 
 Built main compiler binaries go to
     lib/release/4.0
 
-Additionally, versions of FSharp.Core for .NET 2.0, MonoAndroid, MonoTouch (Mono profile 2.1) go to 
+Additionally, versions of FSharp.Core for .NET 2.0, MonoAndroid, MonoTouch (Mono profile 2.1) go to
      lib/release/2.0
      lib/release/2.1
      lib/release/2.1monotouch
@@ -163,7 +193,7 @@ Additionally, versions of FSharp.Core for .NET 2.0, MonoAndroid, MonoTouch (Mono
     /Library/Frameworks/Mono.framework/Versions/Current/lib/mono/gac/.../FSharp.Compiler.dll
     ...
 
-plus some files for xbuild support 
+plus some files for xbuild support
 
     /Library/Frameworks/Mono.framework/Versions/Current/lib/mono/Microsoft\ F#/v4.0/*
     /Library/Frameworks/Mono.framework/Versions/Current/lib/mono/Microsoft\ SDKs/F#/3.0/Framework/*
@@ -179,20 +209,20 @@ plus scripts
 
 ### Integrating changes from 'visualfsharp'
 
-To integrate latest changes from https://git01.codeplex.com/visualfsharp, use
+To integrate latest changes from https://github.com/Microsoft/visualfsharp, use
 ```
-git remote add visualfsharp https://git01.codeplex.com/visualfsharp
+git remote add visualfsharp https://github.com/Microsoft/visualfsharp
 git pull visualfsharp master
 ```
 
-### Continuous Integration Build 
+### Continuous Integration Build
 
 A continuous integration build is set up with Travis. See above.
 
 ### Editing the Compiler with Visual Studio, Xamarin Studio or MonoDevelop
 
 Open `all-vs2013.sln`, and edit in modes Debug or Release. The compiler takes a good while to compile and that
-can be a bit invasive to the work flow, so it's normally better to do the actual compilation from 
+can be a bit invasive to the work flow, so it's normally better to do the actual compilation from
 the command line, see above.
 
 Historically it is difficult to edit the compiler with Xamarin Studio or MonoDevelop because of bugs in loading the hand-edited project files and targets used in the F# compiler build. These are generally in the process of being fixed, your mileage will vary.
@@ -211,10 +241,10 @@ cd tests/fsharp/core
 
 ### Windows
 
-See the http://visualfsharp.codeplex.com for instructions for how to test on Windows. Use that repository
+See the [TESTGUIDE.md](https://github.com/Microsoft/visualfsharp/blob/master/TESTGUIDE.md) for instructions for how to test on Windows. Use that repository
 to develop and test on Windows.
 
-## History 
+## History
 
 F# compiler sources as initially dropped are available from [fsharppowerpack.codeplex.com](http://fsharppowerpack.codeplex.com).
 
@@ -234,51 +264,3 @@ sudo apt-get install dos2unix autoconf
 make
 sudo make install
 ```
-
-### FSharp.Core Deployed with Nuget
-FSharp.Core is also available via Nuget.  
-
-*   [FSharp.Core for F# 3.0+ Microsoft Signed](https://www.nuget.org/packages/FSharp.Core.4.3.0.0.Microsoft.Signed)
-*   [FSharp.Core for F# 3.1+ Microsoft Signed](https://www.nuget.org/packages/FSharp.Core.Microsoft.Signed)
-*   [FSharp.Core for F# 3.1+ with MonoAndroid and MonoTouch](https://www.nuget.org/packages/FSharp.Core.Mono.Signed)
-
-
-The folder FSharp.Core.Nuget contains the nuget package scripts for the deployment of FSharp.Core.  
-
-#### FSharp.Core for F# 3.0+ Microsoft Signed
-NuGet Package Id: `FSharp.Core.4.3.0.0.Microsoft.Signed`  
-
-Contains the following versions Microsoft signed versions: 
-*   .Net 2.0
-*   .Net 4.0
-*   .Net 4.5
-*   Profile 47
-
-#### FSharp.Core for F# 3.1+ Microsoft Signed
-NuGet Package Id: `FSharp.Core.Microsoft.Signed`  
-
-Contains the following versions Microsoft signed versions: 
-*   .Net 4.0
-*   .Net 4.5
-*   Profile 7
-*   Profile 47
-*   Profile 78
-*   Profile 259
-
-#### FSharp.Core for F# 3.1+ with MonoAndroid and MonoTouch
-NuGet Package Id: `FSharp.Core.Mono.Signed`  
-
-Contains the following versions Microsoft signed versions: 
-*   .Net 4.0
-*   .Net 4.5
-*   Profile 7
-*   Profile 47
-*   Profile 78
-*   Profile 259
-
-And the following are delay signed with the Mono key:
-*   MonoAndroid
-*   MonoTouch
-
-The FSharp.Core.Mono.Signed package is normally deployed with a version matching the current tag of the open source build, the Microsoft signed versions use a version which matches the current Microsoft signed versions of FSharp core.
-
