@@ -58,9 +58,13 @@ namespace Microsoft.FSharp.Collections
         
       let Empty<'T> () = (new EmptyEnumerator<'T>() :> IEnumerator<'T>)
 
+      let rec tryItem index (e : IEnumerator<'T>) =
+          if not (e.MoveNext()) then None
+          elif index = 0 then Some(e.Current)
+          else tryItem (index-1) e
+
       let rec nth index (e : IEnumerator<'T>) = 
-          if not (e.MoveNext()) then  invalidArg "index" (SR.GetString(SR.notEnoughElements));
-          if index < 0 then invalidArg "index" (SR.GetString(SR.inputMustBeNonNegative));
+          if not (e.MoveNext()) then invalidArg "index" (SR.GetString(SR.notEnoughElements))
           if index = 0 then e.Current
           else nth (index-1) e
 
@@ -148,6 +152,48 @@ namespace Microsoft.FSharp.Collections
                             e2.Dispose()
               }
 
+      let mapi2 f (e1 : IEnumerator<_>) (e2 : IEnumerator<_>) : IEnumerator<_> =
+          let f = OptimizedClosures.FSharpFunc<_,_,_,_>.Adapt(f)
+          let i = ref (-1)
+          upcast
+              {  new MapEnumerator<_>() with
+                     member this.DoMoveNext curr =
+                        i := !i + 1
+                        if (e1.MoveNext() && e2.MoveNext()) then
+                           curr <- f.Invoke(!i, e1.Current, e2.Current)
+                           true
+                        else
+                           false
+                     member this.Dispose() =
+                        try
+                            e1.Dispose()
+                        finally
+                            e2.Dispose()
+              }
+
+      let map3 f (e1 : IEnumerator<_>) (e2 : IEnumerator<_>) (e3 : IEnumerator<_>) : IEnumerator<_> = 
+        let f = OptimizedClosures.FSharpFunc<_,_,_,_>.Adapt(f)
+        upcast 
+            {  new MapEnumerator<_>() with
+                   member this.DoMoveNext curr = 
+                      let n1 = e1.MoveNext()
+                      let n2 = e2.MoveNext()
+                      let n3 = e3.MoveNext()
+
+                      if n1 && n2 && n3 then 
+                         curr <- f.Invoke(e1.Current, e2.Current, e3.Current)
+                         true
+                      else
+                         false
+                   member this.Dispose() = 
+                      try
+                          e1.Dispose()
+                      finally
+                          try
+                              e2.Dispose()
+                          finally
+                              e3.Dispose()
+            }
 
       let choose f (e : IEnumerator<'T>) = 
           let started = ref false 
@@ -833,6 +879,7 @@ namespace Microsoft.FSharp.Collections
         
         let mkDelayedSeq (f: unit -> IEnumerable<'T>) = mkSeq (fun () -> f().GetEnumerator())
         let mkUnfoldSeq f x = mkSeq (fun () -> IEnumerator.unfold f x) 
+        let inline indexNotFound() = raise (new System.Collections.Generic.KeyNotFoundException(SR.GetString(SR.keyNotFoundAlt)))
         
         [<CompiledName("Delay")>]
         let delay f = mkDelayedSeq f
@@ -858,11 +905,22 @@ namespace Microsoft.FSharp.Collections
             while e.MoveNext() do
                 f e.Current;
 
-        [<CompiledName("Get")>]
-        let nth     i (source : seq<'T>) = 
+        [<CompiledName("Item")>]
+        let item i (source : seq<'T>) =
             checkNonNull "source" source
+            if i < 0 then invalidArg "index" (SR.GetString(SR.inputMustBeNonNegative))
             use e = source.GetEnumerator()
             IEnumerator.nth i e
+
+        [<CompiledName("TryItem")>]
+        let tryItem i (source : seq<'T>) =
+            checkNonNull "source" source
+            if i < 0 then None else
+            use e = source.GetEnumerator()
+            IEnumerator.tryItem i e
+
+        [<CompiledName("Get")>]
+        let nth i (source : seq<'T>) = item i source
 
         [<CompiledName("IterateIndexed")>]
         let iteri f (source : seq<'T>) = 
@@ -881,6 +939,15 @@ namespace Microsoft.FSharp.Collections
             let mutable state = false
             while (not state && e.MoveNext()) do
                 state <- f e.Current
+            state
+            
+        [<CompiledName("Contains")>]
+        let inline contains element (source : seq<'T>) =
+            checkNonNull "source" source
+            use e = source.GetEnumerator()
+            let mutable state = false
+            while (not state && e.MoveNext()) do
+                state <- element = e.Current
             state
             
         [<CompiledName("ForAll")>]
@@ -903,11 +970,24 @@ namespace Microsoft.FSharp.Collections
             while (e1.MoveNext() && e2.MoveNext()) do
                 f.Invoke(e1.Current, e2.Current);
 
+        [<CompiledName("IterateIndexed2")>]
+        let iteri2 f (source1 : seq<_>) (source2 : seq<_>) = 
+            checkNonNull "source1" source1
+            checkNonNull "source2" source2
+            use e1 = source1.GetEnumerator()
+            use e2 = source2.GetEnumerator()
+            let f = OptimizedClosures.FSharpFunc<_,_,_,_>.Adapt(f)
+            let mutable i = 0 
+            while (e1.MoveNext() && e2.MoveNext()) do
+                f.Invoke(i, e1.Current, e2.Current)
+                i <- i + 1
 
         // Build an IEnumerble by wrapping/transforming iterators as they get generated.
         let revamp f (ie : seq<_>) = mkSeq (fun () -> f (ie.GetEnumerator()))
         let revamp2 f (ie1 : seq<_>) (source2 : seq<_>) = 
             mkSeq (fun () -> f (ie1.GetEnumerator()) (source2.GetEnumerator()))
+        let revamp3 f (ie1 : seq<_>) (source2 : seq<_>) (source3 : seq<_>) = 
+            mkSeq (fun () -> f (ie1.GetEnumerator()) (source2.GetEnumerator()) (source3.GetEnumerator()))
 
         [<CompiledName("Filter")>]
         let filter f source      = 
@@ -927,16 +1007,34 @@ namespace Microsoft.FSharp.Collections
             checkNonNull "source" source
             revamp  (IEnumerator.mapi   f) source
 
+        [<CompiledName("MapIndexed2")>]
+        let mapi2 f source1 source2 =
+            checkNonNull "source1" source1
+            checkNonNull "source2" source2
+            revamp2 (IEnumerator.mapi2    f) source1 source2
+
         [<CompiledName("Map2")>]
         let map2 f source1 source2 = 
             checkNonNull "source1" source1
             checkNonNull "source2" source2
             revamp2 (IEnumerator.map2    f) source1 source2
 
+        [<CompiledName("Map3")>]
+        let map3 f source1 source2 source3 = 
+            checkNonNull "source1" source1
+            checkNonNull "source2" source2
+            checkNonNull "source3" source3
+            revamp3 (IEnumerator.map3    f) source1 source2 source3
+
         [<CompiledName("Choose")>]
         let choose f source      = 
             checkNonNull "source" source
             revamp  (IEnumerator.choose f) source
+
+        [<CompiledName("Indexed")>]
+        let indexed source =
+            checkNonNull "source" source
+            mapi (fun i x -> i,x) source
 
         [<CompiledName("Zip")>]
         let zip source1 source2  = 
@@ -969,7 +1067,7 @@ namespace Microsoft.FSharp.Collections
         let pick f source  = 
             checkNonNull "source" source
             match tryPick f source with 
-            | None -> raise (System.Collections.Generic.KeyNotFoundException(SR.GetString(SR.keyNotFoundAlt)))  
+            | None -> indexNotFound()
             | Some x -> x
           
         [<CompiledName("TryFind")>]
@@ -986,7 +1084,7 @@ namespace Microsoft.FSharp.Collections
         let find f source = 
             checkNonNull "source" source
             match tryFind f source with 
-            | None -> raise (System.Collections.Generic.KeyNotFoundException(SR.GetString(SR.keyNotFoundAlt)))  
+            | None -> indexNotFound()
             | Some x -> x
 
         [<CompiledName("Take")>]
@@ -1042,6 +1140,22 @@ namespace Microsoft.FSharp.Collections
                 state <- f.Invoke(state, e.Current)
             state
 
+        [<CompiledName("Fold2")>]
+        let fold2<'T1,'T2,'State> f (state:'State) (source1: seq<'T1>) (source2: seq<'T2>) = 
+            checkNonNull "source1" source1
+            checkNonNull "source2" source2
+
+            use e1 = source1.GetEnumerator() 
+            use e2 = source2.GetEnumerator() 
+
+            let f = OptimizedClosures.FSharpFunc<_,_,_,_>.Adapt(f)
+
+            let mutable state = state
+            while e1.MoveNext() && e2.MoveNext() do
+                state <- f.Invoke(state, e1.Current, e2.Current)
+
+            state
+
         [<CompiledName("Reduce")>]
         let reduce f (source : seq<'T>)  = 
             checkNonNull "source" source
@@ -1055,7 +1169,16 @@ namespace Microsoft.FSharp.Collections
 
         let fromGenerator f = mkSeq(fun () -> Generator.EnumerateFromGenerator (f()))
         let toGenerator (ie : seq<_>) = Generator.GenerateFromEnumerator (ie.GetEnumerator())
-
+            
+        [<CompiledName("Replicate")>]
+        let replicate count x =
+            #if FX_ATLEAST_40
+            System.Linq.Enumerable.Repeat(x,count)
+            #else
+            if count < 0 then invalidArg "count" (SR.GetString(SR.inputMustBeNonNegative))
+            seq { for _ in 1 .. count -> x }
+            #endif
+            
 
         [<CompiledName("Append")>]
         let append (source1: seq<'T>) (source2: seq<'T>) = 
@@ -1077,7 +1200,7 @@ namespace Microsoft.FSharp.Collections
             let rec go () = 
                 let e1ok = e1.MoveNext() 
                 let e2ok = e2.MoveNext() 
-                let c = (if e1ok = e2ok then 0 else if e1ok then 1 else -1) 
+                let c = if e1ok = e2ok then 0 else if e1ok then 1 else -1
                 if c <> 0 then c else
                 if not e1ok || not e2ok then 0 
                 else
@@ -1117,6 +1240,34 @@ namespace Microsoft.FSharp.Collections
                 let res = ResizeArray<_>(source)                
                 res.ToArray()
 
+        let foldArraySubRight (f:OptimizedClosures.FSharpFunc<'T,_,_>) (arr: 'T[]) start fin acc =
+            let mutable state = acc
+            for i = fin downto start do
+                state <- f.Invoke(arr.[i], state)
+            state
+
+        [<CompiledName("FoldBack")>]
+        let foldBack<'T,'State> f (source : seq<'T>) (x:'State) =
+            checkNonNull "source" source
+            let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
+            let arr = toArray source
+            let len = arr.Length
+            foldArraySubRight f arr 0 (len - 1) x
+
+        [<CompiledName("FoldBack2")>]
+        let foldBack2<'T1,'T2,'State> f (source1 : seq<'T1>) (source2 : seq<'T2>) (x:'State) =
+            let zipped = zip source1 source2
+            foldBack ((<||) f) zipped x
+
+        [<CompiledName("ReduceBack")>]
+        let reduceBack f (source : seq<'T>) =
+            checkNonNull "source" source
+            let arr = toArray source
+            match arr.Length with
+            | 0 -> invalidArg "source" LanguagePrimitives.ErrorStrings.InputSequenceEmptyString
+            | len ->
+                let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
+                foldArraySubRight f arr 0 (len - 2) arr.[len - 1]
 
         [<CompiledName("Singleton")>]
         let singleton x = mkSeq (fun () -> IEnumerator.Singleton x)
@@ -1153,6 +1304,24 @@ namespace Microsoft.FSharp.Collections
                       zref := f.Invoke(!zref, ie.Current)
                       yield !zref }
 
+        [<CompiledName("TryFindBack")>]
+        let tryFindBack f (source : seq<'T>) =
+            checkNonNull "source" source
+            source |> toArray |> Array.tryFindBack f
+
+        [<CompiledName("FindBack")>]
+        let findBack f source =
+            checkNonNull "source" source
+            source |> toArray |> Array.findBack f
+
+        [<CompiledName("ScanBack")>]
+        let scanBack<'T,'State> f (source : seq<'T>) (acc:'State) =
+            checkNonNull "source" source
+            mkDelayedSeq(fun () ->
+                let arr = source |> toArray
+                let res = Array.scanSubRight f arr 0 (arr.Length - 1) acc
+                res :> seq<_>)
+
         [<CompiledName("FindIndex")>]
         let findIndex p (source:seq<_>) = 
             checkNonNull "source" source
@@ -1163,7 +1332,7 @@ namespace Microsoft.FSharp.Collections
                         i
                     else loop (i+1)
                 else
-                    raise (System.Collections.Generic.KeyNotFoundException(SR.GetString(SR.keyNotFoundAlt))) 
+                    indexNotFound()
             loop 0
 
         [<CompiledName("TryFindIndex")>]
@@ -1179,13 +1348,21 @@ namespace Microsoft.FSharp.Collections
                     None
             loop 0
 
-        
+        [<CompiledName("TryFindIndexBack")>]
+        let tryFindIndexBack f (source : seq<'T>) =
+            checkNonNull "source" source
+            source |> toArray |> Array.tryFindIndexBack f
+
+        [<CompiledName("FindIndexBack")>]
+        let findIndexBack f source =
+            checkNonNull "source" source
+            source |> toArray |> Array.findIndexBack f
 
         // windowed : int -> seq<'T> -> seq<'T[]>
         [<CompiledName("Windowed")>]
         let windowed windowSize (source: seq<_>) =    
             checkNonNull "source" source
-            if windowSize <= 0 then invalidArg "windowSize" (SR.GetString(SR.inputMustBeNonNegative))
+            if windowSize <= 0 then invalidArg "windowSize" (SR.GetString(SR.inputMustBePositive))
             seq { 
                 let arr = Array.zeroCreateUnchecked windowSize
                 let r = ref (windowSize - 1)
@@ -1297,23 +1474,17 @@ namespace Microsoft.FSharp.Collections
         [<CompiledName("Distinct")>]
         let distinct source =
             checkNonNull "source" source
-            seq {   // Wrap a StructBox(_) aroud all keys in case the key type is itself a type using null as a representation
-                let dict = new Dictionary<StructBox<'T>,obj>(StructBox<'T>.Comparer)
-                for v in source do 
-                    let key = StructBox v
-                    if not (dict.ContainsKey(key)) then 
-                        dict.[key] <- null; 
-                        yield v }
+            seq { let hashSet = HashSet<'T>(HashIdentity.Structural<'T>)
+                  for v in source do
+                      if hashSet.Add(v) then
+                          yield v }
 
         [<CompiledName("DistinctBy")>]
         let distinctBy keyf source =
             checkNonNull "source" source
-            seq { // Wrap a StructBox(_) aroud all keys in case the key type is itself a type using null as a representation
-                  let dict = new Dictionary<StructBox<'Key>,obj>(StructBox<'Key>.Comparer)
+            seq { let hashSet = HashSet<_>(HashIdentity.Structural<_>)
                   for v in source do
-                    let key = StructBox (keyf v)
-                    if not (dict.ContainsKey(key)) then 
-                        dict.[key] <- null; 
+                    if hashSet.Add(keyf v) then
                         yield v }
 
         [<CompiledName("SortBy")>]
@@ -1332,6 +1503,26 @@ namespace Microsoft.FSharp.Collections
                 Array.stableSortInPlace array
                 array :> seq<_>)
 
+        [<CompiledName("SortWith")>]
+        let sortWith f source =
+            checkNonNull "source" source
+            mkDelayedSeq (fun () ->
+                let array = source |> toArray
+                Array.stableSortInPlaceWith f array
+                array :> seq<_>)
+
+        [<CompiledName("SortByDescending")>]
+        let inline sortByDescending keyf source =
+            checkNonNull "source" source
+            let inline compareDescending a b = compare (keyf b) (keyf a)
+            sortWith compareDescending source
+
+        [<CompiledName("SortDescending")>]
+        let inline sortDescending source =
+            checkNonNull "source" source
+            let inline compareDescending a b = compare b a
+            sortWith compareDescending source
+
         [<CompiledName("CountBy")>]
         let countBy keyf source =
             checkNonNull "source" source
@@ -1342,9 +1533,7 @@ namespace Microsoft.FSharp.Collections
                 source |> iter (fun v -> 
                     let key = StructBox (keyf v )
                     let mutable prev = Unchecked.defaultof<_>
-                    let ok = dict.TryGetValue(key, &prev)
-                    if ok then dict.[key] <- prev + 1
-                    else dict.[key] <- 1)
+                    if dict.TryGetValue(key, &prev) then dict.[key] <- prev + 1 else dict.[key] <- 1)
 
                 dict |> map (fun group -> (group.Key.Value, group.Value)))
 
@@ -1547,6 +1736,22 @@ namespace Microsoft.FSharp.Collections
             if (e.MoveNext()) then e.Current
             else invalidArg "source" LanguagePrimitives.ErrorStrings.InputSequenceEmptyString
 
+        [<CompiledName("TryHead")>]
+        let tryHead (source : seq<_>) =
+            checkNonNull "source" source
+            use e = source.GetEnumerator() 
+            if (e.MoveNext()) then Some e.Current
+            else None
+
+        [<CompiledName("Tail")>]
+        let tail (source: seq<'T>) =
+            checkNonNull "source" source
+            seq { use e = source.GetEnumerator() 
+                  if not (e.MoveNext()) then 
+                      invalidArg "source" (SR.GetString(SR.notEnoughElements))
+                  while e.MoveNext() do
+                      yield e.Current }
+
         [<CompiledName("Last")>]
         let last (source : seq<_>) =
             checkNonNull "source" source
@@ -1558,6 +1763,16 @@ namespace Microsoft.FSharp.Collections
             else
                 invalidArg "source" LanguagePrimitives.ErrorStrings.InputSequenceEmptyString
 
+        [<CompiledName("TryLast")>]
+        let tryLast (source : seq<_>) =
+            checkNonNull "source" source
+            use e = source.GetEnumerator() 
+            if e.MoveNext() then 
+                let mutable res = e.Current
+                while (e.MoveNext()) do res <- e.Current
+                Some res
+            else
+                None
 
         [<CompiledName("ExactlyOne")>]
         let exactlyOne (source : seq<_>) =
@@ -1571,3 +1786,71 @@ namespace Microsoft.FSharp.Collections
                     v
             else
                 invalidArg "source" LanguagePrimitives.ErrorStrings.InputSequenceEmptyString
+
+        [<CompiledName("Reverse")>]
+        let rev source =
+            checkNonNull "source" source
+            mkDelayedSeq (fun () ->
+                let array = source |> toArray
+                Array.Reverse array
+                array :> seq<_>)
+
+        [<CompiledName("Permute")>]
+        let permute f (source : seq<_>) =
+            checkNonNull "source" source
+            mkDelayedSeq (fun () ->
+                source |> toArray |> Array.permute f :> seq<_>)
+
+        [<CompiledName("MapFold")>]
+        let mapFold<'T,'State,'Result> (f: 'State -> 'T -> 'Result * 'State) acc source =
+            checkNonNull "source" source
+            let arr,state = source |> toArray |> Array.mapFold f acc
+            readonly arr, state
+
+        [<CompiledName("MapFoldBack")>]
+        let mapFoldBack<'T,'State,'Result> (f: 'T -> 'State -> 'Result * 'State) source acc =
+            checkNonNull "source" source
+            let array = source |> toArray
+            let arr,state = Array.mapFoldBack f array acc
+            readonly arr, state
+
+        [<CompiledName("Except")>]
+        let except (itemsToExclude: seq<'T>) (source: seq<'T>) =
+            checkNonNull "itemsToExclude" itemsToExclude
+            checkNonNull "source" source
+
+            seq {
+                use e = source.GetEnumerator()
+                if e.MoveNext() then
+                    let cached = HashSet(itemsToExclude, HashIdentity.Structural)
+                    let next = e.Current
+                    if (cached.Add next) then yield next
+                    while e.MoveNext() do
+                        let next = e.Current
+                        if (cached.Add next) then yield next }
+
+        [<CompiledName("ChunkBySize")>]
+        let chunkBySize chunkSize (source : seq<_>) =
+            checkNonNull "source" source
+            if chunkSize <= 0 then invalidArg "chunkSize" (SR.GetString(SR.inputMustBePositive))
+            seq { use e = source.GetEnumerator()
+                  let nextChunk() =
+                      let res = Array.zeroCreateUnchecked chunkSize
+                      res.[0] <- e.Current
+                      let i = ref 1
+                      while !i < chunkSize && e.MoveNext() do
+                          res.[!i] <- e.Current
+                          i := !i + 1
+                      if !i = chunkSize then
+                          res
+                      else
+                          res |> Array.subUnchecked 0 !i
+                  while e.MoveNext() do
+                      yield nextChunk() }
+
+        [<CompiledName("SplitInto")>]
+        let splitInto count source =
+            checkNonNull "source" source
+            if count <= 0 then invalidArg "count" (SR.GetString(SR.inputMustBePositive))
+            mkDelayedSeq (fun () ->
+                source |> toArray |> Array.splitInto count :> seq<_>)

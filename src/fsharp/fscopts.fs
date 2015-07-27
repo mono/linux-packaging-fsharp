@@ -420,7 +420,7 @@ let advancedFlagsFsc tcConfigB =
         yield CompilerOption("quotations-debug", tagNone, OptionSwitch(fun switch -> tcConfigB.emitDebugInfoInQuotations <- switch = On), None, Some(FSComp.SR.optsEmitDebugInfoInQuotations()))
     ]
 
-// OptionBlock: Internal options (internal use only)
+// OptionBlock: Internal options (test use only)
 //--------------------------------------------------
 
 let testFlag tcConfigB = 
@@ -763,7 +763,7 @@ let ReportTime (tcConfig:TcConfig) descr =
     | None -> ()
     | Some prevDescr ->
         if tcConfig.pause then 
-            dprintf "[done '%s', entering '%s'] press any key... " prevDescr descr;
+            dprintf "[done '%s', entering '%s'] press <enter> to continue... " prevDescr descr;
             System.Console.ReadLine() |> ignore;
         // Intentionally putting this right after the pause so a debugger can be attached.
         match tcConfig.simulateException with
@@ -863,6 +863,8 @@ let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importM
             let optEnvFirstLoop,implFile,implFileOptData = 
                 Opt.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvFirstLoop,isIncrementalFragment,tcConfig.emitTailcalls,implFile)
 
+            let implFile = AutoBox.TransformImplFile tcGlobals importMap implFile 
+                            
             // Only do this on the first pass!
             let optSettings = { optSettings with abstractBigTargets = false }
             let optSettings = { optSettings with reportingPhase = false }
@@ -894,7 +896,7 @@ let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importM
 
             let implFile = 
                 Lowertop.LowerImplFile tcGlobals implFile
-              
+
             let implFile,optEnvFinalSimplify =
                 if tcConfig.doFinalSimplify then 
                     //ReportTime tcConfig ("Final simplify pass");

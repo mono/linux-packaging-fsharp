@@ -29,7 +29,8 @@ REM add %FSCBinPath% to path only if not already there. Otherwise, the path keep
 echo %path%; | find /i "%FSCBinPath%;" > NUL
 if ERRORLEVEL 1    set PATH=%PATH%;%FSCBinPath%
 
-if "%FSDIFF%"=="" set FSDIFF=%SCRIPT_ROOT%fsharpqa\testenv\bin\%processor_architecture%\diff.exe -dew 
+if "%FSDIFF%"=="" set FSDIFF=%SCRIPT_ROOT%fsharpqa\testenv\bin\diff.exe
+if not exist "%FSDIFF%" echo FSDIFF not found at expected path of %fsdiff% && exit /b 1
 
 rem check if we're already configured, if not use the configuration from the last line of the config file
 if "%fsc%"=="" ( 
@@ -208,7 +209,7 @@ IF NOT DEFINED PSH_FLAGS SET PSH_FLAGS=-nologo -noprofile -executionpolicy bypas
 if DEFINED _UNATTENDEDLOG exit /b 0
 
 rem first see if we have got msbuild installed
-if exist "%X86_PROGRAMFILES%\MSBuild\12.0\Bin\MSBuild.exe" SET MSBuildToolsPath=%X86_PROGRAMFILES%\MSBuild\12.0\Bin\
+if exist "%X86_PROGRAMFILES%\MSBuild\14.0\Bin\MSBuild.exe" SET MSBuildToolsPath=%X86_PROGRAMFILES%\MSBuild\14.0\Bin\
 if not "%MSBuildToolsPath%" == "" goto done_MsBuildToolsPath
 
                         IF NOT "%CORDIR%"=="" IF EXIST "%CORDIR%\msbuild.exe"         SET MSBuildToolsPath=%CORDIR%
@@ -259,15 +260,15 @@ REM ===
 
 reg>NUL 2>&1 query "HKLM\SOFTWARE\Microsoft\FSharp\3.1\Runtime\v4.0" /ve
 IF ERRORLEVEL 1 goto :Try64bit
-FOR /F "tokens=1-2*" %%a IN ('reg query "HKLM\SOFTWARE\Microsoft\FSharp\3.1\Runtime\v4.0" /ve') DO set FSCBinPath=%%c
+FOR /F "tokens=1-2*" %%a IN ('reg query "HKLM\SOFTWARE\Microsoft\FSharp\4.0\Runtime\v4.0" /ve') DO set FSCBinPath=%%c
 IF EXIST "%FSCBinPath%" goto :EOF
-FOR /F "tokens=1-3*" %%a IN ('reg query "HKLM\SOFTWARE\Microsoft\FSharp\3.1\Runtime\v4.0" /ve') DO set FSCBinPath=%%d
+FOR /F "tokens=1-3*" %%a IN ('reg query "HKLM\SOFTWARE\Microsoft\FSharp\4.0\Runtime\v4.0" /ve') DO set FSCBinPath=%%d
 goto :EOF
 
 :Try64bit
-FOR /F "tokens=1-2*" %%a IN ('reg query "HKLM\SOFTWARE\Wow6432Node\Microsoft\FSharp\3.1\Runtime\v4.0" /ve') DO set FSCBinPath=%%c
+FOR /F "tokens=1-2*" %%a IN ('reg query "HKLM\SOFTWARE\Wow6432Node\Microsoft\FSharp\4.0\Runtime\v4.0" /ve') DO set FSCBinPath=%%c
 IF EXIST "%FSCBinPath%" goto :EOF
-FOR /F "tokens=1-3*" %%a IN ('reg query "HKLM\SOFTWARE\Wow6432Node\Microsoft\FSharp\3.1\Runtime\v4.0" /ve') DO set FSCBinPath=%%d
+FOR /F "tokens=1-3*" %%a IN ('reg query "HKLM\SOFTWARE\Wow6432Node\Microsoft\FSharp\4.0\Runtime\v4.0" /ve') DO set FSCBinPath=%%d
 
 goto :EOF
 
@@ -288,13 +289,13 @@ IF /I "%OSARCH%"=="x86"   set X86_PROGRAMFILES=%ProgramFiles%
 IF /I "%OSARCH%"=="IA64"  set X86_PROGRAMFILES=%ProgramFiles(x86)%
 IF /I "%OSARCH%"=="AMD64" set X86_PROGRAMFILES=%ProgramFiles(x86)%
 
-REM == Set path to v2.0 and v4.0 FSharp.Core.dll (4.0 is the default)
-set FSCOREDLLPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0
+REM == Default VS install locations
+set FSCOREDLLPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.4.0.0
 set FSCOREDLL20PATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETFramework\v2.0\2.3.0.0
-set FSCOREDLLPORTABLEPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.1
-set FSCOREDLLNETCOREPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.3.1.0
-set FSCOREDLLNETCORE78PATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.78.3.1
-set FSCOREDLLNETCORE259PATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.259.3.1
+set FSCOREDLLPORTABLEPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETPortable\3.47.4.0
+set FSCOREDLLNETCOREPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.7.4.0
+set FSCOREDLLNETCORE78PATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.78.4.0
+set FSCOREDLLNETCORE259PATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETCore\3.259.4.0
 set FSDATATPPATH=%X86_PROGRAMFILES%\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.0.0\Type Providers
 
 REM == Check if using open build instead

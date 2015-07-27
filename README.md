@@ -3,6 +3,7 @@
 The main purpose of this repository is to package the open editions of the F# compiler, core library
 and core tools for use across multiple platforms.  
 
+
 ### Contributing to the F# Compiler, Core Library and Tools
 
 Most contributions to the F# compiler/library/tools go first via the  
@@ -26,6 +27,7 @@ available from this repo. At the moment the process is:
 If you don't have access to Windows in order to run final tests at step 4. If you need help, email fsharp-opensource@googlegroups.com and ask to make a final test run on Windows.
 
 Contributions specifically related to the packaging of the Open Edition should be made here.
+
 
 ## Status
 
@@ -85,34 +87,31 @@ If using NuGet Package Manager, add the source to the list of available package 
 Requires mono 3.0 or higher.
 
 OS X requires automake 2.69. To install from [homebrew](http://mxcl.github.com/homebrew):
-```
-brew install automake
-```
+
+	brew install automake
 
 ## How to Build
 
 ### Linux and other Unix systems:
 The usual:
-```
-./autogen.sh --prefix=/usr
-make
-sudo make install
-```
+
+	./autogen.sh --prefix=/usr
+	make
+	sudo make install
+
 By default that makes optimized binaries. To make debug, use ```make CONFIG=debug```
 
 ### OS X
 
 Use a prefix to your version of Mono:
-```
-./autogen.sh --prefix=/Library/Frameworks/Mono.framework/Versions/Current/
-make
-sudo make install
-```
+
+	./autogen.sh --prefix=/Library/Frameworks/Mono.framework/Versions/Current/
+	make
+	sudo make install
+
 By default that makes optimized binaries. To make debug, use ```make CONFIG=debug```
 
 ### Windows, using msbuild
-
-If you have only VS2012 or VS2013 installed, and not VS2010, you'll need to install the F# 2.0 Runtime (http://www.microsoft.com/en-us/download/details.aspx?id=13450).
 
 Build using:
 
@@ -152,8 +151,15 @@ version number suitable for use when building libaries that have usable with bot
     msbuild src\fsharp-library-build.proj /p:TargetFramework=net20 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
     msbuild src\fsharp-library-build.proj /p:TargetFramework=net40 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable47 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=net40 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=portable47 /p:Configuration=Release /p:FSharpCoreBackVersion=3.0
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=net40 /p:Configuration=Release /p:FSharpCoreBackVersion=3.1
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=portable7 /p:Configuration=Release /p:FSharpCoreBackVersion=3.1
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=portable47 /p:Configuration=Release /p:FSharpCoreBackVersion=3.1
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=portable78 /p:Configuration=Release /p:FSharpCoreBackVersion=3.1
+	msbuild src\fsharp-library-build.proj /p:TargetFramework=portable259 /p:Configuration=Release /p:FSharpCoreBackVersion=3.1
 
-### Windows, using xbuild (e.g. if no .NET is installed and only Mono 3.0 is installed):
+### Windows, using xbuild (e.g. if only Mono is installed):
 
     xbuild src\fsharp-proto-build.proj
     xbuild src\fsharp-library-build.proj
@@ -167,7 +173,8 @@ be used for private development rather than preparing distributions.
 The FSharp.Core.dll produced is only delay-signed (Mono does not require strong names).
 If a strong-name signed FSharp.Core.dll is needed then use the one in
 
-   lib\bootstrap\signed\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll
+    lib\bootstrap\signed\.NETFramework\v4.0\4.3.0.0\FSharp.Core.dll
+    lib\bootstrap\signed\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll
 
 ## How to Install
 
