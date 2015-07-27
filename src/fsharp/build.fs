@@ -390,7 +390,8 @@ let warningOn err level specificWarnOn =
     List.mem n specificWarnOn ||
     // Some specific warnings are never on by default, i.e. unused variable warnings
     match n with 
-    | 1182 -> false 
+    | 1182 -> false // chkUnusedValue - off by default
+    | 3180 -> false // abImplicitHeapAllocation - off by default
     | _ -> level >= GetWarningLevel err 
 
 let SplitRelatedErrors(err:PhasedError) = 
@@ -1584,9 +1585,18 @@ let DefaultBasicReferencesForOutOfProjectSources =
       // Note: this is not a partiuclarly good technique as it relying on the environment the compiler is executing in
       // to determine the default references. However, System.Core will only fail to load on machines with only .NET 2.0,
       // in which case the compiler will also be running as a .NET 2.0 process.
+      //
+      // NOTE: it seems this can now be removed now that .NET 4.x is minimally assumed when using this toolchain
       if (try System.Reflection.Assembly.Load "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" |> ignore; true with _ -> false) then 
           yield "System.Core" 
 
+#if CROSS_PLATFORM_COMPILER
+      // Mono doesn't have System.Runtime available on all versions, or at least the
+      // reference is not foun by reference resolution. This is a temporary 
+      // but inadequate workaround for that issue.
+#else
+      yield "System.Runtime"
+#endif
       yield "System.Web"
       yield "System.Web.Services"
       yield "System.Windows.Forms" ]
@@ -1613,6 +1623,7 @@ let SystemAssemblies primaryAssemblyName =
       yield "System.Web.Services"
       yield "System.Windows.Forms"
       yield "System.Core"
+      yield "System.Runtime"
       yield "System.Observable"
       yield "System.Numerics"] 
 
@@ -2453,8 +2464,10 @@ type TcConfig private (data : TcConfigBuilder,validate:bool) =
                     // the versions mismatch, however they are allowed to mismatch in one case:
                     if primaryAssemblyIsSilverlight  && mscorlibMajorVersion=5   // SL5
                         && (match explicitFscoreVersionToCheckOpt with 
-                            | Some(v1,v2,v3,_) -> v1=2us && v2=3us && v3=5us  // we build SL5 against portable FSCore 2.3.5.0
-                            | None -> true) // the 'None' code path happens after explicit FSCore was already checked, from now on SL5 path is always excepted
+                            | Some(2us,3us,5us,_) // silverlight is supported for FSharp.Core 2.3.5.x and 3.47.x.y 
+                            | Some(3us,47us,_,_) 
+                            | None -> true        // the 'None' code path happens after explicit FSCore was already checked, from now on SL5 path is always excepted
+                            | _ -> false) 
                     then
                         ()
                     else
@@ -2708,9 +2721,19 @@ type TcConfig private (data : TcConfigBuilder,validate:bool) =
         let isNetModule = String.Compare(ext,".netmodule",StringComparison.OrdinalIgnoreCase)=0 
         if String.Compare(ext,".dll",StringComparison.OrdinalIgnoreCase)=0 
            || String.Compare(ext,".exe",StringComparison.OrdinalIgnoreCase)=0 
-           || isNetModule then 
+           || isNetModule then
 
-            let resolved = TryResolveFileUsingPaths(tcConfig.SearchPathsForLibraryFiles,m,nm)
+            let searchPaths =
+                // if this is a #r reference (not from dummy range), make sure the directory of the declaring
+                // file is included in the search path. This should ideally already be one of the search paths, but
+                // during some global checks it won't be.  We append to the end of the search list so that this is the last
+                // place that is checked.
+                if m <> range0 && m <> rangeStartup && m <> rangeCmdArgs && FileSystem.IsPathRootedShim m.FileName then
+                    tcConfig.SearchPathsForLibraryFiles @ [Path.GetDirectoryName(m.FileName)]
+                else    
+                    tcConfig.SearchPathsForLibraryFiles
+
+            let resolved = TryResolveFileUsingPaths(searchPaths,m,nm)
             match resolved with 
             | Some(resolved) -> 
                 let sysdir = tcConfig.IsSystemAssembly resolved
@@ -3180,7 +3203,7 @@ let ParseInput (lexer,errorLogger:ErrorLogger,lexbuf:UnicodeLexing.Lexbuf,defaul
                 let intfs = Parser.signatureFile lexer lexbuf 
                 PostParseModuleSpecs (defaultNamespace,filename,isLastCompiland,intfs)
             else 
-                errorLogger.Error(InternalError(FSComp.SR.buildUnknownFileSuffix(filename),Range.rangeStartup))
+                errorLogger.Error(Error(FSComp.SR.buildInvalidSourceFileExtension(filename),Range.rangeStartup))
         filteringErrorLogger.ScopedPragmas <- GetScopedPragmasForInput input
         input
     finally
@@ -3371,7 +3394,7 @@ let IsSignatureDataResource         (r: ILResource) = String.hasPrefix r.Name FS
 let IsOptimizationDataResource      (r: ILResource) = String.hasPrefix r.Name FSharpOptimizationDataResourceName
 let GetSignatureDataResourceName    (r: ILResource) = String.dropPrefix (String.dropPrefix r.Name FSharpSignatureDataResourceName) "."
 let GetOptimizationDataResourceName (r: ILResource) = String.dropPrefix (String.dropPrefix r.Name FSharpOptimizationDataResourceName) "."
-let IsReflectedDefinitionsResource  (r: ILResource) = String.hasPrefix r.Name QuotationPickler.pickledDefinitionsResourceNameBase
+let IsReflectedDefinitionsResource  (r: ILResource) = String.hasPrefix r.Name QuotationPickler.SerializedReflectedDefinitionsResourceNameBase
 
 type ILResource with 
     /// Get a function to read the bytes from a resource local to an assembly
@@ -3416,7 +3439,7 @@ let WriteSignatureData (tcConfig:TcConfig,tcGlobals,exportRemapping,ccu:CcuThunk
     PickleToResource file tcGlobals ccu (FSharpSignatureDataResourceName+"."+ccu.AssemblyName) pickleModuleInfo 
         { mspec=mspec; 
           compileTimeWorkingDir=tcConfig.implicitIncludeDir;
-          usesQuotations = ccu.UsesQuotations }
+          usesQuotations = ccu.UsesFSharp20PlusQuotations }
 #endif // NO_COMPILER_BACKEND
 
 let GetOptimizationData (file, ilScopeRef, ilModule, byteReader) = 
@@ -3625,7 +3648,7 @@ type TcImports(tcConfigP:TcConfigProvider, initialResolutions:TcAssemblyResoluti
             tcImports.RegisterDll(dllinfo);
             let ccuData = 
               { IsFSharp=false;
-                UsesQuotations=false;
+                UsesFSharp20PlusQuotations=false;
                 InvalidateEvent=(new Event<_>()).Publish;
                 IsProviderGenerated = true
                 QualifiedName= Some (assembly.PUntaint((fun a -> a.FullName), m));
@@ -3880,7 +3903,9 @@ type TcImports(tcConfigP:TcConfigProvider, initialResolutions:TcAssemblyResoluti
             
             // Add the invalidation signal handlers to each provider
             for provider in providers do 
-                provider.PUntaint((fun tp -> tp.Invalidate.Add(fun _ -> invalidateCcu.Trigger ("The provider '" + fileNameOfRuntimeAssembly + "' reported a change"))), m)
+                provider.PUntaint((fun tp -> 
+                    let handler = tp.Invalidate.Subscribe(fun _ -> invalidateCcu.Trigger ("The provider '" + fileNameOfRuntimeAssembly + "' reported a change"))  
+                    tcImports.AttachDisposeAction(fun () -> try handler.Dispose() with _ -> ())), m)  
                 
             match providers with
             | [] -> 
@@ -4072,7 +4097,7 @@ type TcImports(tcConfigP:TcConfigProvider, initialResolutions:TcAssemblyResoluti
                                               IsProviderGenerated = false
                                               ImportProvidedType = (fun ty -> Import.ImportProvidedType (tcImports.GetImportMap()) m ty)
 #endif
-                                              UsesQuotations = minfo.usesQuotations
+                                              UsesFSharp20PlusQuotations = minfo.usesQuotations
                                               MemberSignatureEquality= (fun ty1 ty2 -> Tastops.typeEquivAux EraseAll (tcImports.GetTcGlobals()) ty1 ty2)
                                               TypeForwarders = match ilModule.Manifest with | Some manifest -> ImportILAssemblyTypeForwarders(tcImports.GetImportMap,m,manifest.ExportedTypes) | None -> Map.empty })
 
@@ -4907,7 +4932,7 @@ let TypecheckInitialState(m,ccuName,tcConfig:TcConfig,tcGlobals,tcImports:TcImpo
     let ccuType = NewCcuContents ILScopeRef.Local m ccuName (NewEmptyModuleOrNamespaceType Namespace)
     let ccu = 
       CcuThunk.Create(ccuName,{IsFSharp=true
-                               UsesQuotations=false
+                               UsesFSharp20PlusQuotations=false
 #if EXTENSIONTYPING
                                InvalidateEvent=(new Event<_>()).Publish
                                IsProviderGenerated = false
@@ -5048,17 +5073,26 @@ let TypecheckOneInputEventually
         
                 // Only add it to the environment if it didn't have a signature 
                 let m = qualNameOfFile.Range
+
+                // Add the implementation as to the implementation env
                 let tcImplEnv = Tc.AddLocalRootModuleOrNamespace TcResultsSink.NoSink tcGlobals amap m tcImplEnv implFileSigType
+
+                // Add the implementation as to the signature env (unless it had an explicit signature)
                 let tcSigEnv = 
                     if hadSig then tcState.tcsTcSigEnv 
                     else Tc.AddLocalRootModuleOrNamespace TcResultsSink.NoSink tcGlobals amap m tcState.tcsTcSigEnv implFileSigType
                 
-                // Open the prefixPath for fsi.exe 
+                // Open the prefixPath for fsi.exe (tcImplEnv)
                 let tcImplEnv = 
                     match prefixPathOpt with 
-                    | None -> tcImplEnv 
-                    | Some prefixPath -> 
-                        TcOpenDecl tcSink tcGlobals amap m m tcImplEnv prefixPath
+                    | Some prefixPath -> TcOpenDecl tcSink tcGlobals amap m m tcImplEnv prefixPath
+                    | _ -> tcImplEnv 
+
+                // Open the prefixPath for fsi.exe (tcSigEnv)
+                let tcSigEnv = 
+                    match prefixPathOpt with 
+                    | Some prefixPath when not hadSig -> TcOpenDecl tcSink tcGlobals amap m m tcSigEnv prefixPath
+                    | _ -> tcSigEnv 
 
                 let allImplementedSigModulTyp = combineModuleOrNamespaceTypeList [] m [implFileSigType; allImplementedSigModulTyp]
 
@@ -5071,7 +5105,7 @@ let TypecheckOneInputEventually
                 if verbose then  dprintf "done TypecheckOneInputEventually...\n"
 
                 let topSigsAndImpls = RootSigsAndImpls(rootSigs,rootImpls,allSigModulTyp,allImplementedSigModulTyp)
-                let res = (topAttrs,[implFile], tcEnvAtEnd, tcSigEnv, tcImplEnv,topSigsAndImpls,ccuType)
+                let res = (topAttrs,[implFile], tcEnvAtEnd, tcSigEnv, tcImplEnv, topSigsAndImpls, ccuType)
                 return res }
      
       return (tcEnvAtEnd,topAttrs,mimpls),

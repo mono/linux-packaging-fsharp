@@ -1,6 +1,6 @@
 
 # the version under development, update after a release
-$version = '3.1.2.4'
+$version = '4.0.0.1'
 
 function isVersionTag($tag){
     $v = New-Object Version
@@ -28,5 +28,5 @@ function pack($nuspec){
     popd
 }
 
-pack(gi .\FSharp.Core.Nuget\FSharp.Core.3.1.nuspec)
-pack(gi .\FSharp.Compiler.Tools.Nuget\FSharp.Compiler.Tools.3.1.nuspec)
+pack(gi .\FSharp.Core.Nuget\FSharp.Core.nuspec)
+pack(gi .\FSharp.Compiler.Tools.Nuget\FSharp.Compiler.Tools.nuspec)

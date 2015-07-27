@@ -8,6 +8,7 @@
 module internal Microsoft.FSharp.Compiler.AbstractIL.ILBinaryReader 
 
 #nowarn "42" // This construct is deprecated: it is only for use in the F# library
+#nowarn "44" // This construct is deprecated. please use List.item
 
 open System
 open System.IO
@@ -2205,7 +2206,8 @@ and sigptrGetLocal ctxt numtypars bytes sigptr =
             false, sigptr
     let typ, sigptr = sigptrGetTy ctxt numtypars bytes sigptr
     { IsPinned = pinned;
-      Type = typ }, sigptr
+      Type = typ;
+      DebugInfo = None }, sigptr
          
 and readBlobHeapAsMethodSig ctxt numtypars blobIdx  =
     ctxt.readBlobHeapAsMethodSig (BlobAsMethodSigIdx (numtypars,blobIdx))

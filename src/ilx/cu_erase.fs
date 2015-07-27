@@ -377,7 +377,7 @@ let rec convInstr cenv (tmps: ILLocalsAllocator) inplab outlab instr =
                         InstrMorph [ AI_pop; (AI_ldc (DT_I4, ILConst.I4 0)) ] 
                 | RuntimeTypes -> 
                         let baseTy = baseTyOfUnionSpec cuspec
-                        let locn = tmps.AllocLocal (mkILLocal baseTy)
+                        let locn = tmps.AllocLocal (mkILLocal baseTy None)
 
                         let mkCase last inplab cidx failLab = 
                             let alt = altOfUnionSpec cuspec cidx
@@ -495,7 +495,7 @@ let rec convInstr cenv (tmps: ILLocalsAllocator) inplab outlab instr =
         
             match cuspecRepr.DiscriminationTechnique cuspec with 
             | RuntimeTypes ->  
-                let locn = tmps.AllocLocal (mkILLocal baseTy)
+                let locn = tmps.AllocLocal (mkILLocal baseTy None)
                 let mkCase _last inplab (cidx,tg) failLab = 
                     let alt = altOfUnionSpec cuspec cidx
                     let altTy = tyForAlt cuspec alt
@@ -1037,13 +1037,6 @@ let rec convClassUnionDef cenv enc td cud =
     // The class can be abstract if each alternative is represented by a derived type
     let isAbstract = (altTypeDefs.Length = cud.cudAlternatives.Length)        
 
-    // If the class is abstract make the constructor used for the subclasses protected
-    let ctorMeths = 
-        if isAbstract then 
-            ctorMeths |> List.map (fun mdef -> {mdef with Access=ILMemberAccess.Assembly })
-        else   
-            ctorMeths
-
     let existingMeths = 
         td.Methods.AsList 
             // Filter out the F#-compiler supplied implementation of the get_Empty method. This is because we will replace
@@ -1059,9 +1052,6 @@ let rec convClassUnionDef cenv enc td cud =
             |> List.filter (fun pd -> not (cud.cudHasHelpers = SpecialFSharpListHelpers && (pd.Name = "Empty"  || pd.Name = "IsEmpty"  )) &&
                                       not (cud.cudHasHelpers = SpecialFSharpOptionHelpers && (pd.Name = "Value" || pd.Name = "None")))
     
-    let casesTypeDef = 
-           None
-
     let enumTypeDef = 
         // The nested Tags type is elided if there is only one tag
         // The Tag property is NOT elided if there is only one tag
@@ -1095,15 +1085,14 @@ let rec convClassUnionDef cenv enc td cud =
 
     let baseTypeDef = 
         { Name = td.Name;
-          NestedTypes = mkILTypeDefs (Option.toList casesTypeDef @ 
-                               Option.toList enumTypeDef @ 
+          NestedTypes = mkILTypeDefs (Option.toList enumTypeDef @ 
                                altTypeDefs @ 
                                altDebugTypeDefs @
                                (convTypeDefs cenv (enc@[td]) td.NestedTypes).AsList);
           GenericParams= td.GenericParams;
           Access = td.Access;
           IsAbstract = isAbstract;
-          IsSealed = false;
+          IsSealed = altTypeDefs.IsEmpty;
           IsSerializable=td.IsSerializable;
           IsComInterop=false;
           Layout=td.Layout; 
