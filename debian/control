@@ -41,7 +41,7 @@ Description: functional-first programming language - core runtime library
  .
  This package contains the core runtime library for F# binaries.
 
-Package: libfsharp-data-typeproviders4.3-cil
+Package: libfsharp-data-typeproviders4.4-cil
 Architecture: all
 Depends:
   ${cli:Depends},
