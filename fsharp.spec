@@ -26,6 +26,7 @@ Url:            http://fsharp.github.io/fsharp/
 Group:          Development/Languages/Other
 Source:         %{name}_%{version}.orig.tar.bz2
 BuildRequires:  automake
+BuildRequires:  nuget
 BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
