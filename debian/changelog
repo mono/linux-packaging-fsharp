@@ -1,3 +1,15 @@
+fsharp (4.0.0.3-0xamarin1) wheezy; urgency=medium
+
+  * [20b2c5f] Imported Upstream version 4.0.0.1
+  * [ff57809] Avoid using bundled NuGet
+  * [88d8015] Bump libfsharp-data-typeproviders4.4-cil ABI
+  * [b967c16] Imported Upstream version 4.0.0.3
+  * [7877776] Fix installed libs to use 4.4.0.0 primarily
+  * [e0a9e04] Build-dep on NuGet. We'll fix the evilness of
+    using the net during package building later.
+
+ -- Jo Shields <jo.shields@xamarin.com>  Thu, 06 Aug 2015 10:41:08 +0100
+
 fsharp (3.1.2.4-0xamarin1) wheezy; urgency=medium
 
   * [c063129] Imported Upstream version 3.1.2.4
