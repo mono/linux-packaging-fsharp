@@ -1,14 +1,9 @@
 # Core library
-40 /usr/lib/cli/FSharp.Core-4.3/4.0/FSharp.Core.dll
-40 /usr/lib/cli/FSharp.Core-4.3/4.0/FSharp.Core.sigdata
-40 /usr/lib/cli/FSharp.Core-4.3/4.0/FSharp.Core.optdata
-
 45 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.dll
 45 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.sigdata
 45 /usr/lib/cli/FSharp.Core-4.3/FSharp.Core.optdata
 
 # Build targets for xbuild support
-40 /usr/lib/cli/fsharp/FSharp.Build.dll
 45 /usr/lib/cli/fsharp/FSharp.Build.dll
 45 /usr/lib/cli/fsharp/Microsoft.FSharp.Targets
 45 /usr/lib/cli/fsharp/Microsoft.Portable.FSharp.Targets
@@ -22,10 +17,7 @@
 45 /usr/lib/cli/fsharp/fsi.exe
 
 # Compiler infrastructure
-40 /usr/lib/cli/fsharp/FSharp.Compiler.dll
 45 /usr/lib/cli/fsharp/FSharp.Compiler.dll
-40 /usr/lib/cli/fsharp/FSharp.Compiler.Interactive.Settings.dll
 45 /usr/lib/cli/fsharp/FSharp.Compiler.Interactive.Settings.dll
-40 /usr/lib/cli/fsharp/FSharp.Compiler.Server.Shared.dll
 45 /usr/lib/cli/fsharp/FSharp.Compiler.Server.Shared.dll
 
