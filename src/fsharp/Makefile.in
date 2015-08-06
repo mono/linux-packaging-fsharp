@@ -36,16 +36,14 @@ build clean install:
 	$(MAKE) -C fsi $@
 	$(MAKE) -C fsiAnyCpu $@
 	$(MAKE) -C policy.2.0.FSharp.Core $@
-	$(MAKE) -C policy.4.0.FSharp.Core $@
 	$(MAKE) -C policy.2.3.FSharp.Core $@
 	$(MAKE) -C policy.3.3.FSharp.Core $@
 	$(MAKE) -C policy.3.7.FSharp.Core $@
 	$(MAKE) -C policy.3.47.FSharp.Core $@
 	$(MAKE) -C policy.3.78.FSharp.Core $@
 	$(MAKE) -C policy.3.259.FSharp.Core $@
+	$(MAKE) -C policy.4.0.FSharp.Core $@
 	$(MAKE) -C policy.4.3.FSharp.Core $@
-	$(MAKE) -C policy.2.0.FSharp.Core TargetFramework=net20 $@
-	$(MAKE) -C policy.2.3.FSharp.Core TargetFramework=net20 $@
 	if test -e $MONOGACDIR20/mscorlib.dll; then $(MAKE) -C FSharp.Core TargetFramework=net20 $@;fi
 	$(MAKE) only-monotouch only-monodroid only-xamarinmac
 	$(MAKE) -C FSharp.Core FSharpCoreBackVersion=3.0 TargetFramework=net40 $@
@@ -71,23 +69,28 @@ endif
 
 all-monotouch-monodroid-xamarinmac:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-monodroid only-xamarinmac
+	$(MAKE) only-monotouch only-monodroid only-xamarinmac only-xamarinwatchos
 
 all-monotouch-xamarinmac:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-xamarinmac
+	$(MAKE) only-monotouch only-xamarinmac only-xamarinwatchos
 
 all-monotouch-monodroid:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-monodroid
+	$(MAKE) only-monotouch only-monodroid only-xamarinwatchos
 
 all-monotouch:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch
+	$(MAKE) only-monotouch only-xamarinwatchos
 
 only-monotouch:
 ifeq ("$(monotouchenabled)", "yes")
 	$(MAKE) -C FSharp.Core TargetFramework=monotouch build
+endif
+
+only-xamarinwatchos:
+ifeq ("$(monotouchenabled)", "yes")
+	$(MAKE) -C FSharp.Core TargetFramework=xamarinwatchos build
 endif
 
 all-monodroid:
