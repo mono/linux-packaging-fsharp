@@ -31,6 +31,7 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
+Patch1:		avoid_nuget_targets.patch
 
 %description
 F# is a mature, open source, functional-first programming language
@@ -42,6 +43,7 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 autoreconf
