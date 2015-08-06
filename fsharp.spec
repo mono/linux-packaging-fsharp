@@ -60,12 +60,6 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
 %{_bindir}/fsharpc
 %{_bindir}/fsharpi
 %{_bindir}/fsharpiAnyCpu
-%{_prefix}/lib/mono/2.0/policy.2.0.FSharp.Core.dll
-%{_prefix}/lib/mono/2.0/policy.2.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/FSharp.Core.dll
-%{_prefix}/lib/mono/4.0/FSharp.Core.optdata
-%{_prefix}/lib/mono/4.0/FSharp.Core.sigdata
-%{_prefix}/lib/mono/4.0/FSharp.Core.xml
 %{_prefix}/lib/mono/4.5/FSharp.Build.dll
 %{_prefix}/lib/mono/4.5/FSharp.Build.xml
 %{_prefix}/lib/mono/4.5/FSharp.Compiler.Interactive.Settings.dll
