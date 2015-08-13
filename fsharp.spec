@@ -84,6 +84,10 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
 %{_prefix}/lib/mono/4.5/policy.3.3.FSharp.Core.dll
 %{_prefix}/lib/mono/4.5/policy.4.0.FSharp.Core.dll
 %{_prefix}/lib/mono/4.5/policy.4.3.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.3.259.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.3.47.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.3.7.FSharp.Core.dll
+%{_prefix}/lib/mono/4.5/policy.3.78.FSharp.Core.dll
 %{_prefix}/lib/mono/Microsoft*
 %{_prefix}/lib/mono/gac/FSharp.Compiler.Interactive.Settings/
 %{_prefix}/lib/mono/gac/FSharp.Compiler.Server.Shared/
@@ -95,5 +99,9 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
 %{_prefix}/lib/mono/gac/policy.3.3.FSharp.Core/
 %{_prefix}/lib/mono/gac/policy.4.0.FSharp.Core/
 %{_prefix}/lib/mono/gac/policy.4.3.FSharp.Core/
+%{_prefix}/lib/mono/gac/policy.3.259.FSharp.Core/
+%{_prefix}/lib/mono/gac/policy.3.47.FSharp.Core/
+%{_prefix}/lib/mono/gac/policy.3.7.FSharp.Core/
+%{_prefix}/lib/mono/gac/policy.3.78.FSharp.Core/
 %{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/
-
+"%{_prefix}/lib/mono/Reference Assemblies/Microsoft/FSharp/.NETFramework/v4.0/"
