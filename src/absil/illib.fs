@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.AbstractIL.Internal.Library 
 #nowarn "1178" // The struct, record or union type 'internal_instr_extension' is not structurally comparable because the type
@@ -9,12 +9,17 @@ open System.Collections
 open System.Collections.Generic
 open Internal.Utilities
 open Internal.Utilities.Collections
+open Microsoft.FSharp.Compiler.AbstractIL.Diagnostics
+
+#if FX_RESHAPED_REFLECTION
+open Microsoft.FSharp.Core.ReflectionAdapters
+#endif
 
 // Logical shift right treating int32 as unsigned integer.
 // Code that uses this should probably be adjusted to use unsigned integer types.
 let (>>>&) (x:int32) (n:int32) = int32 (uint32 x >>> n)
 
-let notlazy v = Lazy.CreateFromValue v
+let notlazy v = Lazy<_>.CreateFromValue v
 
 let isSome x = match x with None -> false | _ -> true
 let isNone x = match x with None -> true | _ -> false
@@ -24,6 +29,38 @@ let isNull (x : 'T) = match (x :> obj) with null -> true | _ -> false
 let isNonNull (x : 'T) = match (x :> obj) with null -> false | _ -> true
 let nonNull msg x = if isNonNull x then x else failwith ("null: " ^ msg) 
 let (===) x y = LanguagePrimitives.PhysicalEquality x y
+
+//---------------------------------------------------------------------
+// Library: ReportTime
+//---------------------------------------------------------------------
+let reportTime =
+    let tFirst = ref None     
+    let tPrev = ref None     
+    fun showTimes descr ->
+        if showTimes then 
+            let t = System.Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds
+            let prev = match !tPrev with None -> 0.0 | Some t -> t
+            let first = match !tFirst with None -> (tFirst := Some t; t) | Some t -> t
+            dprintf "ilwrite: TIME %10.3f (total)   %10.3f (delta) - %s\n" (t - first) (t - prev) descr
+            tPrev := Some t
+
+//-------------------------------------------------------------------------
+// Library: projections
+//------------------------------------------------------------------------
+
+[<Struct>]
+/// An efficient lazy for inline storage in a class type. Results in fewer thunks.
+type InlineDelayInit<'T when 'T : not struct> = 
+    new (f: unit -> 'T) = {store = Unchecked.defaultof<'T>; func = System.Func<_>(f) } 
+    val mutable store : 'T
+    val mutable func : System.Func<'T>
+    member x.Value = 
+        match x.func with 
+        | null -> x.store 
+        | _ -> 
+        let res = System.Threading.LazyInitializer.EnsureInitialized(&x.store, x.func) 
+        x.func <- Unchecked.defaultof<_>
+        res
 
 //-------------------------------------------------------------------------
 // Library: projections
@@ -48,8 +85,6 @@ module Order =
 
 module Array = 
 
-    let take n xs = xs |> Seq.take n |> Array.ofSeq
-
     let mapq f inp =
         match inp with
         | [| |] -> inp
@@ -62,13 +97,6 @@ module Array =
                 if not (inp.[i] === res.[i]) then eq <- false;
                 i <- i + 1
             if eq then inp else res
-
-    let forall2 f (arr1:'T array) (arr2:'T array) =
-        let len1 = arr1.Length 
-        let len2 = arr2.Length 
-        if len1 <> len2 then invalidArg "Array.forall2" "len1"
-        let rec loop i = (i >= len1) || (f arr1.[i] arr2.[i] && loop (i+1))
-        loop 0
 
     let lengthsEqAndForall2 p l1 l2 = 
         Array.length l1 = Array.length l2 &&
@@ -83,19 +111,6 @@ module Array =
             res.[i] <- h';
             acc <- s'
         res, acc
-
-
-    // REVIEW: systematically eliminate foldMap/mapFold duplication. 
-    // They only differ by the tuple returned by the function.
-    let foldMap f s l = 
-        let mutable acc = s
-        let n = Array.length l
-        let mutable res = Array.zeroCreate n
-        for i = 0 to n - 1 do
-            let s',h' = f acc l.[i]
-            res.[i] <- h'
-            acc <- s'
-        acc, res
 
     let order (eltOrder: IComparer<'T>) = 
         { new IComparer<array<'T>> with 
@@ -151,12 +166,10 @@ module Option =
         | None -> dflt 
         | Some x -> x
 
-    // REVIEW: systematically eliminate foldMap/mapFold duplication
-    let foldMap f z l = 
-        match l with 
-        | None   -> z,None
-        | Some x -> let z,x = f z x
-                    z,Some x
+    let orElse dflt opt = 
+        match opt with 
+        | None -> dflt()
+        | res -> res
 
     let fold f z x = 
         match x with 
@@ -165,6 +178,11 @@ module Option =
 
 
 module List = 
+
+#if FX_RESHAPED_REFLECTION
+    open PrimReflectionAdapters
+    open Microsoft.FSharp.Core.ReflectionAdapters
+#endif
 
     let sortWithOrder (c: IComparer<'T>) elements = List.sortWith (Order.toFunction c) elements
     
@@ -292,14 +310,9 @@ module List =
                       | x::xs,y::ys -> let cxy = eltOrder.Compare(x,y)
                                        if cxy=0 then loop xs ys else cxy 
                   loop xs ys }
-
-
-    let rec last l = match l with [] -> failwith "last" | [h] -> h | _::t -> last t
+    
     module FrontAndBack = 
         let (|NonEmpty|Empty|) l = match l with [] -> Empty | _ -> NonEmpty(frontAndBack l)
-
-    let replicate x n = 
-        Array.toList (Array.create x n)
 
     let range n m = [ n .. m ]
 
@@ -315,32 +328,23 @@ module List =
         | [] -> false
         | ((h,_)::t) -> x = h || memAssoc x t
 
-    let rec contains x l = match l with [] -> false | h::t -> x = h || contains x t
-
     let rec memq x l = 
         match l with 
         | [] -> false 
         | h::t -> LanguagePrimitives.PhysicalEquality x h || memq x t
 
-    let mem x l = contains x l
-
     // must be tail recursive 
-    let mapFold f s l = 
+    let mapFold (f:'a -> 'b -> 'c * 'a) (s:'a) (l:'b list) : 'c list * 'a = 
         // microbenchmark suggested this implementation is faster than the simpler recursive one, and this function is called a lot
         let mutable s = s
         let mutable r = []
-        let mutable l = l
-        let mutable finished = false
-        while not finished do
-          match l with
-          | x::xs -> let x',s' = f s x
-                     s <- s'
-                     r <- x' :: r
-                     l <- xs
-          | _ -> finished <- true
+        for x in l do
+            let x',s' = f s x
+            s <- s'
+            r <- x' :: r
         List.rev r, s
 
-    // note: not tail recursive 
+    // Not tail recursive 
     let rec mapFoldBack f l s = 
         match l with 
         | [] -> ([],s)
@@ -360,9 +364,6 @@ module List =
 
     let count pred xs = List.fold (fun n x -> if pred x then n+1 else n) 0 xs
 
-    let rec private repeatAux n x acc = if n <= 0 then acc else repeatAux (n-1) x (x::acc)
-    let repeat n x = repeatAux n x []
-
     // WARNING: not tail-recursive 
     let mapHeadTail fhead ftail = function
       | []    -> []
@@ -372,19 +373,6 @@ module List =
     let collectFold f s l = 
       let l, s = mapFold f s l
       List.concat l, s
-
-    let singleton x = [x]
-
-    // note: must be tail-recursive 
-    let rec private foldMapAux f z l acc =
-      match l with
-      | []    -> z,List.rev acc
-      | x::xs -> let z,x = f z x
-                 foldMapAux f z xs (x::acc)
-                 
-    // note: must be tail-recursive 
-    // REVIEW: systematically eliminate foldMap/mapFold duplication
-    let foldMap f z l = foldMapAux f z l []
 
     let collect2 f xs ys = List.concat (List.map2 f xs ys)
 
@@ -461,30 +449,9 @@ module Dictionary =
         let dict = new System.Collections.Generic.Dictionary<_,_>(List.length l, HashIdentity.Structural)
         l |> List.iter (fun (k,v) -> dict.Add(k,v))
         dict
-
-
-// FUTURE CLEANUP: remove this adhoc collection
-type Hashset<'T> = Dictionary<'T,int>
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module Hashset = 
-    let create (n:int) = new Hashset<'T>(n, HashIdentity.Structural)
-    let add (t: Hashset<'T>) x = if not (t.ContainsKey x) then t.[x] <- 0
-    let fold f (t:Hashset<'T>) acc = Seq.fold (fun z (KeyValue(x,_)) -> f x z) acc t 
-    let ofList l = 
-        let t = new Hashset<'T>(List.length l, HashIdentity.Structural)
-        l |> List.iter (fun x -> t.[x] <- 0)
-        t
         
 module Lazy = 
     let force (x: Lazy<'T>) = x.Force()
-
-//---------------------------------------------------
-// Lists as sets. This is almost always a bad data structure and should be eliminated from the compiler.  
-
-module ListSet =
-    let insert e l =
-        if List.mem e l then l else e::l
 
 //---------------------------------------------------
 // Misc
@@ -555,14 +522,6 @@ module FlatList =
             let  arr,acc = Array.mapFold f acc x.array
             FlatList(arr),acc
 
-    // REVIEW: systematically eliminate foldMap/mapFold duplication
-    let foldMap f acc (x:FlatList<_>) = 
-        match x.array with
-        | null -> 
-            acc,FlatList.Empty
-        | arr -> 
-            let  acc,arr = Array.foldMap f acc x.array
-            acc,FlatList(arr)
 #endif
 #if FLAT_LIST_AS_LIST
 
@@ -574,7 +533,6 @@ module FlatList =
     let order eltOrder = List.order eltOrder 
     let mapq f (x:FlatList<_>) = List.mapq f x
     let mapFold f acc (x:FlatList<_>) =  List.mapFold f acc x
-    let foldMap f acc (x:FlatList<_>) =  List.foldMap f acc x
 
 #endif
 
@@ -584,7 +542,6 @@ module FlatList =
     let order eltOrder = Array.order eltOrder 
     let mapq f x = Array.mapq f x
     let mapFold f acc x =  Array.mapFold f acc x
-    let foldMap f acc x =  Array.foldMap f acc x
 #endif
 
 
@@ -620,7 +577,7 @@ module Eventually =
 
     let force e = Option.get (forceWhile (fun () -> true) e)
         
-    /// Keep running the computation bit by bit until a time limit is reached. 
+    /// Keep running the computation bit by bit until a time limit is reached.
     /// The runner gets called each time the computation is restarted
     let repeatedlyProgressUntilDoneOrTimeShareOver timeShareInMilliseconds runner e = 
         let sw = new System.Diagnostics.Stopwatch() 
@@ -709,6 +666,7 @@ type UniqueStampGenerator<'T when 'T : equality>() =
             nItems <- nItems + 1
             idx
     member this.Encode(str)  = encode str
+    member this.Table = encodeTab.Keys
 
 //---------------------------------------------------------------------------
 // memoize tables (all entries cached, never collected)
@@ -767,7 +725,7 @@ type LazyWithContext<'T,'ctxt> =
         match x.funcOrException with 
         | null -> x.value 
         | _ -> 
-            // Enter the lock in case another thread is in the process of evaluting the result
+            // Enter the lock in case another thread is in the process of evaluating the result
             System.Threading.Monitor.Enter(x);
             try 
                 x.UnsynchronizedForce(ctxt)
@@ -920,7 +878,6 @@ type Map<'Key,'Value when 'Key : comparison> with
         | Some r -> res <- r; true
 
     member x.Values = [ for (KeyValue(_,v)) in x -> v ]
-    member x.Elements = [ for kvp in x -> kvp ]
     member x.AddAndMarkAsCollapsible (kvs: _[])   = (x,kvs) ||> Array.fold (fun x (KeyValue(k,v)) -> x.Add(k,v))
     member x.LinearTryModifyThenLaterFlatten (key, f: 'Value option -> 'Value) = x.Add (key, f (x.TryFind key))
     member x.MarkAsCollapsible ()  = x
@@ -935,33 +892,30 @@ type LayeredMultiMap<'Key,'Value when 'Key : equality and 'Key : comparison>(con
         x.MarkAsCollapsible()
     member x.MarkAsCollapsible() = LayeredMultiMap(contents.MarkAsCollapsible())
     member x.TryFind k = contents.TryFind k
-    member x.Values = contents.Values |> Seq.concat
+    member x.Values = contents.Values |> List.concat
     static member Empty : LayeredMultiMap<'Key,'Value> = LayeredMultiMap LayeredMap.Empty
 
 [<AutoOpen>]
 module Shim =
 
     open System.IO
-    [<AbstractClass>]
-    type FileSystem() = 
-        abstract ReadAllBytesShim: fileName:string -> byte[] 
-        default this.ReadAllBytesShim (fileName:string) = 
-            use stream = this.FileStreamReadShim fileName
-            let len = stream.Length
-            let buf = Array.zeroCreate<byte> (int len)
-            stream.Read(buf, 0, (int len)) |> ignore                                            
-            buf
 
+#if FX_RESHAPED_REFLECTION
+    open PrimReflectionAdapters
+    open Microsoft.FSharp.Core.ReflectionAdapters
+#endif
+
+    type IFileSystem = 
+        abstract ReadAllBytesShim: fileName:string -> byte[] 
         abstract FileStreamReadShim: fileName:string -> System.IO.Stream
         abstract FileStreamCreateShim: fileName:string -> System.IO.Stream
-        abstract GetFullPathShim: fileName:string -> string
+        abstract FileStreamWriteExistingShim: fileName:string -> System.IO.Stream
         /// Take in a filename with an absolute path, and return the same filename
         /// but canonicalized with respect to extra path separators (e.g. C:\\\\foo.txt) 
         /// and '..' portions
-        abstract SafeGetFullPath: fileName:string -> string
+        abstract GetFullPathShim: fileName:string -> string
         abstract IsPathRootedShim: path:string -> bool
-
-        abstract IsInvalidFilename: filename:string -> bool
+        abstract IsInvalidPathShim: filename:string -> bool
         abstract GetTempPathShim : unit -> string
         abstract GetLastWriteTimeShim: fileName:string -> System.DateTime
         abstract SafeExists: fileName:string -> bool
@@ -969,37 +923,48 @@ module Shim =
         abstract AssemblyLoadFrom: fileName:string -> System.Reflection.Assembly 
         abstract AssemblyLoad: assemblyName:System.Reflection.AssemblyName -> System.Reflection.Assembly 
 
-        default this.AssemblyLoadFrom(fileName:string) = 
-#if FX_ATLEAST_40_COMPILER_LOCATION
-            System.Reflection.Assembly.UnsafeLoadFrom fileName
-#else
-            System.Reflection.Assembly.LoadFrom fileName
-#endif
-        default this.AssemblyLoad(assemblyName:System.Reflection.AssemblyName) = System.Reflection.Assembly.Load assemblyName
 
+    type DefaultFileSystem() =
+        interface IFileSystem with
+            member __.AssemblyLoadFrom(fileName:string) = 
+    #if FX_ATLEAST_40_COMPILER_LOCATION
+                System.Reflection.Assembly.UnsafeLoadFrom fileName
+    #else
+                System.Reflection.Assembly.LoadFrom fileName
+    #endif
+            member __.AssemblyLoad(assemblyName:System.Reflection.AssemblyName) = System.Reflection.Assembly.Load assemblyName
 
-    let mutable FileSystem = 
-        { new FileSystem() with 
-            override __.ReadAllBytesShim (fileName:string) = File.ReadAllBytes fileName
+            member __.ReadAllBytesShim (fileName:string) = File.ReadAllBytes fileName
             member __.FileStreamReadShim (fileName:string) = new FileStream(fileName,FileMode.Open,FileAccess.Read,FileShare.ReadWrite)  :> Stream
             member __.FileStreamCreateShim (fileName:string) = new FileStream(fileName,FileMode.Create,FileAccess.Write,FileShare.Read ,0x1000,false) :> Stream
+            member __.FileStreamWriteExistingShim (fileName:string) = new FileStream(fileName,FileMode.Open,FileAccess.Write,FileShare.Read ,0x1000,false) :> Stream
             member __.GetFullPathShim (fileName:string) = System.IO.Path.GetFullPath fileName
-            member __.SafeGetFullPath (fileName:string) = 
-                //System.Diagnostics.Debug.Assert(Path.IsPathRooted(fileName), sprintf "SafeGetFullPath: '%s' is not absolute" fileName)
-                Path.GetFullPath fileName
 
             member __.IsPathRootedShim (path:string) = Path.IsPathRooted path
 
-            member __.IsInvalidFilename(filename:string) = 
-                String.IsNullOrEmpty(filename) || filename.IndexOfAny(Path.GetInvalidFileNameChars()) <> -1
+            member __.IsInvalidPathShim(path:string) = 
+                let isInvalidPath(p:string) = 
+                    String.IsNullOrEmpty(p) || p.IndexOfAny(System.IO.Path.GetInvalidPathChars()) <> -1
+
+                let isInvalidFilename(p:string) = 
+                    String.IsNullOrEmpty(p) || p.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) <> -1
+
+                let isInvalidDirectory(d:string) = 
+                    d=null || d.IndexOfAny(Path.GetInvalidPathChars()) <> -1
+
+                isInvalidPath (path) || 
+                let directory = Path.GetDirectoryName(path)
+                let filename = Path.GetFileName(path)
+                isInvalidDirectory(directory) || isInvalidFilename(filename)
 
             member __.GetTempPathShim() = System.IO.Path.GetTempPath()
 
             member __.GetLastWriteTimeShim (fileName:string) = File.GetLastWriteTime fileName
             member __.SafeExists (fileName:string) = System.IO.File.Exists fileName 
-            member __.FileDelete (fileName:string) = System.IO.File.Delete fileName }       
+            member __.FileDelete (fileName:string) = System.IO.File.Delete fileName
 
     type System.Text.Encoding with 
-        static member GetEncodingShim(n:int) =             
-                System.Text.Encoding.GetEncoding(n)           
+        static member GetEncodingShim(n:int) = 
+                System.Text.Encoding.GetEncoding(n)
 
+    let mutable FileSystem = DefaultFileSystem() :> IFileSystem 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // Type providers, validation of provided types, etc.
 
@@ -9,7 +9,6 @@ namespace Microsoft.FSharp.Compiler
 module internal ExtensionTyping =
     open System
     open System.IO
-    open System.Reflection
     open System.Collections.Generic
     open Microsoft.FSharp.Core.CompilerServices
     open Microsoft.FSharp.Compiler.ErrorLogger
@@ -17,207 +16,11 @@ module internal ExtensionTyping =
     open Microsoft.FSharp.Compiler.AbstractIL.IL
     open Microsoft.FSharp.Compiler.AbstractIL.Diagnostics // dprintfn
     open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library // frontAndBack
-    open Internal.Utilities.FileSystem
 
-#if TYPE_PROVIDER_SECURITY
-    module internal GlobalsTheLanguageServiceCanPoke =
-        //+++ GLOBAL STATE
-        // This is the LS dialog, it is only poked once, when the LS is first constructed.  It lives here so the compiler can invoke it at the right moment in time.
-        let mutable displayLSTypeProviderSecurityDialogBlockingUI = None : (string -> unit) option
-        // This is poked by the LS (service.fs:UntypedParseImpl) and read later when the LS dialog pops up (code in servicem.fs:CreateService), called via displayLSTypeProviderSecurityDialogBlockingUI.
-        // It would be complicated to plumb this info through end-to-end, so we use a global.  Since the LS only checks one file at a time, it is safe from race conditions.
-        let mutable theMostRecentFileNameWeChecked = None : string option
-
-    module internal ApprovalIO =
-
-        /// The absolute path name to where approvals are stored
-        let ApprovalsAbsoluteFileName = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), @"Microsoft\VisualStudio\12.0\type-providers.txt")
-
-        /// Canonicalize the name of a type provider component
-        let partiallyCanonicalizeFileName fn = 
-            (new FileInfo(fn)).FullName // avoid some trivialities like double backslashes or spaces before slashes (but preserves others like casing distinctions), see also bug 206595
-
-        /// Check a type provider component name is partially canonicalized
-        let verifyIsPartiallyCanonicalized fn =
-            assert (partiallyCanonicalizeFileName fn = fn)
-            fn
-
-        /// Represents the approvals status for one type provider
-        [<RequireQualifiedAccess>]
-        type TypeProviderApprovalStatus =
-            | NotTrusted of string
-            | Trusted of string
-
-            member this.FileName = 
-                match this with
-                | NotTrusted(fn) -> verifyIsPartiallyCanonicalized fn
-                | Trusted(fn) -> verifyIsPartiallyCanonicalized fn
-
-            member this.isTrusted = 
-                match this with
-                | NotTrusted _ -> false
-                | Trusted _ -> true
-
-        /// Try to perform the operation on a stream obtained by opening a file, using an exclusive lock
-        let TryDoWithFileStreamUnderExclusiveLock(filename, f) =
-            use file = File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite)
-            file.Lock(0L, 0L)
-            f file
-
-        /// Try to perform the operation on a stream obtained by opening a file, using an exclusive lock,
-        /// retrying 5 times with 100ms sleeps in between. Throw System.IO.IOException if it fails after that.
-        let TryDoWithFileStreamUnderExclusiveLockWithRetryFor500ms(filename, f) =
-            let SLEEP_PER_TRY = 100
-            let MAX_TRIES = 5
-            let mutable retryCount = 0
-            let mutable ok = false
-            let mutable result = Unchecked.defaultof<_>
-            while not(ok) do
-                try
-                    let r = TryDoWithFileStreamUnderExclusiveLock(filename, f)
-                    ok <- true
-                    result <- r
-                with
-                    | :? IOException when retryCount < MAX_TRIES -> 
-                        retryCount <- retryCount + 1
-                        System.Threading.Thread.Sleep(SLEEP_PER_TRY)
-            result
-
-        /// Try to do an operation on the type-provider approvals file
-        let DoWithApprovalsFile (fileStreamOpt : FileStream option) f =
-            match fileStreamOpt with
-            | None -> 
-                if not(FileSystem.SafeExists(ApprovalsAbsoluteFileName)) then
-                    assert(fileStreamOpt = None)
-                    let directoryName = Path.GetDirectoryName(ApprovalsAbsoluteFileName)
-                    if not(Directory.Exists(directoryName)) then
-                        Directory.CreateDirectory(directoryName) |> ignore // this creates multiple directory levels if needed
-                    TryDoWithFileStreamUnderExclusiveLockWithRetryFor500ms(ApprovalsAbsoluteFileName, fun file ->
-                        let text = 
-#if DEBUG
-                            String.Join(System.Environment.NewLine, 
-                               ["""# This file is normally edited by Visual Studio, via Tools\Options\F# Tools\Type Provider Approvals"""
-                                """# or by referencing a Type Provider from F# code for the first time."""
-                                """# Each line should be one of these general forms:"""
-                                """#     NOT_TRUSTED c:\path\filename.dll"""
-                                """#     TRUSTED c:\path\filename.dll"""
-                                """# Lines starting with a '#' are ignored as comments.""" ]) + System.Environment.NewLine
+#if FX_RESHAPED_REFLECTION
+    open Microsoft.FSharp.Core.ReflectionAdapters
 #else
-                            ""
-#endif
-                        let bytes = System.Text.Encoding.UTF8.GetBytes(text)
-                        file.Write(bytes, 0, bytes.Length)
-                        f file)
-                else
-                    TryDoWithFileStreamUnderExclusiveLockWithRetryFor500ms(ApprovalsAbsoluteFileName, f)
-            | Some fs -> f fs
-
-        /// Read all TP approval data.  does not throw, will swallow exceptions and return empty list if there's trouble.
-        let ReadApprovalsFile fileStreamOpt =
-            try
-                DoWithApprovalsFile fileStreamOpt (fun file ->
-                    file.Seek(0L, SeekOrigin.Begin) |> ignore
-                    let sr = new StreamReader(file, System.Text.Encoding.UTF8)  // Note: we use 'let', not 'use' here, as closing the reader would close the file, and we don't want that
-                    let lines = 
-                            let text = sr.ReadToEnd()
-                            text.Split([| System.Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries)
-                            |> Array.filter (fun s -> not(s.StartsWith("#")))
-                    let result = ResizeArray<TypeProviderApprovalStatus>()
-                    let mutable bad = false
-                    for s in lines do
-                        if s.StartsWith("NOT_TRUSTED ") then
-                            let partiallyCanonicalizedFileName = partiallyCanonicalizeFileName(s.Substring(12))
-                            match result |> Seq.tryFind (fun r -> String.Compare(r.FileName, partiallyCanonicalizedFileName, StringComparison.CurrentCultureIgnoreCase) = 0) with
-                            | None ->
-                                result.Add(TypeProviderApprovalStatus.NotTrusted(partiallyCanonicalizedFileName))
-                            | Some r ->  // there is another line of the file with the same filename
-                                if r.isTrusted then
-                                    bad <- true  // if conflicting status, then declare the file to be bad; if just duplicating same info, is ok
-                        elif s.StartsWith("TRUSTED ") then
-                            let partiallyCanonicalizedFileName = partiallyCanonicalizeFileName(s.Substring(8))
-                            match result |> Seq.tryFind (fun r -> String.Compare(r.FileName, partiallyCanonicalizedFileName, StringComparison.CurrentCultureIgnoreCase) = 0) with
-                            | None ->
-                                result.Add(TypeProviderApprovalStatus.Trusted(partiallyCanonicalizedFileName))
-                            | Some r ->  // there is another line of the file with the same filename
-                                if not r.isTrusted then
-                                    bad <- true  // if conflicting status, then declare the file to be bad; if just duplicating same info, is ok
-                        else
-                            bad <- true
-
-                    if bad then
-                        // The file is corrupt, just delete it 
-                        file.SetLength(0L)
-                        result.Clear()
-                        try 
-                            failwith "approvals file is corrupt, deleting"  // just to produce a first-chance exception for debugging
-                        with 
-                            _ -> ()
-                    result |> List.ofSeq)
-            with
-                | :? System.IO.IOException ->
-                    []
-                | e ->
-                    System.Diagnostics.Debug.Assert(false, e.ToString())  // what other exceptions might occur?
-                    []
-
-        /// Append one piece of TP approval info.  may throw if trouble with file IO.
-        let AppendApprovalStatus fileStreamOpt (status:TypeProviderApprovalStatus) =
-            let ok,line = 
-                let partiallyCanonicalizedFileName = partiallyCanonicalizeFileName status.FileName
-                match status with
-                | TypeProviderApprovalStatus.NotTrusted(_) -> 
-                    if Path.IsInvalidPath(partiallyCanonicalizedFileName) then 
-                        assert(false)
-                        false, ""
-                    else
-                        true, "NOT_TRUSTED "+partiallyCanonicalizedFileName
-                | TypeProviderApprovalStatus.Trusted(_) -> 
-                    if Path.IsInvalidPath(partiallyCanonicalizedFileName) then 
-                        assert(false)
-                        false, ""
-                    else
-                        true, "TRUSTED "+partiallyCanonicalizedFileName
-            if ok then
-                DoWithApprovalsFile fileStreamOpt (fun file ->
-                    let bytes = System.Text.Encoding.UTF8.GetBytes(line + System.Environment.NewLine)
-                    file.Seek(0L, SeekOrigin.End) |> ignore
-                    file.Write(bytes, 0, bytes.Length)
-                    )
-
-        /// Replace one piece of TP approval info.  May throw if trouble with file IO.
-        let ReplaceApprovalStatus fileStreamOpt (status : TypeProviderApprovalStatus) =
-            let partiallyCanonicalizedFileName = partiallyCanonicalizeFileName status.FileName
-            DoWithApprovalsFile fileStreamOpt (fun file ->
-                let priorApprovals = ReadApprovalsFile(Some file)
-                let keepers = priorApprovals |> List.filter (fun app -> String.Compare(app.FileName, partiallyCanonicalizedFileName, StringComparison.CurrentCultureIgnoreCase) <> 0)
-                file.SetLength(0L) // delete file
-                keepers |> List.iter (AppendApprovalStatus (Some file))
-                AppendApprovalStatus (Some file) status
-            )
-
-    module internal ApprovalsChecking =
-
-        let DiscoverIfIsApprovedAndPopupDialogIfUnknown (runTimeAssemblyFileName : string, approvals : ApprovalIO.TypeProviderApprovalStatus list, popupDialogCallback : (string->unit) option) : bool =
-            let partiallyCanonicalizedFileName = ApprovalIO.partiallyCanonicalizeFileName runTimeAssemblyFileName
-
-            match approvals |> List.tryFind (function 
-                                | ApprovalIO.TypeProviderApprovalStatus.Trusted(s) -> String.Compare(partiallyCanonicalizedFileName,s,StringComparison.CurrentCultureIgnoreCase)=0 
-                                | ApprovalIO.TypeProviderApprovalStatus.NotTrusted(s) -> String.Compare(partiallyCanonicalizedFileName,s,StringComparison.CurrentCultureIgnoreCase)=0) with
-            | Some(ApprovalIO.TypeProviderApprovalStatus.Trusted _) -> true
-            | Some(ApprovalIO.TypeProviderApprovalStatus.NotTrusted _) -> false
-            | None -> 
-                // This assembly is unknown. If we're in VS, pop up the dialog
-                match popupDialogCallback with
-                | None -> ()
-                | Some callback -> 
-                    // The callback had UI thread affinity.  But this code path runs as part of the VS background interactive checker, which must never block on the UI
-                    // thread (or else it may deadlock, see bug 380608).  
-                    System.Threading.ThreadPool.QueueUserWorkItem(fun _ ->
-                        // the callback will pop up the dialog
-                        callback(runTimeAssemblyFileName)
-                    ) |> ignore
-                // Behave like a 'NotTrusted'.  If the user trusts the assembly via the UI in a moment, the callback is responsible for requesting a re-typecheck.
-                false
+    type BindingFlags = System.Reflection.BindingFlags
 #endif
 
     type TypeProviderDesignation = TypeProviderDesignation of string
@@ -264,14 +67,14 @@ module internal ExtensionTyping =
             if designTimeAssemblyNameString.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) then
                 loadFromDir designTimeAssemblyNameString
             else
-                let name = AssemblyName designTimeAssemblyNameString
+                let name = System.Reflection.AssemblyName designTimeAssemblyNameString
                 if name.Name.Equals(name.FullName, StringComparison.OrdinalIgnoreCase) then
                     let fileName = designTimeAssemblyNameString+".dll"
                     loadFromDir fileName
                 else
                     loadFromGac()
 
-        // If we've find a desing-time assembly, look for the public types with TypeProviderAttribute
+        // If we've find a design-time assembly, look for the public types with TypeProviderAttribute
         match designTimeAssemblyOpt with
         | Some loadedDesignTimeAssembly ->
             try
@@ -285,6 +88,14 @@ module internal ExtensionTyping =
             with e ->
                 raiseError e
         | None -> []
+
+    let StripException (e:exn) =
+        match e with
+#if !FX_REDUCED_EXCEPTIONS
+        |   :? System.Reflection.TargetInvocationException as e -> e.InnerException
+#endif
+        |   :? TypeInitializationException as e -> e.InnerException
+        |   _ -> e
 
     /// Create an instance of a type provider from the implementation type for the type provider in the
     /// design-time assembly by using reflection-invoke on a constructor for the type provider.
@@ -303,12 +114,7 @@ module internal ExtensionTyping =
             try 
                 f ()
             with err ->
-                let strip (e:exn) =
-                    match e with
-                    |   :? TargetInvocationException as e -> e.InnerException
-                    |   :? TypeInitializationException as e -> e.InnerException
-                    |   _ -> e
-                let e = strip (strip err)
+                let e = StripException (StripException err)
                 raise (TypeProviderError(FSComp.SR.etTypeProviderConstructorException(e.Message), typeProviderImplementationType.FullName, m))
 
         if typeProviderImplementationType.GetConstructor([| typeof<TypeProviderConfig> |]) <> null then
@@ -333,12 +139,7 @@ module internal ExtensionTyping =
             raise (TypeProviderError(FSComp.SR.etProviderDoesNotHaveValidConstructor(), typeProviderImplementationType.FullName, m))
 
     let GetTypeProvidersOfAssembly
-            (displayPSTypeProviderSecurityDialogBlockingUI : (string->unit) option, 
-             validateTypeProviders:bool, 
-#if TYPE_PROVIDER_SECURITY
-             approvals, 
-#endif
-             runTimeAssemblyFileName:string, 
+            (runTimeAssemblyFileName:string, 
              ilScopeRefOfRuntimeAssembly:ILScopeRef,
              designTimeAssemblyNameString:string, 
              resolutionEnvironment:ResolutionEnvironment, 
@@ -348,28 +149,11 @@ module internal ExtensionTyping =
              systemRuntimeAssemblyVersion : System.Version,
              m:range) =         
 
-        let ok = 
-#if TYPE_PROVIDER_SECURITY
-            if not validateTypeProviders then 
-                true  // if not validating, then everything is ok
-            else
-                // pick the PS dialog if available (if so, we are definitely being called from a 'Build' from the PS), else use the LS one if available
-                let dialog = match displayPSTypeProviderSecurityDialogBlockingUI with
-                             | None -> GlobalsTheLanguageServiceCanPoke.displayLSTypeProviderSecurityDialogBlockingUI
-                             | _    -> displayPSTypeProviderSecurityDialogBlockingUI
-                let r = ApprovalsChecking.DiscoverIfIsApprovedAndPopupDialogIfUnknown(runTimeAssemblyFileName, approvals, dialog)
-                if not r then
-                    warning(Error(FSComp.SR.etTypeProviderNotApproved(runTimeAssemblyFileName), m))
-                r
-#else
-            true
-#endif
         let providerSpecs = 
-            if ok then 
                 try
                     let designTimeAssemblyName = 
                         try
-                            Some (AssemblyName designTimeAssemblyNameString)
+                            Some (System.Reflection.AssemblyName designTimeAssemblyNameString)
                         with :? ArgumentException ->
                             errorR(Error(FSComp.SR.etInvalidTypeProviderAssemblyName(runTimeAssemblyFileName,designTimeAssemblyNameString),m))
                             None
@@ -389,12 +173,10 @@ module internal ExtensionTyping =
                 with :? TypeProviderError as tpe ->
                     tpe.Iter(fun e -> errorR(NumberedError((e.Number,e.ContextualErrorMessage),m)) )                        
                     []
-            else
-                []
 
         let providers = Tainted<_>.CreateAll(providerSpecs)
 
-        ok,providers
+        providers
 
     let unmarshal (t:Tainted<_>) = t.PUntaintNoFailure id
 
@@ -451,14 +233,17 @@ module internal ExtensionTyping =
                     | -1 -> ()
                     | n -> errorR(Error(FSComp.SR.etIllegalCharactersInNamespaceName(string s.[n],s),m))  
 
-
-    let bindingFlags = BindingFlags.DeclaredOnly ||| BindingFlags.Static ||| BindingFlags.Instance ||| BindingFlags.Public
+    let bindingFlags =
+        BindingFlags.DeclaredOnly |||
+        BindingFlags.Static |||
+        BindingFlags.Instance |||
+        BindingFlags.Public
 
     // NOTE: for the purposes of remapping the closure of generated types, the FullName is sufficient.
     // We do _not_ rely on object identity or any other notion of equivalence provided by System.Type
     // itself. The mscorlib implementations of System.Type equality relations are not suitable: for
     // example RuntimeType overrides the equality relation to be reference equality for the Equals(object)
-    // override, but the other subtypes of System.Type do not, making the relation non-reflecive.
+    // override, but the other subtypes of System.Type do not, making the relation non-reflective.
     //
     // Further, avoiding reliance on canonicalization (UnderlyingSystemType) or System.Type object identity means that 
     // providers can implement wrap-and-filter "views" over existing System.Type clusters without needing
@@ -520,16 +305,28 @@ module internal ExtensionTyping =
     type CustomAttributeData = Microsoft.FSharp.Core.CompilerServices.IProvidedCustomAttributeData
     type CustomAttributeNamedArgument = Microsoft.FSharp.Core.CompilerServices.IProvidedCustomAttributeNamedArgument
     type CustomAttributeTypedArgument = Microsoft.FSharp.Core.CompilerServices.IProvidedCustomAttributeTypedArgument
+#else
+    type CustomAttributeData = System.Reflection.CustomAttributeData
+    type CustomAttributeNamedArgument = System.Reflection.CustomAttributeNamedArgument
+    type CustomAttributeTypedArgument = System.Reflection.CustomAttributeTypedArgument
 #endif
-
 
     [<AllowNullLiteral; Sealed>]
     type ProvidedType (x:System.Type, ctxt: ProvidedTypeContext) =
+#if FX_RESHAPED_REFLECTION
+        inherit ProvidedMemberInfo(x.GetTypeInfo(),ctxt)
+#if FX_NO_CUSTOMATTRIBUTEDATA
+        let provide () = ProvidedCustomAttributeProvider.Create (fun provider -> provider.GetMemberCustomAttributesData(x.GetTypeInfo()))
+#else
+        let provide () = ProvidedCustomAttributeProvider.Create (fun _provider -> x.GetTypeInfo().GetCustomAttributesData())
+#endif
+#else
         inherit ProvidedMemberInfo(x,ctxt)
 #if FX_NO_CUSTOMATTRIBUTEDATA
         let provide () = ProvidedCustomAttributeProvider.Create (fun provider -> provider.GetMemberCustomAttributesData(x))
 #else
         let provide () = ProvidedCustomAttributeProvider.Create (fun _provider -> x.GetCustomAttributesData())
+#endif
 #endif
         interface IProvidedCustomAttributeProvider with 
             member __.GetHasTypeProviderEditorHideMethodsAttribute(provider) = provide().GetHasTypeProviderEditorHideMethodsAttribute(provider)
@@ -559,7 +356,7 @@ module internal ExtensionTyping =
         member __.GetConstructors() = x.GetConstructors(bindingFlags) |> ProvidedConstructorInfo.CreateArray ctxt
         member __.GetFields() = x.GetFields(bindingFlags) |> ProvidedFieldInfo.CreateArray ctxt
         member __.GetField nm = x.GetField(nm, bindingFlags) |> ProvidedFieldInfo.Create ctxt
-        member __.GetAllNestedTypes() = x.GetNestedTypes(bindingFlags ||| System.Reflection.BindingFlags.NonPublic) |> ProvidedType.CreateArray ctxt
+        member __.GetAllNestedTypes() = x.GetNestedTypes(bindingFlags ||| BindingFlags.NonPublic) |> ProvidedType.CreateArray ctxt
         member __.GetNestedTypes() = x.GetNestedTypes(bindingFlags) |> ProvidedType.CreateArray ctxt
         /// Type.GetNestedType(string) can return null if there is no nested type with given name
         member __.GetNestedType nm = x.GetNestedType (nm, bindingFlags) |> ProvidedType.Create ctxt
@@ -631,7 +428,7 @@ module internal ExtensionTyping =
                             let namedArgs = 
                                 a.NamedArguments 
                                 |> Seq.toList 
-                                |> List.map (fun arg -> arg.MemberName, match arg.TypedValue with Arg null -> None | Arg obj -> Some obj | _ -> None)
+                                |> List.map (fun arg -> arg.MemberInfo.Name, match arg.TypedValue with Arg null -> None | Arg obj -> Some obj | _ -> None)
                             ctorArgs, namedArgs)
 
                   member __.GetHasTypeProviderEditorHideMethodsAttribute provider = 
@@ -664,6 +461,7 @@ module internal ExtensionTyping =
 #else
         let provide () = ProvidedCustomAttributeProvider.Create (fun _provider -> x.GetCustomAttributesData())
 #endif
+
         member __.Name = x.Name
         /// DeclaringType can be null if MemberInfo belongs to Module, not to Type
         member __.DeclaringType = ProvidedType.Create ctxt x.DeclaringType
@@ -689,7 +487,7 @@ module internal ExtensionTyping =
 #endif
         member __.IsOptional = x.IsOptional
         member __.RawDefaultValue = x.RawDefaultValue
-        member __.HasDefaultValue = x.Attributes.HasFlag(ParameterAttributes.HasDefault)
+        member __.HasDefaultValue = x.Attributes.HasFlag(System.Reflection.ParameterAttributes.HasDefault)
         /// ParameterInfo.ParameterType cannot be null
         member __.ParameterType = ProvidedType.CreateWithNullCheck ctxt "ParameterType" x.ParameterType 
         static member Create ctxt x = match x with null -> null | t -> ProvidedParameterInfo (t,ctxt)
@@ -745,10 +543,12 @@ module internal ExtensionTyping =
                     itp2.GetStaticParametersForMethod(x)  
                 | _ -> 
                     // To allow a type provider to depend only on FSharp.Core 4.3.0.0, it can alternatively implement an appropriate method called GetStaticParametersForMethod
-                    let meth = provider.GetType().GetMethod( "GetStaticParametersForMethod", bindingFlags, null, [| typeof<MethodBase> |], null)  
+                    let meth = provider.GetType().GetMethod( "GetStaticParametersForMethod", bindingFlags, null, [| typeof<System.Reflection.MethodBase> |], null)  
                     if isNull meth then [| |] else
-                    let paramsAsObj = meth.Invoke(provider, bindingFlags ||| BindingFlags.InvokeMethod, null, [| box x |], null) 
-                    paramsAsObj :?> ParameterInfo[] 
+                    let paramsAsObj = 
+                        try meth.Invoke(provider, bindingFlags ||| BindingFlags.InvokeMethod, null, [| box x |], null) 
+                        with err -> raise (StripException (StripException err))
+                    paramsAsObj :?> System.Reflection.ParameterInfo[] 
 
             staticParams |> ProvidedParameterInfo.CreateArray ctxt
 
@@ -761,17 +561,20 @@ module internal ExtensionTyping =
                     itp2.ApplyStaticArgumentsForMethod(x, fullNameAfterArguments, staticArgs)  
                 | _ -> 
                     // To allow a type provider to depend only on FSharp.Core 4.3.0.0, it can alternatively implement a method called GetStaticParametersForMethod
-                    let meth = provider.GetType().GetMethod( "ApplyStaticArgumentsForMethod", bindingFlags, null, [| typeof<MethodBase>; typeof<string>; typeof<obj[]> |], null)  
+                    let meth = provider.GetType().GetMethod( "ApplyStaticArgumentsForMethod", bindingFlags, null, [| typeof<System.Reflection.MethodBase>; typeof<string>; typeof<obj[]> |], null)  
                     match meth with 
                     | null -> failwith (FSComp.SR.estApplyStaticArgumentsForMethodNotImplemented())
                     | _ -> 
-                    let mbAsObj = meth.Invoke(provider, bindingFlags ||| BindingFlags.InvokeMethod, null, [| box x; box fullNameAfterArguments; box staticArgs  |], null) 
+                    let mbAsObj = 
+                       try meth.Invoke(provider, bindingFlags ||| BindingFlags.InvokeMethod, null, [| box x; box fullNameAfterArguments; box staticArgs  |], null) 
+                       with err -> raise (StripException (StripException err))
+
                     match mbAsObj with 
-                    | :? MethodBase as mb -> mb
+                    | :? System.Reflection.MethodBase as mb -> mb
                     | _ -> failwith (FSComp.SR.estApplyStaticArgumentsForMethodNotImplemented())
             match mb with 
-            | :? MethodInfo as mi -> (mi |> ProvidedMethodInfo.Create ctxt : ProvidedMethodInfo) :> ProvidedMethodBase
-            | :? ConstructorInfo as ci -> (ci |> ProvidedConstructorInfo.Create ctxt : ProvidedConstructorInfo) :> ProvidedMethodBase
+            | :? System.Reflection.MethodInfo as mi -> (mi |> ProvidedMethodInfo.Create ctxt : ProvidedMethodInfo) :> ProvidedMethodBase
+            | :? System.Reflection.ConstructorInfo as ci -> (ci |> ProvidedConstructorInfo.Create ctxt : ProvidedConstructorInfo) :> ProvidedMethodBase
             | _ -> failwith (FSComp.SR.estApplyStaticArgumentsForMethodNotImplemented())
 
 
@@ -795,6 +598,8 @@ module internal ExtensionTyping =
         member __.IsFamilyAndAssembly = x.IsFamilyAndAssembly
         override __.Equals y = assert false; match y with :? ProvidedFieldInfo as y -> x.Equals y.Handle | _ -> false
         override __.GetHashCode() = assert false; x.GetHashCode()
+        static member TaintedEquals (pt1:Tainted<ProvidedFieldInfo>, pt2:Tainted<ProvidedFieldInfo>) = 
+           Tainted.EqTainted (pt1.PApplyNoFailure(fun st -> st.Handle)) (pt2.PApplyNoFailure(fun st -> st.Handle))
 
 
 
@@ -808,7 +613,10 @@ module internal ExtensionTyping =
 
         static member CreateArray ctxt xs = match xs with null -> null | _ -> xs |> Array.map (ProvidedMethodInfo.Create ctxt)
         member __.Handle = x
+#if FX_NO_REFLECTION_METADATA_TOKENS
+#else
         member __.MetadataToken = x.MetadataToken
+#endif
         override __.Equals y = assert false; match y with :? ProvidedMethodInfo as y -> x.Equals y.Handle | _ -> false
         override __.GetHashCode() = assert false; x.GetHashCode()
 
@@ -1068,7 +876,7 @@ module internal ExtensionTyping =
             let path = String.Join(".",path)
             errorR(Error(FSComp.SR.etProvidedTypeHasUnexpectedPath(expectedPath,path), m))
 
-    /// Eagerly validate a range of conditions on a provided type, after static instantiation (if any) has occured
+    /// Eagerly validate a range of conditions on a provided type, after static instantiation (if any) has occurred
     let ValidateProvidedTypeAfterStaticInstantiation(m,st:Tainted<ProvidedType>, expectedPath : string[], expectedName : string) = 
         // Do all the calling into st up front with recovery
         let fullName, namespaceName, usedMembers =

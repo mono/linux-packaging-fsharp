@@ -1853,6 +1853,8 @@ module CheckNoPumpingBecauseWeTrampolineSynchronousCode =
                 Application.Exit() } 
              |> Async.StartImmediate)
 
+    form.WindowState <- FormWindowState.Minimized
+    form.ShowInTaskbar <- false
     Application.Run form             
     // Set the synchronization context back to its original value
     System.Threading.SynchronizationContext.SetSynchronizationContext(null);
@@ -2124,7 +2126,6 @@ let aa =
       exit 1
   else   
       stdout.WriteLine "Test Passed"
-      log "ALL OK, HAPPY HOLIDAYS, MERRY CHRISTMAS!"
       System.IO.File.WriteAllText("test.ok","ok")
       exit 0
 #endif

@@ -11,11 +11,12 @@ all:
 	$(MAKE) build
 
 # We need the bootstrap's FSharp.Core to run the proto
-build-proto: $(bootstrapdir)FSharp.Core.dll $(bootstrapdir)FSharp.Core.sigdata $(bootstrapdir)FSharp.Core.optdata
+build-proto: $(bootstrap)/FSharp.Core.dll $(bootstrap)/FSharp.Core.sigdata $(bootstrap)/FSharp.Core.optdata
 	@-mkdir -p $(protodir)
-	cp -p $(bootstrapdir)FSharp.Core.dll $(protodir)FSharp.Core.dll
-	cp -p $(bootstrapdir)FSharp.Core.sigdata $(protodir)FSharp.Core.sigdata
-	cp -p $(bootstrapdir)FSharp.Core.optdata $(protodir)FSharp.Core.optdata
+	ls -R $(monolibdir)/..
+	cp -p $(bootstrap)/FSharp.Core.dll $(protodir)FSharp.Core.dll
+	cp -p $(bootstrap)/FSharp.Core.sigdata $(protodir)FSharp.Core.sigdata
+	cp -p $(bootstrap)/FSharp.Core.optdata $(protodir)FSharp.Core.optdata
 	$(MAKE) -C FSharp.Build-proto Configuration=proto $@
 	$(MAKE) -C FSharp.Compiler-proto Configuration=proto $@
 	$(MAKE) -C Fsc-proto Configuration=proto $@
@@ -32,7 +33,6 @@ build clean install:
 	$(MAKE) -C Fsc $@
 	$(MAKE) -C FSharp.Compiler.Interactive.Settings $@
 	$(MAKE) -C FSharp.Compiler.Server.Shared $@
-	$(MAKE) -C FSharp.Data.TypeProviders $@
 	$(MAKE) -C fsi $@
 	$(MAKE) -C fsiAnyCpu $@
 	$(MAKE) -C policy.2.0.FSharp.Core $@
@@ -69,19 +69,19 @@ endif
 
 all-monotouch-monodroid-xamarinmac:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-monodroid only-xamarinmac only-xamarinwatchos
+	$(MAKE) only-monotouch only-monodroid only-xamarinmac only-xamarinwatchos only-xamarintvos
 
 all-monotouch-xamarinmac:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-xamarinmac only-xamarinwatchos
+	$(MAKE) only-monotouch only-xamarinmac only-xamarinwatchos only-xamarintvos
 
 all-monotouch-monodroid:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-monodroid only-xamarinwatchos
+	$(MAKE) only-monotouch only-monodroid only-xamarinwatchos only-xamarintvos
 
 all-monotouch:
 	$(MAKE) build-proto
-	$(MAKE) only-monotouch only-xamarinwatchos
+	$(MAKE) only-monotouch only-xamarinwatchos only-xamarintvos
 
 only-monotouch:
 ifeq ("$(monotouchenabled)", "yes")
@@ -91,6 +91,11 @@ endif
 only-xamarinwatchos:
 ifeq ("$(monotouchenabled)", "yes")
 	$(MAKE) -C FSharp.Core TargetFramework=xamarinwatchos build
+endif
+
+only-xamarintvos:
+ifeq ("$(monotouchenabled)", "yes")
+	$(MAKE) -C FSharp.Core TargetFramework=xamarintvos build
 endif
 
 all-monodroid:

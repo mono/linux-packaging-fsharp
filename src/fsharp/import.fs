@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 /// Functions to import .NET binary metadata as TAST objects
 module internal Microsoft.FSharp.Compiler.Import
-
-#nowarn "44" // This construct is deprecated. please use List.item
 
 open System.Reflection
 open System.Collections.Generic
@@ -164,13 +162,13 @@ let rec ImportILType (env:ImportMap) m tinst typ =
         ImportTyconRefApp env tcref inst
 
     | ILType.Byref ty -> mkByrefTy env.g (ImportILType env m tinst ty)
-    | ILType.Ptr ty  -> mkNativePtrType env.g (ImportILType env m tinst ty)
+    | ILType.Ptr ty  -> mkNativePtrTy env.g (ImportILType env m tinst ty)
     | ILType.FunctionPointer _ -> env.g.nativeint_ty (* failwith "cannot import this kind of type (ptr, fptr)" *)
     | ILType.Modified(_,_,ty) -> 
          // All custom modifiers are ignored
          ImportILType env m tinst ty
     | ILType.TypeVar u16 -> 
-         try List.nth tinst (int u16) 
+         try List.item (int u16) tinst
          with _ -> 
               error(Error(FSComp.SR.impNotEnoughTypeParamsInScopeWhileImporting(),m))
 
@@ -246,7 +244,7 @@ let rec ImportProvidedType (env:ImportMap) (m:range) (* (tinst:TypeInst) *) (st:
         mkByrefTy g elemTy
     elif st.PUntaint((fun st -> st.IsPointer),m) then 
         let elemTy = (ImportProvidedType env m (* tinst *) (st.PApply((fun st -> st.GetElementType()),m)))
-        mkNativePtrType g elemTy
+        mkNativePtrTy g elemTy
     else
 
         // REVIEW: Extension type could try to be its own generic arg (or there could be a type loop)
@@ -326,7 +324,7 @@ let ImportProvidedMethodBaseAsILMethodRef (env:ImportMap) (m:range) (mbase: Tain
          | Some cinfo when cinfo.PUntaint((fun x -> x.DeclaringType.IsGenericType),m) -> 
                 let declaringType = cinfo.PApply((fun x -> x.DeclaringType),m)
                 let declaringGenericTypeDefn =  declaringType.PApply((fun x -> x.GetGenericTypeDefinition()),m)
-                // We have to find the uninstantiated formal signature corresponing to this instantiated constructor.
+                // We have to find the uninstantiated formal signature corresponding to this instantiated constructor.
                 // Annoyingly System.Reflection doesn't give us a MetadataToken to compare on, so we have to look by doing
                 // the instantiation and comparing..
                 let found = 
@@ -377,7 +375,7 @@ let ImportProvidedMethodBaseAsILMethodRef (env:ImportMap) (m:range) (mbase: Tain
 /// Import a set of Abstract IL generic parameter specifications as a list of new
 /// F# generic parameters.  
 /// 
-/// Fixup the constrants so that any references to the generic parameters
+/// Fixup the constraints so that any references to the generic parameters
 /// in the constraints now refer to the new generic parameters.
 let ImportILGenericParameters amap m scoref tinst (gps: ILGenericParameterDefs) = 
     match gps with 
@@ -469,8 +467,9 @@ and ImportILTypeDefList amap m (cpath:CompilationPath) enc items =
 ///
 and ImportILTypeDefs amap m scoref cpath enc (tdefs: ILTypeDefs) =
     // We be very careful not to force a read of the type defs here
-    tdefs.AsListOfLazyTypeDefs
-    |> List.map (fun (ns,n,attrs,lazyTypeDef) -> (ns,(n,notlazy(scoref,attrs,lazyTypeDef))))
+    tdefs.AsArrayOfLazyTypeDefs
+    |> Array.map (fun (ns,n,attrs,lazyTypeDef) -> (ns,(n,notlazy(scoref,attrs,lazyTypeDef))))
+    |> Array.toList
     |> ImportILTypeDefList amap m cpath enc
 
 /// Import the main type definitions in an IL assembly.

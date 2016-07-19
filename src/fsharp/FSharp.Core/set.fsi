@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Collections
 
@@ -184,7 +184,7 @@ namespace Microsoft.FSharp.Collections
         val exists: predicate:('T -> bool) -> set:Set<'T> -> bool
 
         /// <summary>Returns a new collection containing only the elements of the collection
-        /// for which the given predicate returns <c>true</c>.</summary>
+        /// for which the given predicate returns True.</summary>
         /// <param name="predicate">The function to test set elements.</param>
         /// <param name="set">The input set.</param>
         /// <returns>The set containing only the elements for which <c>predicate</c> returns true.</returns>
@@ -245,7 +245,7 @@ namespace Microsoft.FSharp.Collections
         val union: set1:Set<'T> -> set2:Set<'T> -> Set<'T>
 
         /// <summary>Computes the union of a sequence of sets.</summary>
-        /// <param name="sets">The sequence of sets to untion.</param>
+        /// <param name="sets">The sequence of sets to union.</param>
         /// <returns>The union of the input sets.</returns>
         [<CompiledName("UnionMany")>]
         val unionMany: sets:seq<Set<'T>> -> Set<'T>

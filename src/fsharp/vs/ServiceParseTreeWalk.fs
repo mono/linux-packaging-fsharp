@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 //----------------------------------------------------------------------------
 // Open up the compiler as an incremental service for parsing,
@@ -7,14 +7,12 @@
 
 namespace Microsoft.FSharp.Compiler.SourceCodeServices
 
-open Internal.Utilities
-open System
-open System.Collections.Generic
- 
 open Microsoft.FSharp.Compiler 
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
+ 
 
+/// A range of utility functions to assist with traversing an AST
 module internal AstTraversal =
     // treat ranges as though they are half-open: [,)
     let rangeContainsPosLeftEdgeInclusive (m1:range) p =
@@ -80,7 +78,7 @@ module internal AstTraversal =
     let dive node range project =
         range,(fun() -> project node)
 
-    let pick pos _line _col (outerRange:range) (_debugObj:obj) (diveResults:list<range*_>) =
+    let pick pos (outerRange:range) (_debugObj:obj) (diveResults:list<range*_>) =
         match diveResults with
         | [] -> None
         | _ ->
@@ -123,23 +121,22 @@ module internal AstTraversal =
         | _ -> 
 #if DEBUG
             assert(false)
-            failwithf "multiple disjoint AST node ranges claimed to contain (%d,%d) from %+A" _line _col _debugObj
+            failwithf "multiple disjoint AST node ranges claimed to contain (%A) from %+A" pos _debugObj
 #else
             None
 #endif
 
     /// traverse an implementation file walking all the way down to SynExpr or TypeAbbrev at a particular location
     ///
-    let internal Traverse(line, col, parseTree, visitor:AstVisitorBase<'T>) =
-        let pos = Pos.fromVS line col  // line was 0-based, need 1-based
-        let pick x = pick pos line col x
+    let (*internal*) Traverse(pos:pos, parseTree, visitor:AstVisitorBase<'T>) =
+        let pick x = pick pos x
         let rec traverseSynModuleDecl path (decl:SynModuleDecl) =
             let pick = pick decl.Range
             let defaultTraverse m = 
                 let path = TraverseStep.Module m :: path
                 match m with
                 | SynModuleDecl.ModuleAbbrev(_ident, _longIdent, _range) -> None
-                | SynModuleDecl.NestedModule(_synComponentInfo, synModuleDecls, _, _range) -> synModuleDecls |> List.map (fun x -> dive x x.Range (traverseSynModuleDecl path)) |> pick decl
+                | SynModuleDecl.NestedModule(_synComponentInfo, _isRec, synModuleDecls, _, _range) -> synModuleDecls |> List.map (fun x -> dive x x.Range (traverseSynModuleDecl path)) |> pick decl
                 | SynModuleDecl.Let(_, synBindingList, _range) -> synBindingList |> List.map (fun x -> dive x x.RangeOfBindingAndRhs (traverseSynBinding path)) |> pick decl
                 | SynModuleDecl.DoExpr(_sequencePointInfoForBinding, synExpr, _range) -> traverseSynExpr path synExpr  
                 | SynModuleDecl.Types(synTypeDefnList, _range) -> synTypeDefnList |> List.map (fun x -> dive x x.Range (traverseSynTypeDefn path)) |> pick decl
@@ -150,7 +147,7 @@ module internal AstTraversal =
                 | SynModuleDecl.NamespaceFragment(synModuleOrNamespace) -> traverseSynModuleOrNamespace path synModuleOrNamespace
             visitor.VisitModuleDecl(defaultTraverse, decl)
 
-        and traverseSynModuleOrNamespace path (SynModuleOrNamespace(_longIdent, _isModule, synModuleDecls, _preXmlDoc, _synAttributes, _synAccessOpt, range) as mors) =
+        and traverseSynModuleOrNamespace path (SynModuleOrNamespace(_longIdent, _isRec, _isModule, synModuleDecls, _preXmlDoc, _synAttributes, _synAccessOpt, range) as mors) =
             let path = TraverseStep.ModuleOrNamespace mors :: path
             synModuleDecls |> List.map (fun x -> dive x x.Range (traverseSynModuleDecl path)) |> pick range mors
         and traverseSynExpr path (expr:SynExpr) =
@@ -320,6 +317,7 @@ module internal AstTraversal =
                     |> pick expr
                 | SynExpr.Do(synExpr, _range) -> traverseSynExpr synExpr
                 | SynExpr.Assert(synExpr, _range) -> traverseSynExpr synExpr
+                | SynExpr.Fixed(synExpr, _range) -> traverseSynExpr synExpr
                 | SynExpr.App(_exprAtomicFlag, isInfix, synExpr, synExpr2, _range) ->
                     if isInfix then
                         [dive synExpr2 synExpr2.Range traverseSynExpr
@@ -458,12 +456,16 @@ module internal AstTraversal =
             let path = TraverseStep.TypeDefn tydef :: path
             [
                 match synTypeDefnRepr with
-                | ObjectModel(synTypeDefnKind, synMemberDefns, _oRange) ->
+                | SynTypeDefnRepr.Exception _ -> 
+                    // This node is generated in TypeChecker.fs, not in the AST.  
+                    // But note exception declarations are missing from this tree walk.
+                    () 
+                | SynTypeDefnRepr.ObjectModel(synTypeDefnKind, synMemberDefns, _oRange) ->
                     // traverse inherit function is used to capture type specific data required for processing Inherit part
                     let traverseInherit (synType : SynType, range : range) = 
                         visitor.VisitInheritSynMemberDefn(synComponentInfo, synTypeDefnKind, synType, synMemberDefns, range)
                     yield! synMemberDefns |> normalizeMembersToDealWithPeculiaritiesOfGettersAndSetters path traverseInherit
-                | Simple(synTypeDefnSimpleRepr, _range) -> 
+                | SynTypeDefnRepr.Simple(synTypeDefnSimpleRepr, _range) -> 
                     match synTypeDefnSimpleRepr with
                     | SynTypeDefnSimpleRepr.TypeAbbrev(_,synType,m) ->
                         yield dive synTypeDefnRepr synTypeDefnRepr.Range (fun _ -> visitor.VisitTypeAbbrev(synType,m))

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Build
 
@@ -16,6 +16,10 @@ open Internal.Utilities
 [<assembly: SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Scope="type", Target="Microsoft.FSharp.Build.Fsc", MessageId="Fsc")>]
 do()
 
+
+#if FX_RESHAPED_REFLECTION
+open Microsoft.FSharp.Core.ReflectionAdapters
+#endif
 
 type FscCommandLineBuilder() =
     // In addition to generating a command-line that will be handed to cmd.exe, we also generate
@@ -149,7 +153,6 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     let mutable win32res : string = null
     let mutable win32manifest : string = null
     let mutable vserrors : bool = false
-    let mutable validateTypeProviders : bool = false
     let mutable vslcid : string = null
     let mutable utf8output : bool = false
     let mutable subsystemVersion : string = null
@@ -184,7 +187,7 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.DebugSymbols
         with get() = debugSymbols
         and set(b) = debugSymbols <- b
-    // --debug <none/pdbonly/full>: Emit debugging information
+    // --debug <none/portable/pdbonly/full>: Emit debugging information
     member fsc.DebugType
         with get() = debugType
         and set(s) = debugType <- s
@@ -324,10 +327,6 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
         with get() = vserrors
         and set(p) = vserrors <- p
 
-    member fsc.ValidateTypeProviders
-        with get() = validateTypeProviders
-        and set(p) = validateTypeProviders <- p
-
     member fsc.LCID
         with get() = vslcid
         and set(p) = vslcid <- p
@@ -367,18 +366,21 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     override fsc.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands) =
         let host = box fsc.HostObject
         match host with
-        | null ->
-            base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
+        | null -> base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
         | _ ->
             let sources = sources|>Array.map(fun i->i.ItemSpec)
+#if FX_NO_CONVERTER
+            let baseCallDelegate = new Func<int>(fun () -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands) )
+#else
             let baseCall = fun (dummy : int) -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
             // We are using a Converter<int,int> rather than a "unit->int" because it is too hard to
             // figure out how to pass an F# function object via reflection.  
             let baseCallDelegate = new System.Converter<int,int>(baseCall)
+#endif
             try 
                 let ret = 
                     (host.GetType()).InvokeMember("Compile", BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.InvokeMethod ||| BindingFlags.Instance, null, host, 
-                                                [| box baseCallDelegate; box (capturedArguments |> List.toArray); box (capturedFilenames |> List.toArray) |],
+                                                [| baseCallDelegate; box (capturedArguments |> List.toArray); box (capturedFilenames |> List.toArray) |],
                                                 System.Globalization.CultureInfo.InvariantCulture)
                 unbox ret
             with 
@@ -396,7 +398,7 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
             | e ->
                 System.Diagnostics.Debug.Assert(false, "HostObject received by Fsc task did not have a Compile method or the compile method threw an exception. "+(e.ToString()))
                 reraise()
-           
+
     override fsc.GenerateCommandLineCommands() =
         let builder = new FscCommandLineBuilder()
         
@@ -412,9 +414,10 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
             if debugType = null then null else
                 match debugType.ToUpperInvariant() with
                 | "NONE"     -> null
+                | "PORTABLE" -> "portable"
                 | "PDBONLY"  -> "pdbonly"
                 | "FULL"     -> "full"
-                | _         -> null)
+                | _          -> null)
         // NoFramework
         if noFramework then 
             builder.AppendSwitch("--noframework") 
@@ -509,12 +512,7 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
         if vserrors then
             builder.AppendSwitch("--vserrors")      
 
-        // ValidateTypeProviders 
-        if validateTypeProviders then
-            builder.AppendSwitch("--validate-type-providers")           
-
         builder.AppendSwitchIfNotNull("--LCID:", vslcid)
-        
         if utf8output then
             builder.AppendSwitch("--utf8output")
             

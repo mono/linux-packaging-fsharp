@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // Various tests for the:
 // Microsoft.FSharp.Collections.Map module
@@ -55,7 +55,7 @@ type MapModule() =
         let resultOele = Map.add  7  "seven" oeleMap
         Assert.AreEqual(resultOele.[7], "seven")     
         
-        // extra test for add -- add some key which already exit in the Map
+        // extra test for add -- add a key which already exists in the Map
         let extMap = Map.ofSeq [(2,"b"); (3,"c"); (4,"d"); (5,"e")]
         let resultExt = Map.add 2 "dup" extMap        
         Assert.AreEqual(resultExt.[2], "dup")   

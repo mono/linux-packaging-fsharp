@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // Extension typing, validation of extension types, etc.
 
@@ -14,37 +14,6 @@ module internal ExtensionTyping =
     open Microsoft.FSharp.Core.CompilerServices
     open Microsoft.FSharp.Compiler.AbstractIL.IL
     open Microsoft.FSharp.Compiler.Range
-
-#if TYPE_PROVIDER_SECURITY
-    // These global variables are used by the VS language service for the type provider security dialog
-    module internal GlobalsTheLanguageServiceCanPoke =
-        //+++ GLOBAL STATE
-        val mutable displayLSTypeProviderSecurityDialogBlockingUI : (string->unit) option
-        val mutable theMostRecentFileNameWeChecked : string option
-
-    module internal ApprovalIO =
-
-        val partiallyCanonicalizeFileName : string -> string
-
-        /// location of approvals data file, e.g. C:\Users\username\AppData\Local\Microsoft\VisualStudio\14.0\type-providers.txt
-        val ApprovalsAbsoluteFileName  : string
-
-        [<RequireQualifiedAccess>]
-        type TypeProviderApprovalStatus =
-            /// NotTrusted(absoluteFileName)
-            | NotTrusted of string
-            /// Trusted(absoluteFileName)
-            | Trusted of string
-
-        /// Try to do an operation on the type-provider approvals file
-        val DoWithApprovalsFile : FileStream option -> (FileStream -> 'a) -> 'a
-
-        /// Read all TP approval data.  does not throw, will swallow exceptions and return empty list if there's trouble.
-        val ReadApprovalsFile : FileStream option -> TypeProviderApprovalStatus list
-
-        /// Replace one piece of TP approval info (or append it, if this is a new filename).  may throw if trouble with file IO.
-        val ReplaceApprovalStatus : FileStream option -> TypeProviderApprovalStatus -> unit
-#endif
 
     type TypeProviderDesignation = TypeProviderDesignation of string
 
@@ -73,12 +42,7 @@ module internal ExtensionTyping =
 
     /// Find and instantiate the set of ITypeProvider components for the given assembly reference
     val GetTypeProvidersOfAssembly : 
-          displayPSTypeProviderSecurityDialogBlockingUI : (string->unit) option 
-          * validateTypeProviders: bool 
-#if TYPE_PROVIDER_SECURITY
-          * ApprovalIO.TypeProviderApprovalStatus list 
-#endif
-          * runtimeAssemblyFilename: string 
+          runtimeAssemblyFilename: string 
           * ilScopeRefOfRuntimeAssembly:ILScopeRef
           * designerAssemblyName: string 
           * ResolutionEnvironment 
@@ -86,7 +50,7 @@ module internal ExtensionTyping =
           * isInteractive: bool
           * systemRuntimeContainsType : (string -> bool)
           * systemRuntimeAssemblyVersion : System.Version
-          * range -> bool * Tainted<ITypeProvider> list
+          * range -> Tainted<ITypeProvider> list
 
     /// Given an extension type resolver, supply a human-readable name suitable for error messages.
     val DisplayNameOfTypeProvider : Tainted<Microsoft.FSharp.Core.CompilerServices.ITypeProvider> * range -> string
@@ -219,7 +183,10 @@ module internal ExtensionTyping =
         ProvidedMethodInfo = 
         inherit ProvidedMethodBase
         member ReturnType : ProvidedType
+#if FX_NO_REFLECTION_METADATA_TOKENS
+#else
         member MetadataToken : int
+#endif
 
     and [<AllowNullLiteral; Sealed; Class>] 
         ProvidedParameterInfo = 
@@ -246,6 +213,7 @@ module internal ExtensionTyping =
         member IsFamilyAndAssembly : bool
         member IsFamilyOrAssembly : bool
         member IsPrivate : bool
+        static member TaintedEquals : Tainted<ProvidedFieldInfo> * Tainted<ProvidedFieldInfo> -> bool 
 
     and [<AllowNullLiteral; Class; Sealed>] 
         ProvidedPropertyInfo = 
