@@ -1,3 +1,11 @@
+fsharp (4.0.1.4-0xamarin1) wheezy; urgency=medium
+
+  * [6fae2b4] Imported Upstream version 4.0.1.4
+  * [996f4c0] Refreshed debian/patches/avoid_nuget_targets.patch
+  * [354ee08] Refreshed debian/patches/debian-cli-policy.patch
+
+ -- Jo Shields <jo.shields@xamarin.com>  Tue, 19 Jul 2016 13:07:34 +0100
+
 fsharp (4.0.0.3-0xamarin1) wheezy; urgency=medium
 
   * [20b2c5f] Imported Upstream version 4.0.0.1
