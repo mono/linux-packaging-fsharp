@@ -1,24 +1,27 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.LowerCallsAndSeqs 
 
 open Internal.Utilities
 open Microsoft.FSharp.Compiler.AbstractIL
+open Microsoft.FSharp.Compiler.AbstractIL.Diagnostics
 open Microsoft.FSharp.Compiler.AbstractIL.IL
 open Microsoft.FSharp.Compiler.AbstractIL.Internal
 open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library
-open Microsoft.FSharp.Compiler 
 
-open Microsoft.FSharp.Compiler.AbstractIL.Diagnostics
+open Microsoft.FSharp.Compiler 
+open Microsoft.FSharp.Compiler.AccessibilityLogic 
+open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Infos
-open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.ErrorLogger
 open Microsoft.FSharp.Compiler.Tast
 open Microsoft.FSharp.Compiler.Tastops
 open Microsoft.FSharp.Compiler.Lib
 open Microsoft.FSharp.Compiler.TcGlobals
 open Microsoft.FSharp.Compiler.PrettyNaming
+open Microsoft.FSharp.Compiler.InfoReader
+open Microsoft.FSharp.Compiler.MethodCalls
 
 //----------------------------------------------------------------------------
 // Eta-expansion of calls to top-level-methods
@@ -55,9 +58,9 @@ let InterceptExpr g cont expr =
 /// any known arguments.  The results are later optimized by the peephole 
 /// optimizer in opt.fs
 let LowerImplFile g ass = 
-    RewriteImplFile { PreIntercept = Some(InterceptExpr g);
+    RewriteImplFile { PreIntercept = Some(InterceptExpr g)
                       PreInterceptBinding=None
-                      PostTransform= (fun _ -> None);
+                      PostTransform= (fun _ -> None)
                       IsUnderQuotations=false } ass
 
 
@@ -73,7 +76,7 @@ let mkUnitDelayLambda g m e =
 
 let callNonOverloadedMethod g amap m methName ty args =
     match TryFindIntrinsicMethInfo (InfoReader(g,amap)) m AccessibleFromSomeFSharpCode methName ty  with 
-    | [] -> error(InternalError("No method called '"+methName+"' was found",m));
+    | [] -> error(InternalError("No method called '"+methName+"' was found",m))
     | ILMeth(g,ilMethInfo,_) :: _  -> 
         // REVIEW: consider if this should ever be a constrained call. At the moment typecheck limitations in the F# typechecker
         // ensure the enumerator type used within computation expressions is not a struct type
@@ -179,16 +182,16 @@ let LowerSeqExpr g amap overallExpr =
     let rec Lower  
                  isWholeExpr 
                  isTailCall // is this sequence in tailcall position?
-                 noDisposeContinuationLabel // represents the label for the code where there is effectively nothig to do to dispose the iterator for the current state
+                 noDisposeContinuationLabel // represents the label for the code where there is effectively nothing to do to dispose the iterator for the current state
                  currentDisposeContinuationLabel // represents the label for the code we have to run to dispose the iterator given the current state
                  expr = 
 
         match expr with 
         | SeqYield(e,m) -> 
             // printfn "found Seq.singleton"
-                 //this.pc <- NEXT; 
-                 //curr <- e; 
-                 //return true;  
+                 //this.pc <- NEXT 
+                 //curr <- e 
+                 //return true  
                  //NEXT:
             let label = IL.generateCodeLabel()
             Some { phase2 = (fun (pcv,currv,_nextv,pcMap) ->                 
@@ -208,9 +211,9 @@ let LowerSeqExpr g amap overallExpr =
                             mkCompGenSequential m 
                                 (Expr.Op(TOp.Label label,[],[],m))
                                 (Expr.Op(TOp.Return,[],[mkBool g m (not (noDisposeContinuationLabel = currentDisposeContinuationLabel))],m))
-                        generate,dispose,checkDispose);
-                   labels=[label];
-                   stateVars=[];
+                        generate,dispose,checkDispose)
+                   labels=[label]
+                   stateVars=[]
                    significantClose = false
                   }
 
@@ -230,8 +233,8 @@ let LowerSeqExpr g amap overallExpr =
                             // However leaving as is for now.
                             let dispose = mkCompGenSequential m dispose2 dispose1 
                             let checkDispose = mkCompGenSequential m checkDispose2 checkDispose1
-                            generate,dispose,checkDispose);
-                       labels= res1.labels @ res2.labels;
+                            generate,dispose,checkDispose)
+                       labels= res1.labels @ res2.labels
                        stateVars = res1.stateVars @ res2.stateVars 
                        significantClose = res1.significantClose || res2.significantClose }
             | _ -> 
@@ -245,8 +248,8 @@ let LowerSeqExpr g amap overallExpr =
                             let generate = mkWhile g (SequencePointAtWhileLoop e1.Range,NoSpecialWhileLoopMarker,e1,generate2,m)
                             let dispose = dispose2
                             let checkDispose = checkDispose2
-                            generate,dispose,checkDispose);
-                       labels = res2.labels;
+                            generate,dispose,checkDispose)
+                       labels = res2.labels
                        stateVars = res2.stateVars 
                        significantClose = res2.significantClose }
             | _ -> 
@@ -309,8 +312,8 @@ let LowerSeqExpr g amap overallExpr =
                                         (Expr.Op(TOp.Label innerDisposeContinuationLabel,[],[],m))
                                         (Expr.Op(TOp.Return,[],[mkTrue g m (* yes, we must dispose!!! *) ],m)))
 
-                            generate,dispose,checkDispose);
-                       labels = innerDisposeContinuationLabel :: res1.labels;
+                            generate,dispose,checkDispose)
+                       labels = innerDisposeContinuationLabel :: res1.labels
                        stateVars = res1.stateVars 
                        significantClose = true }
             | _ -> 
@@ -321,7 +324,7 @@ let LowerSeqExpr g amap overallExpr =
                             let generate = mkUnit g  m
                             let dispose = Expr.Op(TOp.Goto currentDisposeContinuationLabel,[],[],m)
                             let checkDispose = Expr.Op(TOp.Goto currentDisposeContinuationLabel,[],[],m)
-                            generate,dispose,checkDispose);
+                            generate,dispose,checkDispose)
                    labels = []
                    stateVars = [] 
                    significantClose = false }
@@ -373,7 +376,7 @@ let LowerSeqExpr g amap overallExpr =
                                         (mkValSet m vref (mkDefault (m,vref.Type)))  
                                 let dispose = dispose2
                                 let checkDispose = checkDispose2
-                                generate,dispose,checkDispose);
+                                generate,dispose,checkDispose)
                             stateVars = vref::res2.stateVars }
             | None -> 
                 None
@@ -399,8 +402,8 @@ let LowerSeqExpr g amap overallExpr =
                             let generate = primMkMatch (spBind,exprm,pt,Array.ofList gtgs,m,ty)
                             let dispose = if isNil disposals then mkUnit g m else List.reduce (mkCompGenSequential m) disposals
                             let checkDispose = if isNil checkDisposes then mkFalse g m else List.reduce (mkCompGenSequential m) checkDisposes
-                            generate,dispose,checkDispose);
-                       labels=labs;
+                            generate,dispose,checkDispose)
+                       labels=labs
                        stateVars = stateVars 
                        significantClose = significantClose }
             else
@@ -415,7 +418,7 @@ let LowerSeqExpr g amap overallExpr =
         // This can give rise to infinite iterator chains when implemented by the naive expansion to 
         // “for x in e yield e”. For example consider this:
         //
-        // let rec rwalk x = {  yield x; 
+        // let rec rwalk x = {  yield x 
         //                      yield! rwalk (x + rand()) }
         //
         // This is the moral equivalent of a tailcall optimization. These also don’t compile well 
@@ -436,9 +439,9 @@ let LowerSeqExpr g amap overallExpr =
                     // printfn "found yield!"
                     let inpElemTy = List.head (argsOfAppTy g ty)
                     if isTailCall then 
-                             //this.pc <- NEXT; 
-                             //nextEnumerator <- e; 
-                             //return 2;  
+                             //this.pc <- NEXT 
+                             //nextEnumerator <- e 
+                             //return 2  
                              //NEXT:
                         let label = IL.generateCodeLabel()
                         Some { phase2 = (fun (pcv,_currv,nextv,pcMap) ->                 
@@ -458,7 +461,7 @@ let LowerSeqExpr g amap overallExpr =
                                         mkCompGenSequential m 
                                             (Expr.Op(TOp.Label label,[],[],m))
                                             (Expr.Op(TOp.Return,[],[mkFalse g m],m))
-                                    generate,dispose,checkDispose);
+                                    generate,dispose,checkDispose)
                                labels=[label]
                                stateVars=[] 
                                significantClose = false }

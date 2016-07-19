@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 module internal Microsoft.FSharp.Compiler.Detuple 
 
@@ -86,7 +86,7 @@ open Microsoft.FSharp.Compiler.Lib
 //      - extend call patterns to length n with _ (no tuple info known)
 //      - component-wise intersect argument tuple-structures over call patterns.
 //      - gives least known call-pattern of length n.
-//      - can trim to minimum non-trivual length.
+//      - can trim to minimum non-trivial length.
 //
 //    [Used to] have INVARIANT on this chosen call pattern:
 //
@@ -100,7 +100,7 @@ open Microsoft.FSharp.Compiler.Lib
 //    [PS: now defn arg projection info can override call site info]
 //
 // 2b.Choosing CallPattern also needs to check type of formals for the function.
-//    If function is not expecting a tuple (accoring to types) do not split them.
+//    If function is not expecting a tuple (according to types) do not split them.
 //
 // 3. Given CallPattern for selected fOrig,
 //    (a) Can choose replacement formals, ybi where needed. (b, bar, means vector of formals).
@@ -144,7 +144,7 @@ open Microsoft.FSharp.Compiler.Lib
 
 // Note:  ids can occur in several ways in expr at this point in compiler.
 //      val id                                        - freely
-//      app (val id) tys args                         - applied to tys/args (if no args, then free occurance)
+//      app (val id) tys args                         - applied to tys/args (if no args, then free occurrence)
 //      app (reclink (val id)) tys args               - applied (recursive case)
 //      app (reclink (app (val id) tys' []) tys args  - applied (recursive type instanced case)
 // So, taking care counting callpatterns.
@@ -227,13 +227,13 @@ module GlobalUsageAnalysis =
     let logNonRecBinding z (bind:Binding) =
         let v = bind.Var
         let vs = FlatList.one v
-        {z with RecursiveBindings = Zmap.add v (false,vs) z.RecursiveBindings;
+        {z with RecursiveBindings = Zmap.add v (false,vs) z.RecursiveBindings
                 Defns = Zmap.add v bind.Expr z.Defns } 
 
     /// Log the definition of a recursive binding
     let logRecBindings z binds =
         let vs = valsOfBinds binds
-        {z with RecursiveBindings = (z.RecursiveBindings,vs) ||> FlatList.fold (fun mubinds v -> Zmap.add v (true,vs) mubinds);
+        {z with RecursiveBindings = (z.RecursiveBindings,vs) ||> FlatList.fold (fun mubinds v -> Zmap.add v (true,vs) mubinds)
                 Defns    = (z.Defns,binds) ||> FlatList.fold (fun eqns bind -> Zmap.add bind.Var bind.Expr eqns)  } 
 
     /// Work locally under a lambda of some kind
@@ -269,7 +269,7 @@ module GlobalUsageAnalysis =
           let rec recognise context expr = 
             match expr with
              | Expr.Val (v,_,_)                  -> 
-                 // YES: count free occurance 
+                 // YES: count free occurrence 
                  let z = foldLocalVal (fun z v -> logUse v (context,[],[]) z) z v
                  Some z
              | TyappAndApp(f,_,tys,args,_)       -> 
@@ -383,16 +383,16 @@ let rebuildTS g m ts vs =
     let rec rebuild vs ts = 
       match vs,ts with
       | []   ,UnknownTS   -> internalError "rebuildTS: not enough fringe to build tuple"
-      | v::vs,UnknownTS   -> vs,(exprForVal m v,v.Type)
+      | v::vs,UnknownTS   -> (exprForVal m v,v.Type),vs
       | vs   ,TupleTS tss -> 
-          let vs,xtys = List.foldMap rebuild vs tss
+          let xtys,vs = List.mapFold rebuild vs tss
           let xs,tys  = List.unzip xtys
           let x  = mkTupled g m xs tys
           let ty = mkTupledTy g tys
-          vs,(x,ty)
+          (x,ty),vs
    
-    let vs,(x,_ty) = rebuild vs ts
-    if vs.Length <> 0 then internalError "rebuildTS: had move fringe vars than fringe. REPORT BUG" else ();
+    let (x,_ty),vs = rebuild vs ts
+    if vs.Length <> 0 then internalError "rebuildTS: had more fringe vars than fringe. REPORT BUG" 
     x
 
 /// CallPattern is tuple-structure for each argument position.
@@ -794,7 +794,7 @@ let passBind penv (TBind(fOrig,repr,letSeqPtOpt) as bind) =
          // fCBody - parts - formals 
          let transformedFormals = trans.transformedFormals 
          let p     = transformedFormals.Length
-         if (vss.Length < p) then internalError "passBinds: |vss|<p - detuple pass" else (); (* ASSERTION *)
+         if (vss.Length < p) then internalError "passBinds: |vss|<p - detuple pass" 
          let xqNs  = List.drop p vss  
          let x1ps  = List.take p vss  
          let y1Ps  = List.concat (List.map2 transFormal transformedFormals x1ps)

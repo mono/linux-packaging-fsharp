@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 /// Defines the global environment for all type checking.
 ///
@@ -6,9 +6,7 @@
 /// into the compiler.  This lets the compiler perform particular optimizations
 /// for these types and values, for example emitting optimized calls for
 /// comparison and hashing functions.  
-module internal Microsoft.FSharp.Compiler.TcGlobals 
-
-#nowarn "44" // This construct is deprecated. please use List.item
+module internal Microsoft.FSharp.Compiler.TcGlobals
 
 open Internal.Utilities
 open Microsoft.FSharp.Compiler 
@@ -30,20 +28,6 @@ open System.Collections.Generic
 
 let internal DummyFileNameForRangesWithoutASpecificLocation = "startup"
 let private envRange = rangeN DummyFileNameForRangesWithoutASpecificLocation 0
-
-let vara = NewRigidTypar "a" envRange
-let varb = NewRigidTypar "b" envRange
-let private varc = NewRigidTypar "c" envRange
-let private vard = NewRigidTypar "d" envRange
-let private vare = NewRigidTypar "e" envRange
-let private varf = NewRigidTypar "f" envRange
-let private varg = NewRigidTypar "g" envRange
-
-let varaTy = mkTyparTy vara 
-let varbTy = mkTyparTy varb 
-let private varcTy = mkTyparTy varc
-let private vardTy = mkTyparTy vard
-let private vareTy = mkTyparTy vare
 
 type public IntrinsicValRef = IntrinsicValRef of NonLocalEntityRef * string * bool * TType * ValLinkageFullKey
 
@@ -129,7 +113,6 @@ type public TcGlobals =
       fslibCcu: CcuThunk 
       sysCcu: CcuThunk 
       using40environment: bool
-      indirectCallArrayMethods: bool
       better_tcref_map: TyconRef -> TypeInst -> TType option
       refcell_tcr_canon: TyconRef
       option_tcr_canon : TyconRef
@@ -235,6 +218,7 @@ type public TcGlobals =
       system_Array_typ             : TType 
       system_Object_typ            : TType 
       system_IDisposable_typ       : TType 
+      system_RuntimeHelpers_typ       : TType 
       system_Value_typ             : TType 
       system_Delegate_typ          : TType
       system_MulticastDelegate_typ : TType
@@ -242,6 +226,7 @@ type public TcGlobals =
       system_Exception_typ         : TType 
       system_Int32_typ             : TType 
       system_String_typ            : TType 
+      system_String_tcref          : TyconRef
       system_Type_typ              : TType 
       system_TypedReference_tcref  : TyconRef option
       system_ArgIterator_tcref     : TyconRef option 
@@ -314,6 +299,10 @@ type public TcGlobals =
       attrib_PreserveSigAttribute        : BuiltinAttribInfo option
       attrib_MethodImplAttribute         : BuiltinAttribInfo
       attrib_ExtensionAttribute          : BuiltinAttribInfo
+      attrib_CallerLineNumberAttribute   : BuiltinAttribInfo
+      attrib_CallerFilePathAttribute     : BuiltinAttribInfo
+      attrib_CallerMemberNameAttribute   : BuiltinAttribInfo
+
       tcref_System_Collections_Generic_IList               : TyconRef
       tcref_System_Collections_Generic_IReadOnlyList       : TyconRef
       tcref_System_Collections_Generic_ICollection         : TyconRef
@@ -339,6 +328,7 @@ type public TcGlobals =
       attrib_StructAttribute                        : BuiltinAttribInfo 
       attrib_ReflectedDefinitionAttribute           : BuiltinAttribInfo 
       attrib_AutoOpenAttribute                      : BuiltinAttribInfo 
+      attrib_InternalsVisibleToAttribute            : BuiltinAttribInfo 
       attrib_CompilationRepresentationAttribute     : BuiltinAttribInfo 
       attrib_CompilationArgumentCountsAttribute     : BuiltinAttribInfo 
       attrib_CompilationMappingAttribute            : BuiltinAttribInfo 
@@ -478,10 +468,12 @@ type public TcGlobals =
       istype_fast_info          : IntrinsicValRef
 
       dispose_info              : IntrinsicValRef
+      
+      getstring_info            : IntrinsicValRef
 
       range_op_vref             : ValRef
+      range_step_op_vref        : ValRef
       range_int32_op_vref       : ValRef
-      //range_step_op_vref        : ValRef
       array_get_vref            : ValRef
       array2D_get_vref          : ValRef
       array3D_get_vref          : ValRef
@@ -510,6 +502,18 @@ type public TcGlobals =
       seq_empty_vref            : ValRef
       new_format_info           : IntrinsicValRef
       raise_info                : IntrinsicValRef
+      raise_vref                : ValRef
+      failwith_info             : IntrinsicValRef
+      failwith_vref             : ValRef
+      invalid_arg_info          : IntrinsicValRef
+      invalid_arg_vref          : ValRef
+      null_arg_info             : IntrinsicValRef
+      null_arg_vref             : ValRef
+      invalid_op_info           : IntrinsicValRef
+      invalid_op_vref           : ValRef
+      failwithf_info            : IntrinsicValRef
+      failwithf_vref            : ValRef
+
       lazy_force_info           : IntrinsicValRef
       lazy_create_info          : IntrinsicValRef
 
@@ -560,7 +564,20 @@ let global_g = ref (None : TcGlobals option)
 #endif
 
 let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePaths,mlCompatibility,
-                 using40environment,indirectCallArrayMethods,isInteractive,getTypeCcu, emitDebugInfoInQuotations) = 
+                 using40environment,isInteractive,getTypeCcu, emitDebugInfoInQuotations) = 
+
+  let vara = NewRigidTypar "a" envRange
+  let varb = NewRigidTypar "b" envRange
+  let varc = NewRigidTypar "c" envRange
+  let vard = NewRigidTypar "d" envRange
+  let vare = NewRigidTypar "e" envRange
+
+  let varaTy = mkTyparTy vara 
+  let varbTy = mkTyparTy varb 
+  let varcTy = mkTyparTy varc
+  let vardTy = mkTyparTy vard
+  let vareTy = mkTyparTy vare
+
   let int_tcr        = mk_MFCore_tcref fslibCcu "int"
   let nativeint_tcr  = mk_MFCore_tcref fslibCcu "nativeint"
   let unativeint_tcr = mk_MFCore_tcref fslibCcu "unativeint"
@@ -604,6 +621,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   let sysLinq = ["System";"Linq"]
   let sysCollections = ["System";"Collections"]
   let sysGenerics = ["System";"Collections";"Generic"]
+  let sysCompilerServices = ["System";"Runtime";"CompilerServices"]
 
   let lazy_tcr = mkSysTyconRef sys "Lazy`1"
   let fslib_IEvent2_tcr        = mk_MFControl_tcref fslibCcu "IEvent`2"
@@ -639,6 +657,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   
   let bool_ty         = mkNonGenericTy bool_tcr   
   let int_ty          = mkNonGenericTy int_tcr    
+  let char_ty         = mkNonGenericTy char_tcr
   let obj_ty          = mkNonGenericTy obj_tcr    
   let string_ty       = mkNonGenericTy string_tcr
   let byte_ty         = mkNonGenericTy byte_tcr
@@ -653,7 +672,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   (* local helpers to build value infos *)
   let mkNullableTy ty = TType_app(nullable_tcr, [ty]) 
   let mkByrefTy ty = TType_app(byref_tcr, [ty]) 
-  let mkNativePtrType ty = TType_app(nativeptr_tcr, [ty]) 
+  let mkNativePtrTy ty = TType_app(nativeptr_tcr, [ty]) 
   let mkFunTy d r = TType_fun (d,r) 
   let (-->) d r = mkFunTy d r
   let mkIteratedFunTy dl r = List.foldBack (-->) dl r
@@ -788,7 +807,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
                             fslib_MFQueryRunExtensionsHighPriority_nleref 
 
                             fslib_MFSeqModule_nleref    
-                            fslib_MFListModule_nleref   
+                            fslib_MFListModule_nleref
                             fslib_MFArrayModule_nleref   
                             fslib_MFArray2DModule_nleref   
                             fslib_MFArray3DModule_nleref   
@@ -832,7 +851,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
 
   let and_info =                   makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "&"                      ,None                 ,None          ,[],         mk_rel_sig bool_ty) 
   let addrof_info =                makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "~&"                     ,None                 ,None          ,[vara],     ([[varaTy]], mkByrefTy varaTy))   
-  let addrof2_info =               makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "~&&"                    ,None                 ,None          ,[vara],     ([[varaTy]], mkNativePtrType varaTy))
+  let addrof2_info =               makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "~&&"                    ,None                 ,None          ,[vara],     ([[varaTy]], mkNativePtrTy varaTy))
   let and2_info =                  makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "&&"                     ,None                 ,None          ,[],         mk_rel_sig bool_ty) 
   let or_info =                    makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    "or"                                   ,None                 ,Some "Or"     ,[],         mk_rel_sig bool_ty) 
   let or2_info =                   makeIntrinsicValRef(fslib_MFIntrinsicOperators_nleref,                    CompileOpName "||"                     ,None                 ,None          ,[],         mk_rel_sig bool_ty) 
@@ -890,6 +909,8 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
 
   let dispose_info               = makeIntrinsicValRef(fslib_MFIntrinsicFunctions_nleref,                    "Dispose"                              ,None                 ,None          ,[vara],     ([[varaTy]],unit_ty))
 
+  let getstring_info             = makeIntrinsicValRef(fslib_MFIntrinsicFunctions_nleref,                    "GetString"                            ,None                 ,None          ,[],         ([[string_ty];[int_ty]],char_ty))
+
   let reference_equality_inner_info = makeIntrinsicValRef(fslib_MFHashCompare_nleref,                        "PhysicalEqualityIntrinsic"            ,None                 ,None          ,[vara],     mk_rel_sig varaTy)  
 
   let bitwise_or_info            = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "op_BitwiseOr"                         ,None                 ,None          ,[vara],     mk_binop_ty varaTy)  
@@ -905,7 +926,13 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   let unchecked_unary_minus_info = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "op_UnaryNegation"                     ,None                 ,None          ,[vara],     mk_unop_ty varaTy)  
   let unchecked_unary_not_info   = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "not"                                  ,None                 ,Some "Not"    ,[],     mk_unop_ty bool_ty)  
 
-  let raise_info                 = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "raise"                                ,None                 ,Some "Raise"  ,[vara],([[mkSysNonGenericTy sys "Exception"]],varaTy))  
+  let raise_info                 = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "raise"                                ,None                 ,Some "Raise"  ,[vara],     ([[mkSysNonGenericTy sys "Exception"]],varaTy))  
+  let failwith_info              = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "failwith"                             ,None               ,Some "FailWith" ,[vara],     ([[string_ty]],varaTy))  
+  let invalid_arg_info           = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "invalidArg"                           ,None             ,Some "InvalidArg" ,[vara],     ([[string_ty]; [string_ty]],varaTy))  
+  let null_arg_info              = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "nullArg"                              ,None                ,Some "NullArg" ,[vara],     ([[string_ty]],varaTy))  
+  let invalid_op_info            = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "invalidOp"                            ,None              ,Some "InvalidOp" ,[vara],     ([[string_ty]],varaTy))  
+  let failwithf_info             = makeIntrinsicValRef(fslib_MFExtraTopLevelOperators_nleref,                "failwithf"                       ,None, Some "PrintFormatToStringThenFail" ,[vara;varb],([[mk_format4_ty varaTy unit_ty string_ty string_ty]], varaTy))  
+  
   let reraise_info               = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "reraise"                              ,None                 ,Some "Reraise",[vara],     ([[unit_ty]],varaTy))
   let typeof_info                = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "typeof"                               ,None                 ,Some "TypeOf" ,[vara],     ([],system_Type_typ))  
   let methodhandleof_info        = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "methodhandleof"                       ,None                 ,Some "MethodHandleOf",[vara;varb],([[varaTy --> varbTy]],system_RuntimeMethodHandle_typ))
@@ -914,6 +941,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   let typedefof_info             = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "typedefof"                            ,None                 ,Some "TypeDefOf",[vara],     ([],system_Type_typ))  
   let enum_info                  = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "enum"                                 ,None                 ,Some "ToEnum" ,[vara],     ([[int_ty]],varaTy))  
   let range_op_info              = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "op_Range"                             ,None                 ,None          ,[vara],     ([[varaTy];[varaTy]],mkSeqTy varaTy))
+  let range_step_op_info         = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "op_RangeStep"                         ,None                 ,None          ,[vara;varb],([[varaTy];[varbTy];[varaTy]],mkSeqTy varaTy))
   let range_int32_op_info        = makeIntrinsicValRef(fslib_MFOperatorIntrinsics_nleref,                    "RangeInt32"                           ,None                 ,None          ,[],     ([[int_ty];[int_ty];[int_ty]],mkSeqTy int_ty))
   let array2D_get_info           = makeIntrinsicValRef(fslib_MFIntrinsicFunctions_nleref,                    "GetArray2D"                           ,None                 ,None          ,[vara],     ([[mkArrayType 2 varaTy];[int_ty]; [int_ty]],varaTy))  
   let array3D_get_info           = makeIntrinsicValRef(fslib_MFIntrinsicFunctions_nleref,                    "GetArray3D"                           ,None                 ,None          ,[vara],     ([[mkArrayType 3 varaTy];[int_ty]; [int_ty]; [int_ty]],varaTy))
@@ -938,6 +966,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     // Lazy\Value for > 4.0
                                    makeIntrinsicValRef(fslib_MFLazyExtensions_nleref,                        "Force"                                ,Some "Lazy`1"        ,None                          ,[vara],     ([[mkLazyTy varaTy]; []], varaTy))
   let lazy_create_info           = makeIntrinsicValRef(fslib_MFLazyExtensions_nleref,                        "Create"                               ,Some "Lazy`1"        ,None                          ,[vara],     ([[unit_ty --> varaTy]], mkLazyTy varaTy))
+
   let seq_info                   = makeIntrinsicValRef(fslib_MFOperators_nleref,                             "seq"                                  ,None                 ,Some "CreateSequence"         ,[vara],     ([[mkSeqTy varaTy]], mkSeqTy varaTy))
   let splice_expr_info           = makeIntrinsicValRef(fslib_MFExtraTopLevelOperators_nleref,                "op_Splice"                            ,None                 ,None                          ,[vara],     ([[mkQuotedExprTy varaTy]], varaTy))
   let splice_raw_expr_info       = makeIntrinsicValRef(fslib_MFExtraTopLevelOperators_nleref,                "op_SpliceUntyped"                     ,None                 ,None                          ,[vara],     ([[mkRawQuotedExprTy]], varaTy))
@@ -970,7 +999,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
   { ilg=ilg
 #if NO_COMPILER_BACKEND
 #else
-    ilxPubCloEnv=EraseClosures.new_cenv(ilg)
+    ilxPubCloEnv=EraseClosures.newIlxPubCloEnv(ilg)
 #endif
     knownIntrinsics                = knownIntrinsics
     knownFSharpCoreModules         = knownFSharpCoreModules
@@ -982,7 +1011,6 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     valRefEq                 = valRefEq
     fslibCcu                 = fslibCcu
     using40environment       = using40environment
-    indirectCallArrayMethods = indirectCallArrayMethods
     sysCcu                   = sysCcu
     refcell_tcr_canon    = mk_MFCore_tcref     fslibCcu "Ref`1"
     option_tcr_canon     = mk_MFCore_tcref     fslibCcu "Option`1"
@@ -1077,12 +1105,14 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     system_Array_typ     = mkSysNonGenericTy sys "Array"
     system_Object_typ    = mkSysNonGenericTy sys "Object"
     system_IDisposable_typ    = mkSysNonGenericTy sys "IDisposable"
+    system_RuntimeHelpers_typ    = mkSysNonGenericTy sysCompilerServices "RuntimeHelpers"
     system_Value_typ     = mkSysNonGenericTy sys "ValueType"
     system_Delegate_typ     = mkSysNonGenericTy sys "Delegate"
     system_MulticastDelegate_typ     = mkSysNonGenericTy sys "MulticastDelegate"
     system_Enum_typ      = mkSysNonGenericTy sys "Enum"
     system_Exception_typ = mkSysNonGenericTy sys "Exception"
     system_String_typ    = mkSysNonGenericTy sys "String"
+    system_String_tcref  = mkSysTyconRef sys "String"
     system_Int32_typ     = mkSysNonGenericTy sys "Int32"
     system_Type_typ                  = system_Type_typ
     system_TypedReference_tcref        = if ilg.traits.TypedReferenceTypeScopeRef.IsSome then Some(mkSysTyconRef sys "TypedReference") else None
@@ -1177,7 +1207,10 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     attrib_PreserveSigAttribute    = mkSystemRuntimeInteropServicesAttribute "System.Runtime.InteropServices.PreserveSigAttribute"
     attrib_MethodImplAttribute     = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.MethodImplAttribute"
     attrib_ExtensionAttribute     = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.ExtensionAttribute"
-    
+    attrib_CallerLineNumberAttribute = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.CallerLineNumberAttribute"
+    attrib_CallerFilePathAttribute = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.CallerFilePathAttribute"
+    attrib_CallerMemberNameAttribute = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.CallerMemberNameAttribute"
+
     attrib_ProjectionParameterAttribute           = mk_MFCore_attrib "ProjectionParameterAttribute"
     attrib_CustomOperationAttribute               = mk_MFCore_attrib "CustomOperationAttribute"
     attrib_NonSerializedAttribute                 = if ilg.traits.NonSerializedAttributeScopeRef.IsSome then Some(mkSystemRuntimeAttrib "System.NonSerializedAttribute") else None
@@ -1199,6 +1232,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     attrib_ReflectedDefinitionAttribute           = mk_MFCore_attrib "ReflectedDefinitionAttribute"
     attrib_CompiledNameAttribute                  = mk_MFCore_attrib "CompiledNameAttribute"
     attrib_AutoOpenAttribute                      = mk_MFCore_attrib "AutoOpenAttribute"
+    attrib_InternalsVisibleToAttribute            = mkSystemRuntimeAttrib "System.Runtime.CompilerServices.InternalsVisibleToAttribute"
     attrib_CompilationRepresentationAttribute     = mk_MFCore_attrib "CompilationRepresentationAttribute"
     attrib_CompilationArgumentCountsAttribute     = mk_MFCore_attrib "CompilationArgumentCountsAttribute"
     attrib_CompilationMappingAttribute            = mk_MFCore_attrib "CompilationMappingAttribute"
@@ -1253,7 +1287,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
                    let ty = mkNonGenericTy tcr 
                    nm, mkSysTyconRef sys nm, (fun _ -> ty)) 
         let entries2 =
-            [ "FSharpFunc`2",    fastFunc_tcr, (fun tinst -> mkFunTy (List.nth tinst 0) (List.nth tinst 1))
+            [ "FSharpFunc`2",    fastFunc_tcr, (fun tinst -> mkFunTy (List.item 0 tinst) (List.item 1 tinst))
               "Tuple`2",       tuple2_tcr, decodeTupleTy
               "Tuple`3",       tuple3_tcr, decodeTupleTy
               "Tuple`4",       tuple4_tcr, decodeTupleTy
@@ -1265,7 +1299,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
         
         if compilingFslib then 
             // This map is for use when building FSharp.Core.dll. The backing Tycon's may not yet exist for
-            // the TyconRef's we have inour hands, hence we can't dereference them to find their stamps.
+            // the TyconRef's we have in our hands, hence we can't dereference them to find their stamps.
 
             // So this dictionary is indexed by names.
             let dict = 
@@ -1343,6 +1377,18 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     equals_operator_info     = equals_operator_info
 
     raise_info                 = raise_info
+    raise_vref                 = ValRefForIntrinsic raise_info
+    failwith_info              = failwith_info
+    failwith_vref              = ValRefForIntrinsic failwith_info
+    invalid_arg_info           = invalid_arg_info
+    invalid_arg_vref           = ValRefForIntrinsic invalid_arg_info
+    null_arg_info              = null_arg_info
+    null_arg_vref              = ValRefForIntrinsic null_arg_info
+    invalid_op_info            = invalid_op_info
+    invalid_op_vref            = ValRefForIntrinsic invalid_op_info
+    failwithf_info             = failwithf_info
+    failwithf_vref             = ValRefForIntrinsic failwithf_info
+
     reraise_info               = reraise_info
     reraise_vref               = ValRefForIntrinsic reraise_info
     methodhandleof_info        = methodhandleof_info
@@ -1355,8 +1401,8 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     enum_vref                  = ValRefForIntrinsic enum_info
     enumOfValue_vref           = ValRefForIntrinsic enumOfValue_info
     range_op_vref              = ValRefForIntrinsic range_op_info
+    range_step_op_vref         = ValRefForIntrinsic range_step_op_info
     range_int32_op_vref        = ValRefForIntrinsic range_int32_op_info
-    //range_step_op_vref         = ValRefForIntrinsic range_step_op_info
     array_length_info          = array_length_info
     array_get_vref             = ValRefForIntrinsic array_get_info
     array2D_get_vref           = ValRefForIntrinsic array2D_get_info
@@ -1394,6 +1440,7 @@ let mkTcGlobals (compilingFslib,sysCcu,ilg,fslibCcu,directoryToResolveRelativePa
     get_generic_er_equality_comparer_info        = get_generic_er_equality_comparer_info
     get_generic_per_equality_comparer_info    = get_generic_per_equality_comparer_info
     dispose_info               = dispose_info
+    getstring_info             = getstring_info
     unbox_fast_info            = unbox_fast_info
     istype_info                = istype_info
     istype_fast_info           = istype_fast_info

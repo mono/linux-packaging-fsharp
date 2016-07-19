@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // This file is compiled 3(!) times in the codebase
 //    - as the internal implementation of printf '%A' formatting 
@@ -264,6 +264,11 @@ namespace Microsoft.FSharp.Text.StructuredFormat
         open System
         open System.Reflection
 
+#if FX_RESHAPED_REFLECTION
+        open PrimReflectionAdapters
+        open Microsoft.FSharp.Core.ReflectionAdapters
+#endif
+
         [<NoEquality; NoComparison>]
         type TypeInfo =
           | TupleType of Type list
@@ -273,7 +278,6 @@ namespace Microsoft.FSharp.Text.StructuredFormat
           | UnitType
           | ObjectType of Type
 
-             
         let isNamedType(typ:Type) = not (typ.IsArray || typ.IsByRef || typ.IsPointer)
         let equivHeadTypes (ty1:Type) (ty2:Type) = 
             isNamedType(ty1) &&
@@ -456,7 +460,7 @@ namespace Microsoft.FSharp.Text.StructuredFormat
           else str
 
         let catchExn f = try Choice1Of2 (f ()) with e -> Choice2Of2 e
-        
+
         // An implementation of break stack.
         // Uses mutable state, relying on linear threading of the state.
 
@@ -748,8 +752,19 @@ namespace Microsoft.FSharp.Text.StructuredFormat
             let ty = obj.GetType()
 #if FX_ATLEAST_PORTABLE
             let prop = ty.GetProperty(name, (BindingFlags.Instance ||| BindingFlags.Public ||| BindingFlags.NonPublic))
-            prop.GetValue(obj,[||])
-#else            
+            if prop <> null then prop.GetValue(obj,[||])
+#if FX_NO_MISSINGMETHODEXCEPTION
+            // Profile 7, 47, 78 and 259 raise MissingMemberException
+            else 
+                let msg = System.String.Concat([| "Method '"; ty.FullName; "."; name; "' not found." |])
+                raise (System.MissingMemberException(msg))
+#else
+            // Others raise MissingMethodException
+            else 
+                let msg = System.String.Concat([| "Method '"; ty.FullName; "."; name; "' not found." |])
+                raise (System.MissingMethodException(msg))
+#endif
+#else
 #if FX_NO_CULTURE_INFO_ARGS
             ty.InvokeMember(name, (BindingFlags.GetProperty ||| BindingFlags.Instance ||| BindingFlags.Public ||| BindingFlags.NonPublic), null, obj, [| |])
 #else
@@ -781,7 +796,7 @@ namespace Microsoft.FSharp.Text.StructuredFormat
 
         let formatStringInWidth (width:int) (str:string) =
             // Return a truncated version of the string, e.g.
-            //   "This is the initial text, which has been truncat"+[12 chars]
+            //   "This is the initial text, which has been truncated"+[12 chars]
             //
             // Note: The layout code forces breaks based on leaf size and possible break points.
             //       It does not force leaf size based on width.
@@ -893,7 +908,7 @@ namespace Microsoft.FSharp.Text.StructuredFormat
                                                   let alternativeObjL = 
                                                     match alternativeObj with 
                                                         // A particular rule is that if the alternative property
-                                                        // returns a string, we turn off auto-quoting and esaping of
+                                                        // returns a string, we turn off auto-quoting and escaping of
                                                         // the string, i.e. just treat the string as display text.
                                                         // This allows simple implementations of 
                                                         // such as
@@ -1194,7 +1209,7 @@ namespace Microsoft.FSharp.Text.StructuredFormat
             | :? bool   as b -> (if b then "true" else "false")
             | :? char   as c -> "\'" + formatChar true c + "\'"
             | _ -> try  let text = obj.ToString()
-                        text
+                        if text = null then "" else text
                    with e ->
                      // If a .ToString() call throws an exception, catch it and use the message as the result.
                      // This may be informative, e.g. division by zero etc...

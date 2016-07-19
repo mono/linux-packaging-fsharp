@@ -11,8 +11,12 @@ repository at https://github.com/Microsoft/visualfsharp.  This ensures that the 
 packaging of F# on Windows (the Visual F# Tools) also includes any contributions that are made, and
 ensures that the versions do not diverge.
 
-If you are using Windows, you should fork that repo and contribute directly there. Your contributions will
+### Contributing on Windows
+
+If you are using Windows, you should fork the https://github.com/Microsoft/visualfsharp repo and contribute directly there. Your contributions will
 then be merged into this repo.
+
+### Contributing on Linux/OSX when using Mono
 
 If you are using Linux or OSX, you can prepare your contributions by forking this repository (the code is
 essentially the same). This will give you access to the cross-platform testing
@@ -39,19 +43,17 @@ This codebase uses the Apache 2.0 license.
 
 ## Current Build Status
 
-F# 4.0+ (branch ``master``, Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=master)](https://travis-ci.org/fsharp/fsharp/branches)
+| F#   | Branch        | OSX/Linux | Windows |
+|------|---------------|-----------|---------|
+| 4.0+ | ``master``    | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=master)](https://travis-ci.org/fsharp/fsharp/branches) | [![Build status](https://ci.appveyor.com/api/projects/status/7m5e2yr0snbbr7t9)](https://ci.appveyor.com/project/fsgit/fsharp) |
+| 4.0  | ``fsharp4``   | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp4)](https://travis-ci.org/fsharp/fsharp/branches) |
+| 3.1  | ``fsharp31``  | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp31)](https://travis-ci.org/fsharp/fsharp/branches) |
+| 3.0  | ``fsharp_30`` | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp_30)](https://travis-ci.org/fsharp/fsharp/branches) |
 
-F# 4.0 (branch ``fsharp4``, Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp4)](https://travis-ci.org/fsharp/fsharp/branches)
-
-F# 3.1 (branch ``fsharp31``), Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp31)](https://travis-ci.org/fsharp/fsharp/branches)
-
-F# 3.0 (branch ``fsharp_30``), Mono 3.x, OSX + some unit tests (Travis) [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp_30)](https://travis-ci.org/fsharp/fsharp/branches)
-
-Head (branch ``master``), Windows Server 2012 (AppVeyor)  [![Build status](https://ci.appveyor.com/api/projects/status/7m5e2yr0snbbr7t9)](https://ci.appveyor.com/project/fsgit/fsharp)
 
 ## NuGet Feed of FSharp.Core and FSharp.Compiler.Tools packages
 
-This repo is curently used to make two NuGet pacakges - FSharp.Core and FSharp.Compiler.Tools.
+This repo is currently used to make two NuGet packages - FSharp.Core and FSharp.Compiler.Tools.
 
 Stable builds are available in the NuGet Gallery:
 [http://www.nuget.org/packages/FSharp.Core](http://www.nuget.org/packages/FSharp.Core) and [http://www.nuget.org/packages/FSharp.Compiler.Tools](http://www.nuget.org/packages/FSharp.Compiler.Tools).
@@ -86,11 +88,21 @@ If using NuGet Package Manager, add the source to the list of available package 
 
 ## Build Requirements
 
-Requires mono 3.0 or higher.
+Building F# on Unix-type platforms requires
+[Mono](http://www.mono-project.com/download/) 3.0 or higher. If you
+get a complaint in subsequent steps about `xbuild` being missing, it means
+you don't have Mono installed.
 
-OS X requires automake 2.69. To install from [homebrew](http://mxcl.github.com/homebrew):
+Building on OS X requires several development tools that are not installed
+by default. Most can be installed via [Homebrew](http://brew.sh/):
 
-	brew install automake
+	brew install autoconf automake pkg-config
+
+Building on OS X also requires Xcode. If you don't want to install
+the full GUI development environment, the command line tools are sufficient.
+At a shell prompt, say:
+
+	xcode-select --install
 
 ## How to Build
 
@@ -135,15 +147,9 @@ You can also build FSharp.Core.dll for other profiles:
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable7 /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable78 /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=portable259 /p:Configuration=Release
-    msbuild src\fsharp-library-build.proj /p:TargetFramework=sl5 /p:Configuration=Release
 
     msbuild src\fsharp-library-build.proj /p:TargetFramework=monodroid /p:Configuration=Release
     msbuild src\fsharp-library-build.proj /p:TargetFramework=monotouch /p:Configuration=Release
-    msbuild src\fsharp-library-build.proj /p:TargetFramework=net40-xna40-xbox360 /p:Configuration=Release
-
-You can also build the FSharp.Core and FSharp.Compiler.Silverlight.dll for Silverlight 5.0:
-
-    msbuild src\fsharp-library-build.proj /p:TargetFramework=sl5-compiler  /p:Configuration=Release
 
 Change to ``` /p:Configuration=Debug``` for debug binaries.
 
@@ -216,6 +222,10 @@ plus scripts
 
 ## Development Notes
 
+### Submitting Pull Requests
+
+Feel free to send in-progress Pull Requests to ask for clarification or direction for a feature or task. 
+
 ### Integrating changes from 'visualfsharp'
 
 To integrate latest changes from https://github.com/Microsoft/visualfsharp, use
@@ -223,6 +233,14 @@ To integrate latest changes from https://github.com/Microsoft/visualfsharp, use
 git remote add visualfsharp https://github.com/Microsoft/visualfsharp
 git pull visualfsharp master
 ```
+
+There are certain guidelines that need to be followed when integrating changes from upstream:
+* this repository does not undergo the QA test process that upstream does, so the `tests/fsharpqa` folder and all files within should be removed when merging
+* this repository does not contain any of the Visual Studio tooling or integrations, so the `vsintegration` directory and all files within should be removed when merging
+* anything referencing `FSharp.LaunguageService.Compiler` is a Microsoft-internal version of the open FSharp.Compiler.Service repository, and as such should be removed when merging
+* Windows-specific `update.cmd` and `runtests.cmd` aren't used in this repository, and so should be removed when merging
+* anything that references the `Salsa` testing library is used by Microsoft to test the Visual Studio integrations, and as such should be removed when merging
+* the foremost example of the above is the `root/unittests` folder, which contains tests for the Visual Studio integration using Salsa, and as such should be removed when merging
 
 ### Continuous Integration Build
 
@@ -273,3 +291,12 @@ sudo apt-get install dos2unix autoconf
 make
 sudo make install
 ```
+
+
+Maintainers
+-----------
+
+Tha maintainers of this repository appointed by the F# Core Engineering Group are:
+
+ - [Tomas Petricek](http://github.com/tpetricek), [Robin Neatherway](https://github.com/rneatherway)
+ - with help and guidance from [Don Syme](http://github.com/dsyme), [Cameron Taggart](http://github.com/ctaggart), [Dave Thomas](http://github.com/7sharp9), [Jo Shields](http://github.com/directhex), [Lincoln Atkinson](http://github.com/latkin), [Kevin Ransom](http://github.com/KevinRansom) and [Henrik Feldt](http://github.com/haf)

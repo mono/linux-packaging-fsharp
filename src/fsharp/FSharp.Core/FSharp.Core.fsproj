@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
@@ -17,15 +17,30 @@
     <CompilingFsLib>true</CompilingFsLib>
     <AllowCrossTargeting>true</AllowCrossTargeting>
     <TargetFrameworkVersion Condition=" '$(TargetFramework)'=='net20'">v2.0</TargetFrameworkVersion>
+    <FX_NO_LOADER>true</FX_NO_LOADER>
     <OtherFlags>$(OtherFlags) --warnon:1182 --compiling-fslib --optimize --maxerrors:20 --extraoptimizationloops:1 </OtherFlags>
     <OtherFlags Condition=" '$(TargetFramework)'=='net20' AND EXISTS('$(SystemRoot)\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll')">$(OtherFlags) --compiling-fslib-20:"$(SystemRoot)\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll" </OtherFlags>
     <OtherFlags Condition=" '$(TargetFramework)'=='net20' AND EXISTS('$(MonoLibDir40)/mscorlib.dll')">$(OtherFlags) --compiling-fslib-20:"$(MonoLibDir40)/mscorlib.dll" </OtherFlags>
     <OtherFlags Condition=" '$(TargetFramework)'=='net40'">$(OtherFlags) --compiling-fslib-40</OtherFlags>	
+    <OtherFlags Condition=" '$(TargetFramework)'=='net20'">$(OtherFlags) --compiling-fslib-20:"$(SystemRoot)\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll" </OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)'=='net40'">$(OtherFlags) --compiling-fslib-40</OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)'=='coreclr'">$(OtherFlags) --targetprofile:netcore</OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)'=='portable7'">$(OtherFlags) --targetprofile:netcore</OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)'=='portable78'">$(OtherFlags) --targetprofile:netcore</OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)'=='portable259'">$(OtherFlags) --targetprofile:netcore</OtherFlags>
   </PropertyGroup>
   <!-- MonoDevelop likes these here to recognise the configurations -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
 
+  <ItemGroup>
+    <FilesToLocalize Include="$(OutDir)$(AssemblyName).dll">
+      <TranslationFile>$(FSharpSourcesRoot)\..\loc\lcl\{Lang}\$(AssemblyName).dll.lcl</TranslationFile>
+      <LciCommentFile>$(FSharpSourcesRoot)\..\loc\lci\$(AssemblyName).dll.lci</LciCommentFile>
+      <HasLceComments>false</HasLceComments>
+	  <InProject>false</InProject>
+    </FilesToLocalize>
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FSCore.resx">
       <Link>FSCore.resx</Link>
@@ -110,6 +125,9 @@
     </Compile>
     <Compile Include="set.fs">
       <Link>Collections/set.fs</Link>
+    </Compile>
+    <Compile Include="..\..\utils\reshapedreflection.fs">
+      <Link>Reflection/reshapedreflection.fs</Link>
     </Compile>
     <Compile Include="reflect.fsi">
       <Link>Reflection/reflect.fsi</Link>
@@ -199,55 +217,39 @@
       <Visible>False</Visible>
     </CustomAdditionalCompileInputs>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" Condition=" '$(TargetProfile)' != 'netcore' ">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="System">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="System.Runtime" Condition=" '$(TargetProfile)' == 'netcore' " >
-      <Private>false</Private>
-    </Reference>
+  <ItemGroup Condition="'$(TargetFramework)' != 'portable7' and '$(TargetFramework)' != 'coreclr'">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
     <Reference Include="System.Numerics" Condition="'$(TargetFramework)' == 'net40' OR 
                                                     '$(TargetFramework)' == 'monotouch' OR 
                                                     '$(TargetFramework)' == 'xamarinwatchos' OR 
+                                                    '$(TargetFramework)' == 'xamarintvos' OR 
                                                     '$(TargetFramework)' == 'monodroid' OR
                                                     '$(TargetFramework)' == 'xamarinmacmobile' OR
                                                     '$(TargetFramework)' == 'xamarinmacfull'" >
       <Private>false</Private>
     </Reference>
-    <Reference Include="System.Net" Condition="'$(TargetFramework)' == 'sl5' OR 
-                                               '$(TargetFramework)' == 'sl5-compiler' OR 
-                                               '$(TargetFramework)' == 'XNA\5.0' OR 
-                                               '$(TargetFramework)' == 'sl3-wp' OR 
-                                               '$(TargetFramework)' == 'portable47' OR 
-                                               '$(TargetFramework)' == 'net40-xna40-xbox360' OR 
-                                               '$(TargetFramework)' == 'portable7' OR
-                                               '$(TargetFramework)' == 'xamarinmacmobile' OR
-                                               '$(TargetFramework)' == 'xamarinmacfull'" >
+	<Reference Include="System.Net" Condition="'$(TargetFramework)' == 'portable47' OR 
+                                               '$(TargetFramework)' == 'portable7'" >
       <Private>false</Private>
     </Reference>
-    <Reference Include="System.Observable" Condition="'$(TargetFramework)' == 'sl3-wp' " >
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="System.Core" Condition="'$(TargetFramework)' == 'sl5' OR 
-                                                '$(TargetFramework)' == 'sl5-compiler' OR 
-                                                '$(TargetFramework)' == 'XNA\5.0' OR 
-                                                '$(TargetFramework)' == 'sl3-wp' OR 
-                                                '$(TargetFramework)' == 'monotouch' OR 
+    <Reference Include="System.Core" Condition="'$(TargetFramework)' == 'monotouch' OR 
                                                 '$(TargetFramework)' == 'xamarinwatchos' OR 
+                                                '$(TargetFramework)' == 'xamarintvos' OR 
                                                 '$(TargetFramework)' == 'monodroid' OR 
                                                 '$(TargetFramework)' == 'portable47' OR 
-                                                '$(TargetFramework)' == 'net40-xna40-xbox360' OR 
                                                 '$(TargetFramework)' == 'portable7' OR
                                                 '$(TargetFramework)' == 'xamarinmacmobile' OR
                                                 '$(TargetFramework)' == 'xamarinmacfull'" >
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'coreclr'">
+    <None Include="project.json" />
+  </ItemGroup>
 
   <!-- References -->
+  <Import Project="$(FSharpSourcesRoot)\.nuget\NuGet.targets" Condition="Exists('$(FSharpSourcesRoot)\.nuget\NuGet.targets')" />
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
 
   <!-- Hook compilation phase to do custom work -->
@@ -262,4 +264,5 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
   </Target>
+  
 </Project>

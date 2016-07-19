@@ -72,6 +72,24 @@ type S =
 
 module TypedTest = begin 
 
+    // Checks the shape of the quotation to match that of
+    // foreach implemented in terms of GetEnumerator ()
+    let (|ForEachShape|_|) = function
+        | Let (
+                inputSequence,
+                inputSequenceBinding,
+                Let (
+                        enumerator,
+                        enumeratorBinding,
+                        TryFinally (
+                            WhileLoop (
+                                guard,
+                                Let (i, currentExpr, body)),
+                            cleanup)
+                        )
+                ) -> Some inputSequence
+        | _ -> None
+
     let x = <@ 1 @>
 
     test "check SByte"    ((<@  1y   @> |> (function SByte 1y ->   true | _ -> false))) 
@@ -82,7 +100,6 @@ module TypedTest = begin
     test "check UInt16"   ((<@  1us  @> |> (function UInt16 1us -> true | _ -> false))) 
     test "check UInt32"   ((<@  1u   @> |> (function UInt32 1u ->  true | _ -> false))) 
     test "check UInt64"   ((<@  1UL  @> |> (function UInt64 1UL -> true | _ -> false))) 
-    test "check Decimal"  ((<@  1M   @> |> (function Decimal 1M -> true | _ -> false))) 
     test "check String"   ((<@  "1"  @> |> (function String "1" -> true | _ -> false))) 
 
     test "check ~SByte"   ((<@  "1"  @> |> (function SByte _ ->    false | _ -> true))) 
@@ -93,10 +110,14 @@ module TypedTest = begin
     test "check ~UInt16"  ((<@  "1"  @> |> (function UInt16 _ ->   false | _ -> true))) 
     test "check ~UInt32"  ((<@  "1"  @> |> (function UInt32 _ ->   false | _ -> true))) 
     test "check ~UInt64"  ((<@  "1"  @> |> (function UInt64 _ ->   false | _ -> true))) 
-    test "check ~Decimal" ((<@  "1"  @> |> (function Decimal _ ->  false | _ -> true))) 
     test "check ~String"  ((<@  1    @> |> (function String "1" -> false | _ -> true))) 
 
+#if FSHARP_CORE_31
+#else
+    test "check Decimal"  ((<@  1M   @> |> (function Decimal 1M -> true | _ -> false))) 
+    test "check ~Decimal" ((<@  "1"  @> |> (function Decimal _ ->  false | _ -> true))) 
     test "check ~Decimal neither" ((<@ 1M + 1M @> |> (function Decimal _ ->  false | _ -> true))) 
+#endif
 
     test "check AndAlso" ((<@ true && true  @> |> (function AndAlso(Bool(true),Bool(true)) -> true | _ -> false))) 
     test "check OrElse"  ((<@ true || true  @> |> (function OrElse(Bool(true),Bool(true)) -> true | _ -> false))) 
@@ -113,7 +134,11 @@ module TypedTest = begin
     // In this example, the types of the start and end points are not known at the point the loop
     // is typechecked. There was a bug (6064) where the transformation to a ForIntegerRangeLoop was only happening
     // when types were known
-    test "check ForIntegerRangeLoop"   (<@ for i in failwith "" .. failwith "" do printf "hello" @> |> (function ForIntegerRangeLoop(v,_,_,b) -> true | _ -> false))
+    test "check ForIntegerRangeLoop"    (<@ for i in failwith "" .. failwith "" do printf "hello" @> |> (function ForIntegerRangeLoop(v,_,_,b) -> true | _ -> false))
+    // Checks that foreach over non-integer ranges should have the shape of foreach implemented in terms of GetEnumerator
+    test "check ForEachInSeq"           (<@ for i in seq {for x in 0..10 -> x} do printf "hello" @> |> (function ForEachShape(_) -> true | _ -> false))
+    test "check ForEachInList"          (<@ for i in "123" do printf "hello" @> |> (function ForEachShape(_) -> true | _ -> false))
+    test "check ForEachInString"        (<@ for i in [1;2;3] do printf "hello" @> |> (function ForEachShape(_) -> true | _ -> false))
     // A slight non orthogonality is that all other 'for' loops go to (quite complex) the desugared form
     test "check Other Loop"   (<@ for i in 1 .. 2 .. 10 do printf "hello" @> |> (function Let(v,_,b) -> true | _ -> false))
     test "check Other Loop"   (<@ for i in 1L .. 10L do printf "hello" @> |> (function Let(v,_,b) -> true | _ -> false))
@@ -510,6 +535,17 @@ module TypedTest = begin
             |   FieldGet(Some (Value (v,t)), _) -> Object.ReferenceEquals(v, foo)
             |   _ -> false
         end
+
+#if Portable
+#else
+    test "check accesses to readonly fields in ReflectedDefinitions" 
+        begin
+            let c1 = Class1("a")
+            match <@ c1.myReadonlyField @> with
+            |   FieldGet(Some (ValueWithName (_, v, "c1")), field) -> (v.Name = "Class1") && (field.Name = "myReadonlyField")
+            |   _ -> false
+        end
+#endif
 
 end
 
@@ -1105,24 +1141,28 @@ module MoreTests =
     test "test3932g" (isMeth <@ ClassOneArg.TestStaticMethodTwoArgs(3,4) @>)
 
     test "test3932qA" (isPropGet <@ ClassOneArg(3).TestInstanceProp @>)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    (*
     test "test3932qB" (isPropGet <@ ClassOneArg(3).TestInstanceIndexProp(4) @>)
     test "test3932qC" (isPropSet <@ ClassOneArg(3).TestInstanceSettableIndexProp(4) <- 5 @>)
     test "test3932qD" (isPropSet <@ ClassOneArg(3).TestInstanceSettableIndexProp2(4,5) <- 6 @>)
     test "test3932q77" (match <@ ClassOneArg(3).TestInstanceSettableIndexProp2(4,5) <- 6 @> with 
                         | PropertySet(Some _, _, [Int32(4); Int32(5)], Int32(6)) -> true 
                         | _ -> false)
+    *)
 
     test "test3932wA" (isMeth <@ ClassOneArg(3).TestInstanceMethodNoArgs() @>)
     test "test3932wB" (isMeth <@ ClassOneArg(3).TestInstanceMethodOneArg(3) @>)
     test "test3932e" (isMeth <@ ClassOneArg(3).TestInstanceMethodTwoArgs(3,4) @>)
 
     test "test3932q1" (isPropSet <@ ClassOneArg(3).Setter <- 3 @>)
-    test "test3932q2" (isPropGet <@ ClassOneArg(3).GetterIndexer(3) @>)
-    test "test3932q3" (isPropGet <@ ClassOneArg(3).[3] @>)
-    test "test3932q4" (isPropGet <@ ClassOneArg(3).TupleGetterIndexer((3,4)) @>)
-    test "test3932q5" (isPropSet <@ ClassOneArg(3).SetterIndexer(3) <- 3 @>)
-    test "test3932q61" (isPropSet <@ ClassOneArg(3).[3] <- 3 @>)
-    test "test3932q62" (match <@ ClassOneArg(3).[4] <- 5 @> with PropertySet(Some _,_, [Int32(4)], Int32(5)) -> true | _ -> false)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    // test "test3932q2" (isPropGet <@ ClassOneArg(3).GetterIndexer(3) @>)
+    // test "test3932q3" (isPropGet <@ ClassOneArg(3).[3] @>)
+    // test "test3932q4" (isPropGet <@ ClassOneArg(3).TupleGetterIndexer((3,4)) @>)
+    // test "test3932q5" (isPropSet <@ ClassOneArg(3).SetterIndexer(3) <- 3 @>)
+    // test "test3932q61" (isPropSet <@ ClassOneArg(3).[3] <- 3 @>)
+    // test "test3932q62" (match <@ ClassOneArg(3).[4] <- 5 @> with PropertySet(Some _,_, [Int32(4)], Int32(5)) -> true | _ -> false)
     test "test3932q7" (isPropSet <@ ClassOneArg(3).TupleSetter <- (3,4) @>)
 
 
@@ -1131,7 +1171,8 @@ module MoreTests =
     
     printfn "res = %A" <@ ClassNoArg.TestStaticSettableProp <- 5 @> 
     test "test3932q63" (match <@ ClassNoArg.TestStaticSettableProp <- 5 @> with PropertySet(None, _, [], Int32(5)) -> true | _ -> false)
-    test "test3932q64" (match <@ ClassNoArg.TestStaticSettableIndexProp(4) <- 5 @> with PropertySet(None, _, [Int32(4)], Int32(5)) -> true | _ -> false)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    // test "test3932q64" (match <@ ClassNoArg.TestStaticSettableIndexProp(4) <- 5 @> with PropertySet(None, _, [Int32(4)], Int32(5)) -> true | _ -> false)
     test "test3932r" (isMeth <@ ClassNoArg.TestStaticMethodOneArg(3) @>)
     test "test3932r" (isMeth <@ ClassNoArg.TestStaticMethodOneTupledArg((3,2)) @>)
     test "test3932r" (isMeth <@ ClassNoArg.TestStaticMethodOneTupledArg(p) @>)
@@ -1139,10 +1180,13 @@ module MoreTests =
     test "test3932y" (isMeth <@ ClassNoArg.TestStaticMethodTwoArgs(3,4) @>)
 
     test "test3932u" (isPropGet <@ ClassNoArg().TestInstanceProp @>)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    (*
     test "test3932u" (isPropGet <@ ClassNoArg().TestInstanceIndexProp(4) @>)
     test "test3932q65" (match <@ ClassNoArg().TestInstanceIndexProp(4) @> with PropertyGet(Some _, _, [(Int32(4))]) -> true | _ -> false)
     test "test3932u" (isPropSet <@ ClassNoArg().TestInstanceSettableIndexProp(4) <- 5 @>)
     test "test3932q66" (match <@ ClassNoArg().TestInstanceSettableIndexProp(4) <- 5 @> with PropertySet(Some _, _, [(Int32(4))], Int32(5)) -> true | _ -> false)
+    *)
     test "test3932i" (isMeth <@ ClassNoArg().TestInstanceMethodNoArgs() @>)
     test "test3932i" (isMeth <@ ClassNoArg().TestInstanceMethodOneArg(3) @>)
     test "test3932i" (isMeth <@ ClassNoArg().TestInstanceMethodOneTupledArg((3,4)) @>)
@@ -1157,8 +1201,11 @@ module MoreTests =
     test "test3932yg" (isMeth <@ GenericClassNoArg<int>.TestStaticMethodTwoArgs(3,4) @>)
 
     test "test3932ug" (isPropGet <@ (GenericClassNoArg<int>()).TestInstanceProp @>)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    (*
     test "test3932ug" (isPropGet <@ (GenericClassNoArg<int>()).TestInstanceIndexProp(4) @>)
     test "test3932ug" (match <@ (GenericClassNoArg<int>()).TestInstanceIndexProp(4) @> with PropertyGet(Some _, _, [Int32(4)]) -> true | _ -> false)
+    *)
 
     test "test3932ig" (isMeth <@ (GenericClassNoArg<int>()).TestInstanceMethodNoArgs() @>)
     test "test3932ig" (isMeth <@ (GenericClassNoArg<int>()).TestInstanceMethodOneArg(3) @>)
@@ -1352,19 +1399,21 @@ module CheckRlectedMembers =
     test "testReflect3932o" (isMeth <@ ClassNoArg().TestInstanceMethodTwoArgs(3,4) @>)
 
     test "testReflect3932q1" (isPropSet <@ ClassOneArg(3).Setter <- 3 @>)
-    test "testReflect3932q2" (isPropGet <@ ClassOneArg(3).GetterIndexer(3) @>)
-    test "testReflect3932q3" (isPropGet <@ ClassOneArg(3).[3] @>)
-    test "testReflect3932q4" (isPropGet <@ ClassOneArg(3).TupleGetterIndexer((3,4)) @>)
-    test "testReflect3932q5" (isPropSet <@ ClassOneArg(3).SetterIndexer(3) <- 3 @>)
-    test "testReflect3932q6" (isPropSet <@ ClassOneArg(3).[3] <- 3 @>)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    // test "testReflect3932q2" (isPropGet <@ ClassOneArg(3).GetterIndexer(3) @>)
+    // test "testReflect3932q3" (isPropGet <@ ClassOneArg(3).[3] @>)
+    // test "testReflect3932q4" (isPropGet <@ ClassOneArg(3).TupleGetterIndexer((3,4)) @>)
+    // test "testReflect3932q5" (isPropSet <@ ClassOneArg(3).SetterIndexer(3) <- 3 @>)
+    // test "testReflect3932q6" (isPropSet <@ ClassOneArg(3).[3] <- 3 @>)
     test "testReflect3932q7" (isPropSet <@ ClassOneArg(3).TupleSetter <- (3,4) @>)
 
     test "testReflect3932q1x" (isPropSet <@ ClassOneArgOuterAttribute(3).Setter <- 3 @>)
-    test "testReflect3932q2x" (isPropGet <@ ClassOneArgOuterAttribute(3).GetterIndexer(3) @>)
-    test "testReflect3932q3x" (isPropGet <@ ClassOneArgOuterAttribute(3).[3] @>)
-    test "testReflect3932q4x" (isPropGet <@ ClassOneArgOuterAttribute(3).TupleGetterIndexer((3,4)) @>)
-    test "testReflect3932q5x" (isPropSet <@ ClassOneArgOuterAttribute(3).SetterIndexer(3) <- 3 @>)
-    test "testReflect3932q6x" (isPropSet <@ ClassOneArgOuterAttribute(3).[3] <- 3 @>)
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    // test "testReflect3932q2x" (isPropGet <@ ClassOneArgOuterAttribute(3).GetterIndexer(3) @>)
+    // test "testReflect3932q3x" (isPropGet <@ ClassOneArgOuterAttribute(3).[3] @>)
+    // test "testReflect3932q4x" (isPropGet <@ ClassOneArgOuterAttribute(3).TupleGetterIndexer((3,4)) @>)
+    // test "testReflect3932q5x" (isPropSet <@ ClassOneArgOuterAttribute(3).SetterIndexer(3) <- 3 @>)
+    // test "testReflect3932q6x" (isPropSet <@ ClassOneArgOuterAttribute(3).[3] <- 3 @>)
     test "testReflect3932q7x" (isPropSet <@ ClassOneArgOuterAttribute(3).TupleSetter <- (3,4) @>)
 
     test "testReflect3932rg" (isMeth <@ GenericClassNoArg<int>.TestStaticMethodOneArg(3) @>)
@@ -1643,11 +1692,15 @@ module QuotationConstructionTests =
     #else
     check "vcknwwe099" (Expr.PropertySet(<@@ (new System.Windows.Forms.Form()) @@>, setof <@@ (new System.Windows.Forms.Form()).Text <- "2" @@>, <@@ "3" @@> )) <@@ (new System.Windows.Forms.Form()).Text <- "3" @@>
     #endif
-    check "vcknwwe099" (Expr.PropertySet(<@@ (new Foo()) @@>, setof <@@ (new Foo()).[3] <- 1 @@>, <@@ 2 @@> , [ <@@ 3 @@> ] )) <@@ (new Foo()).[3] <- 2 @@>
+    // Disabled, see https://github.com/fsharp/fsharp/issues/517
+    // check "vcknwwe099" (Expr.PropertySet(<@@ (new Foo()) @@>, setof <@@ (new Foo()).[3] <- 1 @@>, <@@ 2 @@> , [ <@@ 3 @@> ] )) <@@ (new Foo()).[3] <- 2 @@>
+#if FSHARP_CORE_31
+#else
     check "vcknwwe0qq1" (Expr.QuoteRaw(<@ "1" @>)) <@@ <@@ "1" @@> @@>
     check "vcknwwe0qq2" (Expr.QuoteRaw(<@@ "1" @@>)) <@@ <@@ "1" @@> @@>
     check "vcknwwe0qq3" (Expr.QuoteTyped(<@ "1" @>)) <@@ <@ "1" @> @@>
     check "vcknwwe0qq4" (Expr.QuoteTyped(<@@ "1" @@>)) <@@ <@ "1" @> @@>
+#endif
     check "vcknwwe0ww" (Expr.Sequential(<@@ () @@>, <@@ 1 @@>)) <@@ (); 1 @@>
     check "vcknwwe0ee" (Expr.TryFinally(<@@ 1 @@>, <@@ () @@>)) <@@ try 1 finally () @@>
     check "vcknwwe0rr" (match Expr.TryWith(<@@ 1 @@>, Var.Global("e1",typeof<exn>), <@@ 1 @@>, Var.Global("e2",typeof<exn>), <@@ 2 @@>) with TryWith(b,v1,ef,v2,eh) -> b = <@@ 1 @@> && eh = <@@ 2 @@> && ef = <@@ 1 @@> && v1 = Var.Global("e1",typeof<exn>) && v2 = Var.Global("e2",typeof<exn>)| _ -> false) true 
@@ -1663,6 +1716,39 @@ module QuotationConstructionTests =
     check "vcknwwe0dd" (match Expr.Var(Var.Global("i",typeof<int>)) with Var(v) -> v = Var.Global("i",typeof<int>) | _ -> false) true
     check "vcknwwe0ff" (match Expr.VarSet(Var.Global("i",typeof<int>), <@@ 4 @@>) with VarSet(v,q) -> v = Var.Global("i",typeof<int>) && q = <@@ 4 @@>  | _ -> false) true
     check "vcknwwe0gg" (match Expr.WhileLoop(<@@ true @@>, <@@ () @@>) with WhileLoop(g,b) -> g = <@@ true @@> && b = <@@ () @@>  | _ -> false) true
+
+module QuotationStructUnionTests = 
+
+    [<Struct>]
+    type T = | A of int
+        
+    test "check NewUnionCase"   (<@ A(1) @> |> (function NewUnionCase(unionCase,args) -> true | _ -> false))
+    
+    [<ReflectedDefinition>]
+    let foo v = match v with  | A(1) -> 0 | _ -> 1
+      
+    test "check TryGetReflectedDefinition (local f)" 
+        ((<@ foo (A(1)) @> |> (function Call(None,minfo,args) -> Quotations.Expr.TryGetReflectedDefinition(minfo).IsSome | _ -> false))) 
+
+    [<ReflectedDefinition>]
+    let test3297327 v = match v with  | A(1) -> 0 | _ -> 1
+      
+    test "check TryGetReflectedDefinition (local f)" 
+        ((<@ foo (A(1)) @> |> (function Call(None,minfo,args) -> Quotations.Expr.TryGetReflectedDefinition(minfo).IsSome | _ -> false))) 
+
+
+    [<Struct>]
+    type T2 = 
+        | A1 of int * int
+
+    test "check NewUnionCase"   (<@ A1(1,2) @> |> (function NewUnionCase(unionCase,[ Int32 1; Int32 2 ]) -> true | _ -> false))
+
+    //[<DefaultAugmentation(false); Struct>]
+    //type T3 = 
+    //    | A1 of int * int
+    //
+    //test "check NewUnionCase"   (<@ A1(1,2) @> |> (function NewUnionCase(unionCase,[ Int32 1; Int32 2 ]) -> true | _ -> false))
+
 
 module EqualityOnExprDoesntFail = 
     let q = <@ 1 @>
@@ -1964,6 +2050,8 @@ module TestQuotationOfCOnstructors =
         | _ -> false)
 
 
+// Disabled, see https://github.com/fsharp/fsharp/issues/517
+(*
 module IndexedPropertySetTest = 
     open System
     open Microsoft.FSharp.Quotations
@@ -1998,6 +2086,7 @@ module IndexedPropertySetTest =
         else printfn "Test KO."
 
     do testExprPropertySet ()
+*)
 
 
 
@@ -2249,6 +2338,14 @@ module ReflectedDefinitionOnTypesWithImplicitCodeGen =
 #endif
           check "celnwer34" (Quotations.Expr.TryGetReflectedDefinition(m).IsNone) true
 
+      // This type has an implicit IComparable implementation, it is not accessible as a reflected definition
+      [<Struct>] type SR = { x:int; y:string; z:System.DateTime }
+#if NetCore
+      for m in typeof<SR>.GetMethods() do 
+#else
+      for m in typeof<SR>.GetMethods(System.Reflection.BindingFlags.DeclaredOnly) do 
+#endif
+          check "celnwer35" (Quotations.Expr.TryGetReflectedDefinition(m).IsNone) true
 
 #if Portable
 #else
@@ -2423,6 +2520,8 @@ module QuotationOfResizeArrayIteration =
         
 
 
+#if FSHARP_CORE_31
+#else
 module TestAutoQuoteAtStaticMethodCalls = 
     open Microsoft.FSharp.Quotations
 
@@ -2727,6 +2826,10 @@ module ExtensionMembersWithSameName =
         | _ -> failwith "unexpected shape"
 
     runAll()
+#endif
+
+module TestAssemblyAttributes = 
+    let attributes = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes(false)
 
 #if ALL_IN_ONE
 let RUN() = !failures

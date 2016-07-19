@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
@@ -11,7 +11,11 @@
     <ProjectGuid>{33E0FB8C-93DC-4AD7-9DCD-9FBDA6C2F061}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>FSharp.Compiler-proto</AssemblyName>
-    <DefineConstants>BUILDING_PROTO;BUILDING_WITH_LKG;COMPILER;INCLUDE_METADATA_READER;INCLUDE_METADATA_WRITER;$(DefineConstants)</DefineConstants>
+    <DefineConstants>BUILDING_PROTO;$(DefineConstants)</DefineConstants>
+    <DefineConstants>BUILDING_WITH_LKG;$(DefineConstants)</DefineConstants>
+    <DefineConstants>COMPILER;$(DefineConstants)</DefineConstants>
+    <DefineConstants>INCLUDE_METADATA_READER;$(DefineConstants)</DefineConstants>
+    <DefineConstants>INCLUDE_METADATA_WRITER;$(DefineConstants)</DefineConstants>
     <NoWarn>$(NoWarn);35;44;62;9;60;86;47;1203</NoWarn>
     <BuildWith>LKG</BuildWith>
     <AllowCrossTargeting>true</AllowCrossTargeting>
@@ -56,6 +60,9 @@
       <OtherFlags>--internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
       <Link>ilpars.fsy</Link>
     </FsYacc>
+    <Compile Include="..\..\utils\reshapedreflection.fs">
+      <Link>Reflection\reshapedreflection.fs</Link>
+    </Compile>
     <Compile Include="..\..\assemblyinfo\assemblyinfo.FSharp.Compiler.dll.fs">
       <Link>assemblyinfo.FSharp.Compiler.dll.fs</Link>
     </Compile>
@@ -95,6 +102,9 @@
     <Compile Include="..\..\utils\HashMultiMap.fs">
       <Link>HashMultiMap.fs</Link>
     </Compile>
+    <Compile Include="..\..\utils\EditDistance.fs">
+      <Link>Utilities\EditDistance.fs</Link>
+    </Compile>
     <Compile Include="..\..\utils\TaggedCollections.fsi">
       <Link>TaggedCollections.fsi</Link>
     </Compile>
@@ -103,6 +113,12 @@
     </Compile>
     <Compile Include="..\FlatList.fs">
       <Link>FlatList.fs</Link>
+    </Compile>
+    <Compile Include="..\..\absil\ildiag.fsi">
+      <Link>Utilities\ildiag.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\absil\ildiag.fs">
+      <Link>Utilities\ildiag.fs</Link>
     </Compile>
     <Compile Include="..\..\absil\illib.fs">
       <Link>illib.fs</Link>
@@ -131,11 +147,8 @@
     <Compile Include="..\..\absil\bytes.fs">
       <Link>bytes.fs</Link>
     </Compile>
-    <Compile Include="..\..\absil\ildiag.fsi">
-      <Link>ildiag.fsi</Link>
-    </Compile>
-    <Compile Include="..\..\absil\ildiag.fs">
-      <Link>ildiag.fs</Link>
+    <Compile Include="..\ReferenceResolution.fsi">
+      <Link>ReferenceResolution.fsi</Link>
     </Compile>
     <Compile Include="..\ReferenceResolution.fs">
       <Link>ReferenceResolution.fs</Link>
@@ -170,6 +183,9 @@
     <Compile Include="..\..\absil\ilmorph.fs">
       <Link>ilmorph.fs</Link>
     </Compile>
+    <Compile Include="..\..\absil\ilsign.fs" Condition=" '$(TargetFramework)'=='coreclr'">
+      <Link>ilsign.fs</Link>
+    </Compile>
     <Compile Include="..\..\absil\ilsupp.fsi">
       <Link>ilsupp.fsi</Link>
     </Compile>
@@ -202,6 +218,9 @@
     <Compile Include="..\ErrorLogger.fs">
       <Link>ErrorLogger.fs</Link>
     </Compile>
+    <Compile Include="..\ErrorResolutionHints.fs">
+      <Link>ErrorResolutionHints.fs</Link>
+    </Compile>
     <Compile Include="..\InternalCollections.fsi">
       <Link>InternalCollections.fsi</Link>
     </Compile>
@@ -216,6 +235,12 @@
     </Compile>
     <Compile Include="..\..\absil\ilwrite.fsi">
       <Link>ilwrite.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\absil\ilwritepdb.fsi">
+      <Link>ilwritepdb.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\absil\ilwritepdb.fs">
+      <Link>ilwritepdb.fs</Link>
     </Compile>
     <Compile Include="..\..\absil\ilwrite.fs">
       <Link>ilwrite.fs</Link>
@@ -232,20 +257,17 @@
     <Compile Include="..\..\ilx\ilxsettings.fs">
       <Link>ilxsettings.fs</Link>
     </Compile>
-	  <Compile Include="..\..\ilx\EraseClosures.fsi">
-		  <Link>EraseClosures.fsi</Link>
-	  </Compile>
-	  <Compile Include="..\..\ilx\EraseClosures.fs">
+    <Compile Include="..\..\ilx\EraseClosures.fsi">
+        <Link>EraseClosures.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\ilx\EraseClosures.fs">
       <Link>EraseClosures.fs</Link>
+    </Compile>
+    <Compile Include="..\..\ilx\EraseUnions.fsi">
+      <Link>EraseUnions.fsi</Link>
     </Compile>
     <Compile Include="..\..\ilx\EraseUnions.fs">
       <Link>EraseUnions.fs</Link>
-    </Compile>
-    <Compile Include="..\InternalFileSystemUtils.fsi">
-      <Link>InternalFileSystemUtils.fsi</Link>
-    </Compile>
-    <Compile Include="..\InternalFileSystemUtils.fs">
-      <Link>InternalFileSystemUtils.fs</Link>
     </Compile>
     <Compile Include="..\UnicodeLexing.fsi">
       <Link>UnicodeLexing.fsi</Link>
@@ -272,14 +294,11 @@
     </Compile>
     <Compile Include="pplex.fs" />
     <Compile Include="lex.fs" />
-    <Compile Include="..\ast.fs">
-	  <Link>ast.fs</Link>
-    </Compile>
     <Compile Include="..\QuotationPickler.fsi">
          <Link>QuotationPickler.fsi</Link>
     </Compile>
     <Compile Include="..\QuotationPickler.fs">
-	  <Link>QuotationPickler.fs</Link>
+        <Link>QuotationPickler.fs</Link>
     </Compile>
     <Compile Include="..\QueueList.fs">
       <Link>QueueList.fs</Link>
@@ -288,14 +307,14 @@
       <Link>tast.fs</Link>
     </Compile>
     <Compile Include="..\TcGlobals.fs">
-		  <Link>TcGlobals.fs</Link>
-	  </Compile>
-	  <Compile Include="..\TastOps.fsi">
-		  <Link>TastOps.fsi</Link>
-	  </Compile>
-	  <Compile Include="..\TastOps.fs">
-		  <Link>TastOps.fs</Link>
-	  </Compile>
+        <Link>TcGlobals.fs</Link>
+    </Compile>
+    <Compile Include="..\TastOps.fsi">
+        <Link>TastOps.fsi</Link>
+    </Compile>
+    <Compile Include="..\TastOps.fs">
+        <Link>TastOps.fs</Link>
+    </Compile>
     <Compile Include="..\TastPickle.fsi">
       <Link>TastPickle.fsi</Link>
     </Compile>
@@ -313,6 +332,15 @@
     </Compile>
     <Compile Include="..\infos.fs">
       <Link>infos.fs</Link>
+    </Compile>
+    <Compile Include="..\AccessibilityLogic.fs">
+      <Link>Logic\AccessibilityLogic.fs</Link>
+    </Compile>
+    <Compile Include="..\AttributeChecking.fs">
+      <Link>Logic\AttributeChecking.fs</Link>
+    </Compile>
+    <Compile Include="..\InfoReader.fs">
+      <Link>Logic\InfoReader.fs</Link>
     </Compile>
     <Compile Include="..\NicePrint.fs">
       <Link>NicePrint.fs</Link>
@@ -332,16 +360,25 @@
     <Compile Include="..\TypeRelations.fs">
       <Link>TypeRelations.fs</Link>
     </Compile>
+    <Compile Include="..\SignatureConformance.fs">
+      <Link>Logic\SignatureConformance.fs</Link>
+    </Compile>
+    <Compile Include="..\MethodOverrides.fs">
+      <Link>Logic\MethodOverrides.fs</Link>
+    </Compile>
+    <Compile Include="..\MethodCalls.fs">
+      <Link>MethodCalls.fs</Link>
+    </Compile>
     <Compile Include="..\PatternMatchCompilation.fsi">
       <Link>PatternMatchCompilation.fsi</Link>
     </Compile>
     <Compile Include="..\PatternMatchCompilation.fs">
       <Link>PatternMatchCompilation.fs</Link>
     </Compile>
-	  <Compile Include="..\ConstraintSolver.fsi">
-		  <Link>ConstraintSolver.fsi</Link>
-	  </Compile>
-	  <Compile Include="..\ConstraintSolver.fs">
+    <Compile Include="..\ConstraintSolver.fsi">
+        <Link>ConstraintSolver.fsi</Link>
+    </Compile>
+    <Compile Include="..\ConstraintSolver.fs">
       <Link>ConstraintSolver.fs</Link>
     </Compile>
     <Compile Include="..\CheckFormatStrings.fsi">
@@ -374,16 +411,16 @@
     <Compile Include="..\Optimizer.fsi">
       <Link>Optimizer.fsi</Link>
     </Compile>
-    <Compile Include="..\autobox.fs">
-      <Link>autobox.fs</Link>
-    </Compile>
     <Compile Include="..\Optimizer.fs">
       <Link>Optimizer.fs</Link>
     </Compile>
-	  <Compile Include="..\DetupleArgs.fsi">
-		  <Link>DetupleArgs.fsi</Link>
-	  </Compile>
-	  <Compile Include="..\DetupleArgs.fs">
+    <Compile Include="..\autobox.fs">
+      <Link>autobox.fs</Link>
+    </Compile>
+    <Compile Include="..\DetupleArgs.fsi">
+        <Link>DetupleArgs.fsi</Link>
+    </Compile>
+    <Compile Include="..\DetupleArgs.fs">
       <Link>DetupleArgs.fs</Link>
     </Compile>
     <Compile Include="..\InnerLambdasToTopLevelFuncs.fsi">
@@ -400,12 +437,6 @@
     </Compile>
     <Compile Include="..\IlxGen.fs">
       <Link>IlxGen.fs</Link>
-    </Compile>
-    <Compile Include="..\TraceCall.fsi">
-      <Link>TraceCall.fsi</Link>
-    </Compile>
-    <Compile Include="..\TraceCall.fs">
-      <Link>TraceCall.fs</Link>
     </Compile>
     <Compile Include="..\CompileOps.fsi">
       <Link>CompileOps.fsi</Link>
@@ -427,6 +458,9 @@
       <Link>IncrementalBuild.fs</Link>
     </Compile>
 -->
+    <Compile Include="..\fsc.fsi">
+      <Link>fsc.fsi</Link>
+    </Compile>
     <Compile Include="..\fsc.fs">
       <Link>fsc.fs</Link>
     </Compile>
@@ -434,22 +468,46 @@
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
-      <HintPath>$(FSharpSourcesRoot)\..\lib\bootstrap\4.0\FSharp.Core.dll</HintPath>
+      <HintPath>$(LkgPath)\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Drawing" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="ISymWrapper, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(TargetFramework)'=='net40'" />
-    <Reference Include="System.Numerics" Condition="'$(TargetFramework)' == 'net40'" />
-    <Reference Include="Microsoft.Build.Framework, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.Build.Engine, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.Build, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.Build.Utilities.v12.0" />
-    <Reference Include="Microsoft.Build.Tasks.v12.0" />
-
+    <Reference Include="ISymWrapper, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.Build.Framework, Version=$(MSBuildVersionFull), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Private>True</Private>
+	</Reference>
+    <Reference Include="Microsoft.Build.Engine, Version=$(MSBuildVersionFull), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Private>True</Private>
+	</Reference>
+    <Reference Include="Microsoft.Build, Version=$(MSBuildVersionFull), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Private>True</Private>
+	</Reference>
+	<Reference Include="Microsoft.Build.Utilities.$(MSBuildVersionSuffix), Version=$(MSBuildVersionFull), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Private>True</Private>
+	</Reference>
+    <Reference Include="Microsoft.Build.Tasks.$(MSBuildVersionSuffix), Version=$(MSBuildVersionFull), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Private>True</Private>
+	</Reference>
+	<Reference Include="Microsoft.DiaSymReader.PortablePdb">
+		<HintPath>..\..\..\packages\Microsoft.DiaSymReader.PortablePdb.1.1.0\lib\portable-net45+win8\Microsoft.DiaSymReader.PortablePdb.dll</HintPath>
+		<Private>True</Private>
+	</Reference>
+	<Reference Include="Microsoft.DiaSymReader">
+		<HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.8\lib\portable-net45+win8\Microsoft.DiaSymReader.dll</HintPath>
+		<Private>True</Private>
+	</Reference>
+	<Reference Include="System.Reflection.Metadata">
+		<HintPath>..\..\..\packages\System.Reflection.Metadata.1.4.1-beta-24227-04\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+		<Private>True</Private>
+	</Reference>
+	<Reference Include="System.Collections.Immutable">
+		<HintPath>..\..\..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+		<Private>True</Private>
+	</Reference>
   </ItemGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.targets" />
-  <Import Project="$(LkgPath)\FsLexYacc.targets" />
+  <Import Project="$(FsLexYaccpath)\FsLexYacc.targets" />
 </Project>

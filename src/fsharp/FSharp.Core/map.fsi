@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.FSharp.Collections
 
@@ -16,7 +16,8 @@ namespace Microsoft.FSharp.Collections
     [<CompiledName("FSharpMap`2")>]
     [<Sealed>]
     type Map<[<EqualityConditionalOn>]'Key,[<EqualityConditionalOn;ComparisonConditionalOn>]'Value when 'Key : comparison> =
-        /// <summary>Returns a new map with the binding added to the given map.</summary>
+        /// <summary>Returns a new map with the binding added to the given map.
+        /// If a binding with the given key already exists in the input map, the existing binding is replaced by the new binding in the result map.</summary>
         /// <param name="key">The input key.</param>
         /// <returns>The resulting map.</returns>
         member Add: key:'Key * value:'Value -> Map<'Key,'Value>
@@ -67,7 +68,8 @@ namespace Microsoft.FSharp.Collections
     [<RequireQualifiedAccess>]
     module Map = 
 
-        /// <summary>Returns a new map with the binding added to the given map.</summary>
+        /// <summary>Returns a new map with the binding added to the given map.
+        /// If a binding with the given key already exists in the input map, the existing binding is replaced by the new binding in the result map.</summary>
         /// <param name="key">The input key.</param>
         /// <param name="value">The input value.</param>
         /// <param name="table">The input map.</param>
@@ -249,3 +251,7 @@ namespace Microsoft.FSharp.Collections
         /// <returns>The first key for which the predicate returns true or None if the predicate evaluates to false for each key/value pair.</returns>
         [<CompiledName("TryFindKey")>]
         val tryFindKey: predicate:('Key -> 'T -> bool) -> table:Map<'Key,'T> -> 'Key option
+
+        /// <summary>The number of bindings in the map.</summary>
+        [<CompiledName("Count")>]
+        val count: table:Map<'Key,'T> -> int

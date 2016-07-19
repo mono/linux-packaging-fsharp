@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace  Internal.Utilities.Text.Parsing
 open Internal.Utilities
@@ -62,8 +62,8 @@ type internal Tables<'tok> =
       stateToProdIdxsTableElements: uint16[];  
       stateToProdIdxsTableRowOffsets: uint16[];  
       productionToNonTerminalTable: uint16[];
-      /// For fsyacc.exe, this entry is filled in by context from the generated parser file. If no 'parse_error' function
-      /// is defined by the user then ParseHelpers.parse_error is used by default (ParseHelpers is opened
+      /// For <c>fsyacc.exe</c>, this entry is filled in by context from the generated parser file. If no 'parse_error' function
+      /// is defined by the user then <c>ParseHelpers.parse_error</c> is used by default (ParseHelpers is opened
       /// at the top of the generated parser file)
       parseError:  ParseErrorContext<'tok> -> unit;
       numTerminals: int;
@@ -72,8 +72,8 @@ type internal Tables<'tok> =
 //-------------------------------------------------------------------------
 // An implementation of stacks.
 
-// This type is in System.dll so for the moment we can't use it in FSharp.Core.dll
-//type Stack<'a> = System.Collections.Generic.Stack<'a>
+// This type is in <c>System.dll</c> so for the moment we can't use it in <c>FSharp.Core.dll</c>
+// type Stack<'a> = System.Collections.Generic.Stack<'a>
 
 type Stack<'a>(n)  = 
     let mutable contents = Array.zeroCreate<'a>(n)
@@ -150,7 +150,7 @@ module internal Implementation =
             // takes up around 10% of of parsing time 
             // for parsing intensive samples such as the bootstrapped F# compiler.
             //
-            // Note: using a .NET Dictionary for this int -> int table looks like it could be sub-optimal.
+            // NOTE: using a .NET Dictionary for this int -> int table looks like it could be sub-optimal.
             // Some other better sparse lookup table may be better.
             assert (rowNumber < 0x10000)
             assert (keyToFind < 0x10000)
@@ -288,7 +288,7 @@ module internal Implementation =
 #endif
                 let nextState = actionValue action 
                 // The "error" non terminal needs position information, though it tends to be unreliable.
-                // Use the StartPos/EndPos from the lex buffer
+                // Use the StartPos/EndPos from the lex buffer.
                 valueStack.Push(ValueInfo(box (), lexbuf.StartPos, lexbuf.EndPos));
                 stateStack.Push(nextState)
             else
@@ -420,7 +420,7 @@ module internal Implementation =
                         // and an EOF token. 
                         if inEofCountDown && eofCountDown < 10 then 
 #if DEBUG
-                            if Flags.debug then printfn "poppin stack, lokking to shift both 'error' and that token, during end-of-file error recovery" ;
+                            if Flags.debug then printfn "popping stack, looking to shift both 'error' and that token, during end-of-file error recovery" ;
 #endif
                             popStackUntilErrorShifted(if haveLookahead then Some(lookaheadToken) else None);
 
