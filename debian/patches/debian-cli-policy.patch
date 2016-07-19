@@ -1,27 +1,23 @@
 Index: xamarin-pkg-fsharp/launcher.in
 ===================================================================
---- xamarin-pkg-fsharp.orig/launcher.in	2015-04-28 16:17:51.217120932 +0100
-+++ xamarin-pkg-fsharp/launcher.in	2015-04-28 16:17:51.217120932 +0100
-@@ -21,4 +21,4 @@
+--- xamarin-pkg-fsharp.orig/launcher.in
++++ xamarin-pkg-fsharp/launcher.in
+@@ -21,4 +21,4 @@ fi
  # location of the default FSharp install in order to find the FSharp compiler binaries (see 
  # fsharpbinding/MonoDevelop.FSharpBinding/Services/CompilerLocationUtils.fs). That's a pretty unfortunate
  # way of finding those binaries. And really should be changed.
--$EXEC mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename "$0") "$@"
-+SILLY_ENV_HACK_FOR_REGEX=mono $EXEC mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename "$0") "$@"
+-$EXEC @MONOBINDIR@/mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename "$0") "$@"
++SILLY_ENV_HACK_FOR_REGEX=mono $EXEC @MONOBINDIR@/mono $DEBUG $MONO_OPTIONS @DIR@/@TOOL@ --exename:$(basename "$0") "$@"
 Index: xamarin-pkg-fsharp/src/fsharp/targets.make
 ===================================================================
---- xamarin-pkg-fsharp.orig/src/fsharp/targets.make	2015-04-28 16:17:51.217120932 +0100
-+++ xamarin-pkg-fsharp/src/fsharp/targets.make	2015-04-28 16:17:51.217120932 +0100
-@@ -139,9 +139,11 @@
- 
- # The binaries fsc.exe and fsi.exe only get installed for Mono 4.5 profile
+--- xamarin-pkg-fsharp.orig/src/fsharp/targets.make
++++ xamarin-pkg-fsharp/src/fsharp/targets.make
+@@ -186,7 +186,7 @@ install-lib-net40:
  # This also installs 'fsharpc' and 'fsharpi'
-+#
-+# Debian patch - Point fsharpc and fsharpi at our install paths, not the GAC.
  install-bin:
  	chmod +x $(outdir)$(ASSEMBLY)
--	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
-+	sed -e "s,[@]DIR[@],/usr/lib/cli/fsharp,g" -e 's,[@]TOOL[@],$(ASSEMBLY),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
+-	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' -e 's,[@]MONOBINDIR[@],$(monobindir),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
++	sed -e 's,[@]DIR[@],/usr/lib/cli/fsharp,g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' -e 's,[@]MONOBINDIR[@],$(monobindir),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
  	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))
  	@mkdir -p $(DESTDIR)$(gacdir)/$(TARGET)
  	@mkdir -p $(DESTDIR)$(bindir)
