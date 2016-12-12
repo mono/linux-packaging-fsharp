@@ -24,6 +24,9 @@ override_dh_auto_build:
 	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsYacc.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fsyacc
 	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsSrGen.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fssrgen
 
+override_dh_auto_install:
+	HOME=$(DEBIAN_DIR )XDG_CONFIG_HOME=$(DEBIAN_DIR) dh_auto_install
+
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll
 
