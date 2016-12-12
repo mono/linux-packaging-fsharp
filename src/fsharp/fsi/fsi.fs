@@ -723,7 +723,7 @@ type internal FsiConsoleInput(fsiOptions: FsiCommandLineOptions, inReader: TextR
           (new Thread(fun () -> 
               match consoleOpt with 
               | Some console when fsiOptions.EnableConsoleKeyProcessing && not fsiOptions.IsInteractiveServer ->
-                  if isNil fsiOptions.SourceFiles then 
+                  if List.isEmpty fsiOptions.SourceFiles then 
                       if !progress then fprintfn outWriter "first-line-reader-thread reading first line...";
                       firstLine <- Some(console.ReadLine()); 
                       if !progress then fprintfn outWriter "first-line-reader-thread got first line = %A..." firstLine;
@@ -830,7 +830,6 @@ type internal FsiDynamicCompiler
 #if DEBUG
         // Logging/debugging
         if tcConfig.printAst then
-            let (TAssembly(declaredImpls)) = declaredImpls
             for input in declaredImpls do 
                 fprintfn fsiConsoleOutput.Out "AST:" 
                 fprintfn fsiConsoleOutput.Out "%+A" input
@@ -920,7 +919,6 @@ type internal FsiDynamicCompiler
             // 'Open' the path for the fragment we just compiled for any future printing.
             let denv = denv.AddOpenPath (pathOfLid prefixPath) 
 
-            let (TAssembly(declaredImpls)) = declaredImpls
             for (TImplFile(_qname,_,mexpr,_,_)) in declaredImpls do
                 let responseL = NicePrint.layoutInferredSigOfModuleExpr false denv infoReader AccessibleFromSomewhere rangeStdin mexpr 
                 if not (Layout.isEmptyL responseL) then      
@@ -1089,7 +1087,7 @@ type internal FsiDynamicCompiler
               |> List.unzip
           
           errorLogger.AbortOnError();
-          if inputs |> List.exists isNone then failwith "parse error";
+          if inputs |> List.exists Option.isNone then failwith "parse error"
           let inputs = List.map Option.get inputs 
           let istate = List.fold2 fsiDynamicCompiler.ProcessMetaCommandsFromInputAsInteractiveCommands istate sourceFiles inputs
           fsiDynamicCompiler.EvalParsedSourceFiles (istate, inputs)
@@ -1104,7 +1102,7 @@ type internal FsiDynamicCompiler
 
         let tcState = GetInitialTcState (rangeStdin, ccuName, tcConfig, tcGlobals, tcImports, niceNameGen, tcEnv)
 
-        let ilxGenerator = CreateIlxAssemblyGenerator(tcConfig,tcImports,tcGlobals, (LightweightTcValForUsingInBuildMethodCall tcGlobals), tcState.Ccu )
+        let ilxGenerator = CreateIlxAssemblyGenerator (tcConfig, tcImports, tcGlobals, (LightweightTcValForUsingInBuildMethodCall tcGlobals), tcState.Ccu)
         {optEnv    = optEnv0
          emEnv     = emEnv
          tcGlobals = tcGlobals
@@ -1921,7 +1919,7 @@ type internal FsiInteractionProcessor
 
         let istate = consume istate fsiOptions.SourceFiles
 
-        if nonNil fsiOptions.SourceFiles then 
+        if not (List.isEmpty fsiOptions.SourceFiles) then 
             fsiConsolePrompt.PrintAhead(); // Seems required. I expected this could be deleted. Why not?
         istate 
 
@@ -2234,16 +2232,18 @@ type internal FsiEvaluationSession (argv:string[], inReader:TextReader, outWrite
          System.AppDomain.CurrentDomain.BaseDirectory
 #endif
 
+    let referenceResolver = MSBuildReferenceResolver.Resolver 
     let tcConfigB = 
-        TcConfigBuilder.CreateNew(defaultFSharpBinariesDir, 
-                                                    true, // long running: optimizeForMemory 
-                                                    Directory.GetCurrentDirectory(),isInteractive=true, 
-                                                    isInvalidationSupported=false)
+        TcConfigBuilder.CreateNew(referenceResolver,
+                                  defaultFSharpBinariesDir, 
+                                  true, // long running: optimizeForMemory 
+                                  Directory.GetCurrentDirectory(),isInteractive=true, 
+                                  isInvalidationSupported=false)
     let tcConfigP = TcConfigProvider.BasedOnMutableBuilder(tcConfigB)
 #if FX_MSBUILDRESOLVER_RUNTIMELIKE
-    do tcConfigB.resolutionEnvironment <- MSBuildResolver.RuntimeLike // See Bug 3608
+    do tcConfigB.resolutionEnvironment <- ReferenceResolver.RuntimeLike // See Bug 3608
 #else
-    do tcConfigB.resolutionEnvironment <- MSBuildResolver.DesigntimeLike
+    do tcConfigB.resolutionEnvironment <- ReferenceResolver.DesignTimeLike
 #endif
     do tcConfigB.useFsiAuxLib <- true
 
@@ -2307,7 +2307,7 @@ type internal FsiEvaluationSession (argv:string[], inReader:TextReader, outWrite
     do fsiConsoleOutput.uprintfn ""
 
     // When no source files to load, print ahead prompt here 
-    do if isNil  fsiOptions.SourceFiles then 
+    do if List.isEmpty fsiOptions.SourceFiles then 
         fsiConsolePrompt.PrintAhead()       
 
 
