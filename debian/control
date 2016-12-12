@@ -7,6 +7,7 @@ Build-Depends: debhelper (>= 8.0.0~),
   dh-autoreconf,
   nuget,
   ca-certificates-mono,
+  referenceassemblies-pcl,
   cli-common-dev (>= 0.9~),
 Standards-Version: 3.9.5
 Homepage: http://fsharp.org
