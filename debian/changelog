@@ -1,3 +1,25 @@
+fsharp (4.0.1.20-0xamarin1) alpha; urgency=medium
+
+  * [f8cfd28] Imported Upstream version 4.0.1.20
+  * [7867b5a] Stop packaging fssrgen from bootstrap
+  * [9abf352] Refreshed patches
+  * [29e641e] Build-dep on reference assemblies
+  * [6c6ba15] Set $HOME, so nuget runs
+  * [aeb4edf] Get rid of garbage help from rules
+  * [36a583c] Add missing stuff from rules for XDG changes
+  * [ebc75ae] NuGet doesn't respect XDG spec
+  * [9b230c6] $HOME override for dh_auto_install too
+  * [989d4bc] Add ignored files from release tarball
+  * [f9ecf9c] Change packaging structure to match upstream more
+  * [3c50be7] Fix typo in DEBIAN_DIR usage
+  * [49897e5] Get rid of obsolete typeproviders package
+  * [48e69d3] FSharp.Compiler.dll only lives in one place now
+  * [4b3afba] Add another exclude
+  * [da77414] Start versioning clilibs
+  * [928e60f] Remove obsolete CLI Policy path patch
+
+ -- Jo Shields <jo.shields@xamarin.com>  Tue, 13 Dec 2016 14:38:47 +0000
+
 fsharp (4.0.1.4-0xamarin1) wheezy; urgency=medium
 
   * [6fae2b4] Imported Upstream version 4.0.1.4
