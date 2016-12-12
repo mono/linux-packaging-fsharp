@@ -12,12 +12,12 @@ Index: xamarin-pkg-fsharp/src/fsharp/targets.make
 ===================================================================
 --- xamarin-pkg-fsharp.orig/src/fsharp/targets.make
 +++ xamarin-pkg-fsharp/src/fsharp/targets.make
-@@ -186,7 +186,7 @@ install-lib-net40:
+@@ -213,7 +213,7 @@ install-sdk-lib:
  # This also installs 'fsharpc' and 'fsharpi'
  install-bin:
  	chmod +x $(outdir)$(ASSEMBLY)
--	sed -e 's,[@]DIR[@],$(gacdir)/$(TARGET),g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' -e 's,[@]MONOBINDIR[@],$(monobindir),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
+-	sed -e 's,[@]DIR[@],$(gacdir)/fsharp,g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' -e 's,[@]MONOBINDIR[@],$(monobindir),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
 +	sed -e 's,[@]DIR[@],/usr/lib/cli/fsharp,g' -e 's,[@]TOOL[@],$(ASSEMBLY),g' -e 's,[@]MONOBINDIR[@],$(monobindir),g' < $(topdir)launcher > $(outdir)$(subst fs,fsharp,$(NAME))
  	chmod +x $(outdir)$(subst fs,fsharp,$(NAME))
- 	@mkdir -p $(DESTDIR)$(gacdir)/$(TARGET)
+ 	@mkdir -p $(DESTDIR)$(gacdir)/fsharp
  	@mkdir -p $(DESTDIR)$(bindir)

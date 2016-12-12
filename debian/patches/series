@@ -1,3 +1,2 @@
-avoid_nuget_targets.patch
 fix-bootstrap-src-targets-path.patch
 debian-cli-policy.patch
