@@ -15,7 +15,7 @@ override_dh_fixperms:
 	find debian -iname *.targets -type f -exec chmod 644 {} +
 
 override_dh_auto_build:
-	XDG_CONFIG_HOME=$(DEBIAN_DIR) dh_auto_build
+	HOME=$(DEBIAN_DIR )XDG_CONFIG_HOME=$(DEBIAN_DIR) dh_auto_build
 	#xbuild FsLex/FsLex.fsproj
 	#xbuild FsYacc/FsYacc.fsproj
 	#xbuild lib/bootstrap/src/FsSrGen/FsSrGen.fsproj
