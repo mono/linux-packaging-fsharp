@@ -119,7 +119,7 @@ let PrintCompilerOption (CompilerOption(_s,_tag,_spec,_,help) as compilerOption)
     //   single space    - space.
     //   description     - words upto but excluding the final character of the line.
     assert(flagWidth = 30)
-    printf "%-30s" (compilerOptionUsage compilerOption)
+    printf "%-40s" (compilerOptionUsage compilerOption)
     let printWord column (word:string) =
         // Have printed upto column.
         // Now print the next word including any preceeding whitespace.
@@ -127,7 +127,7 @@ let PrintCompilerOption (CompilerOption(_s,_tag,_spec,_,help) as compilerOption)
         if column + 1 (*space*) + word.Length >= lineWidth then // NOTE: "equality" ensures final character of the line is never printed
           printfn "" (* newline *)
           assert(flagWidth = 30)
-          printf  "%-30s %s" ""(*<--flags*) word
+          printf  "%-40s %s" ""(*<--flags*) word
           flagWidth + 1 + word.Length
         else
           printf  " %s" word
@@ -137,7 +137,7 @@ let PrintCompilerOption (CompilerOption(_s,_tag,_spec,_,help) as compilerOption)
     printfn "" (* newline *)
 
 let PrintPublicOptions (heading,opts) =
-  if nonNil opts then
+  if not (List.isEmpty opts) then
     printfn ""
     printfn ""      
     printfn "\t\t%s" heading
@@ -407,7 +407,6 @@ let SetOptimizeOff(tcConfigB : TcConfigBuilder) =
     tcConfigB.optSettings <- { tcConfigB.optSettings with localOptUser = Some false }
     tcConfigB.optSettings <- { tcConfigB.optSettings with crossModuleOptUser = Some false }
     tcConfigB.optSettings <- { tcConfigB.optSettings with lambdaInlineThreshold = 0 }
-    tcConfigB.ignoreSymbolStoreSequencePoints <- false;
     tcConfigB.doDetuple <- false; 
     tcConfigB.doTLR <- false;
     tcConfigB.doFinalSimplify <- false;
@@ -417,15 +416,13 @@ let SetOptimizeOn(tcConfigB : TcConfigBuilder) =
     tcConfigB.optSettings <- { tcConfigB.optSettings with localOptUser = Some true }
     tcConfigB.optSettings <- { tcConfigB.optSettings with crossModuleOptUser = Some true }
     tcConfigB.optSettings <- { tcConfigB.optSettings with lambdaInlineThreshold = 6 }
-
-    tcConfigB.ignoreSymbolStoreSequencePoints <- true;
     tcConfigB.doDetuple <- true;  
     tcConfigB.doTLR <- true;
     tcConfigB.doFinalSimplify <- true;
 
 let SetOptimizeSwitch (tcConfigB : TcConfigBuilder) switch = 
     if (switch = OptionSwitch.On) then SetOptimizeOn(tcConfigB) else SetOptimizeOff(tcConfigB)
-        
+
 let SetTailcallSwitch (tcConfigB : TcConfigBuilder) switch =
     tcConfigB.emitTailcalls <- (switch = OptionSwitch.On)
         
@@ -474,12 +471,16 @@ let SetDebugSwitch (tcConfigB : TcConfigBuilder) (dtype : string option) (s : Op
     match dtype with
     | Some(s) ->
        match s with 
-       | "portable" -> tcConfigB.portablePDB <- true
-       | "pdbonly" ->  tcConfigB.portablePDB <- false
-       | "full" ->     tcConfigB.portablePDB <- false
+       | "portable" ->  tcConfigB.portablePDB <- true ; tcConfigB.embeddedPDB <- false; tcConfigB.jitTracking <- true; tcConfigB.ignoreSymbolStoreSequencePoints <- true
+       | "pdbonly" ->   tcConfigB.portablePDB <- false; tcConfigB.embeddedPDB <- false; tcConfigB.jitTracking <- false
+       | "embedded" ->  tcConfigB.portablePDB <- true;  tcConfigB.embeddedPDB <- true;  tcConfigB.jitTracking <- true; tcConfigB.ignoreSymbolStoreSequencePoints <- true
+       | "full" ->      tcConfigB.portablePDB <- false; tcConfigB.embeddedPDB <- false; tcConfigB.jitTracking <- true
        | _ -> error(Error(FSComp.SR.optsUnrecognizedDebugType(s), rangeCmdArgs))
-    | None -> tcConfigB.portablePDB <- false
+    | None ->           tcConfigB.portablePDB <- false; tcConfigB.embeddedPDB <- false; tcConfigB.jitTracking <- s = OptionSwitch.On;
     tcConfigB.debuginfo <- s = OptionSwitch.On
+
+let SetEmbedAllSourceSwitch (tcConfigB : TcConfigBuilder) switch = 
+    if (switch = OptionSwitch.On) then tcConfigB.embedAllSource <- true else tcConfigB.embedAllSource <- false
 
 let setOutFileName tcConfigB s = 
     tcConfigB.outputFile <- Some s
@@ -499,13 +500,12 @@ let tagFileList = "<file;...>"
 let tagDirList = "<dir;...>"
 let tagPathList = "<path;...>"
 let tagResInfo = "<resinfo>"
-let tagFullPDBOnlyPortable = "{full|pdbonly|portable}"
+let tagFullPDBOnlyPortable = "{full|pdbonly|portable|embedded}"
 let tagWarnList = "<warn;...>"
 let tagSymbolList = "<symbol;...>"
 let tagAddress = "<address>"
 let tagInt = "<n>"
 let tagNone = ""
-
 
 // PrintOptionInfo
 //----------------
@@ -520,7 +520,11 @@ let PrintOptionInfo (tcConfigB:TcConfigBuilder) =
     printfn "  doDetuple  . . . . . . : %+A" tcConfigB.doDetuple
     printfn "  doTLR  . . . . . . . . : %+A" tcConfigB.doTLR
     printfn "  doFinalSimplify. . . . : %+A" tcConfigB.doFinalSimplify
+    printfn "  jitTracking  . . . . . : %+A" tcConfigB.jitTracking
     printfn "  portablePDB. . . . . . : %+A" tcConfigB.portablePDB
+    printfn "  embeddedPDB. . . . . . : %+A" tcConfigB.embeddedPDB
+    printfn "  embedAllSource . . . . : %+A" tcConfigB.embedAllSource
+    printfn "  embedSourceList. . . . : %+A" tcConfigB.embedSourceList
     printfn "  debuginfo  . . . . . . : %+A" tcConfigB.debuginfo
     printfn "  resolutionEnvironment  : %+A" tcConfigB.resolutionEnvironment
     printfn "  product  . . . . . . . : %+A" tcConfigB.productNameForBannerText
@@ -569,7 +573,7 @@ let errorsAndWarningsFlags (tcConfigB : TcConfigBuilder) =
            
         CompilerOption("nowarn", tagWarnList, OptionStringList (fun n -> tcConfigB.TurnWarningOff(rangeCmdArgs,n)), None,
                             Some (FSComp.SR.optsNowarn())); 
-                            
+
         CompilerOption("warnon", tagWarnList, OptionStringList (fun n -> tcConfigB.TurnWarningOn(rangeCmdArgs,n)), None,
                             Some(FSComp.SR.optsWarnOn()));                             
         
@@ -657,24 +661,28 @@ let resourcesFlagsFsc (tcConfigB : TcConfigBuilder) =
 //-----------------------------
 
 let codeGenerationFlags isFsi (tcConfigB : TcConfigBuilder) =
-    [
-        CompilerOption("debug", tagNone, OptionSwitch (SetDebugSwitch tcConfigB None), None,
-                           Some (FSComp.SR.optsDebugPM()))
-
-        CompilerOption("debug", tagFullPDBOnlyPortable, OptionString (fun s -> SetDebugSwitch tcConfigB (Some(s)) OptionSwitch.On), None,
-                           Some (FSComp.SR.optsDebug(if isFsi then "pdbonly" else "full")))
-
-        CompilerOption("optimize", tagNone, OptionSwitch (SetOptimizeSwitch tcConfigB) , None,
-                           Some (FSComp.SR.optsOptimize()))
-
-        CompilerOption("tailcalls", tagNone, OptionSwitch (SetTailcallSwitch tcConfigB), None,
-                           Some (FSComp.SR.optsTailcalls()))
-                           
-        CompilerOption("crossoptimize", tagNone, OptionSwitch (crossOptimizeSwitch tcConfigB), None,
-                           Some (FSComp.SR.optsCrossoptimize()))
-
-    ]
-
+    let debug =
+        [CompilerOption("debug", tagNone, OptionSwitch (SetDebugSwitch tcConfigB None), None,
+                        Some (FSComp.SR.optsDebugPM()))
+         CompilerOption("debug", tagFullPDBOnlyPortable, OptionString (fun s -> SetDebugSwitch tcConfigB (Some(s)) OptionSwitch.On), None,
+                        Some (FSComp.SR.optsDebug(if isFsi then "pdbonly" else "full")))
+        ]
+    let embed =
+        [CompilerOption("embed", tagNone, OptionSwitch (SetEmbedAllSourceSwitch tcConfigB) , None, 
+                        Some (FSComp.SR.optsEmbedAllSource()))
+         CompilerOption("embed", tagFileList, OptionStringList (fun f -> tcConfigB.AddEmbeddedSourceFile f), None, 
+                        Some ( FSComp.SR.optsEmbedSource())); 
+        ]
+    let codegen =
+        [CompilerOption("optimize", tagNone, OptionSwitch (SetOptimizeSwitch tcConfigB) , None, 
+                            Some (FSComp.SR.optsOptimize()))
+         CompilerOption("tailcalls", tagNone, OptionSwitch (SetTailcallSwitch tcConfigB), None,
+                            Some (FSComp.SR.optsTailcalls()))
+         CompilerOption("crossoptimize", tagNone, OptionSwitch (crossOptimizeSwitch tcConfigB), None,
+                            Some (FSComp.SR.optsCrossoptimize()))
+        ]
+    if isFsi then debug @ codegen
+    else debug @ embed @ codegen
 
 // OptionBlock: Language
 //----------------------
@@ -824,7 +832,6 @@ let vsSpecificFlags (tcConfigB: TcConfigBuilder) =
     CompilerOption("exename", tagNone, OptionString (fun s -> tcConfigB.exename <- Some(s)), None, None)
     CompilerOption("maxerrors", tagInt, OptionInt (fun n -> tcConfigB.maxErrors <- n), None, None) ]
 
-
 let internalFlags (tcConfigB:TcConfigBuilder) =
   [
     CompilerOption("stamps", tagNone, OptionUnit (fun () -> ()), Some(InternalCommandLineOption("--stamps", rangeCmdArgs)), None)
@@ -856,9 +863,9 @@ let internalFlags (tcConfigB:TcConfigBuilder) =
     CompilerOption("implicitresolution", tagNone, OptionUnit (fun _ -> tcConfigB.implicitlyResolveAssemblies <- true), Some(InternalCommandLineOption("--implicitresolution", rangeCmdArgs)), None)
 
     CompilerOption("resolutions", tagNone, OptionUnit (fun () -> tcConfigB.showReferenceResolutions <- true), Some(InternalCommandLineOption("", rangeCmdArgs)), None) // "Display assembly reference resolution information") 
-    CompilerOption("resolutionframeworkregistrybase", tagString, OptionString (fun s -> tcConfigB.resolutionFrameworkRegistryBase<-s), Some(InternalCommandLineOption("", rangeCmdArgs)), None) // "The base registry key to use for assembly resolution. This part in brackets here: HKEY_LOCAL_MACHINE\[SOFTWARE\Microsoft\.NETFramework]\v2.0.50727\AssemblyFoldersEx")
-    CompilerOption("resolutionassemblyfoldersuffix", tagString, OptionString (fun s -> tcConfigB.resolutionAssemblyFoldersSuffix<-s), Some(InternalCommandLineOption("resolutionassemblyfoldersuffix", rangeCmdArgs)), None) // "The base registry key to use for assembly resolution. This part in brackets here: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v2.0.50727\[AssemblyFoldersEx]")
-    CompilerOption("resolutionassemblyfoldersconditions", tagString, OptionString (fun s -> tcConfigB.resolutionAssemblyFoldersConditions <- ","^s), Some(InternalCommandLineOption("resolutionassemblyfoldersconditions", rangeCmdArgs)), None) // "Additional reference resolution conditions. For example \"OSVersion=5.1.2600.0,PlatformID=id")
+    CompilerOption("resolutionframeworkregistrybase", tagString, OptionString (fun _ -> ()), Some(InternalCommandLineOption("", rangeCmdArgs)), None) // "The base registry key to use for assembly resolution. This part in brackets here: HKEY_LOCAL_MACHINE\[SOFTWARE\Microsoft\.NETFramework]\v2.0.50727\AssemblyFoldersEx")
+    CompilerOption("resolutionassemblyfoldersuffix", tagString, OptionString (fun _ -> ()), Some(InternalCommandLineOption("resolutionassemblyfoldersuffix", rangeCmdArgs)), None) // "The base registry key to use for assembly resolution. This part in brackets here: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v2.0.50727\[AssemblyFoldersEx]")
+    CompilerOption("resolutionassemblyfoldersconditions", tagString, OptionString (fun _ -> ()), Some(InternalCommandLineOption("resolutionassemblyfoldersconditions", rangeCmdArgs)), None) // "Additional reference resolution conditions. For example \"OSVersion=5.1.2600.0,PlatformID=id")
     CompilerOption("msbuildresolution", tagNone, OptionUnit (fun () -> tcConfigB.useSimpleResolution<-false), Some(InternalCommandLineOption("msbuildresolution", rangeCmdArgs)), None) // "Resolve assembly references using MSBuild resolution rules rather than directory based (Default=true except when running fsc.exe under mono)")
     CompilerOption("alwayscallvirt",tagNone,OptionSwitch(callVirtSwitch tcConfigB),Some(InternalCommandLineOption("alwayscallvirt",rangeCmdArgs)), None)
     CompilerOption("nodebugdata",tagNone, OptionUnit (fun () -> tcConfigB.noDebugData<-true),Some(InternalCommandLineOption("--nodebugdata",rangeCmdArgs)), None)
@@ -910,8 +917,8 @@ let deprecatedFlagsFsc tcConfigB =
     cliRootFlag tcConfigB
     CompilerOption("jit-optimize", tagNone, OptionUnit (fun _ -> tcConfigB.optSettings <- { tcConfigB.optSettings with jitOptUser = Some true }), Some(DeprecatedCommandLineOptionNoDescription("--jit-optimize", rangeCmdArgs)), None)
     CompilerOption("no-jit-optimize", tagNone, OptionUnit (fun _ -> tcConfigB.optSettings <- { tcConfigB.optSettings with jitOptUser = Some false }), Some(DeprecatedCommandLineOptionNoDescription("--no-jit-optimize", rangeCmdArgs)), None)
-    CompilerOption("jit-tracking", tagNone, OptionUnit (fun _ -> () ), Some(DeprecatedCommandLineOptionNoDescription("--jit-tracking", rangeCmdArgs)), None)
-    CompilerOption("no-jit-tracking", tagNone, OptionUnit (fun _ -> () ), Some(DeprecatedCommandLineOptionNoDescription("--no-jit-tracking", rangeCmdArgs)), None)
+    CompilerOption("jit-tracking", tagNone, OptionUnit (fun _ -> (tcConfigB.jitTracking <- true) ), Some(DeprecatedCommandLineOptionNoDescription("--jit-tracking", rangeCmdArgs)), None)
+    CompilerOption("no-jit-tracking", tagNone, OptionUnit (fun _ -> (tcConfigB.jitTracking <- false) ), Some(DeprecatedCommandLineOptionNoDescription("--no-jit-tracking", rangeCmdArgs)), None)
     CompilerOption("progress", tagNone, OptionUnit (fun () -> progress := true), Some(DeprecatedCommandLineOptionNoDescription("--progress", rangeCmdArgs)), None)
     (compilingFsLibFlag tcConfigB) 
     (compilingFsLib20Flag tcConfigB) 
@@ -992,7 +999,7 @@ let GetAbbrevFlagSet tcConfigB isFsc =
     for c in ((if isFsc then abbreviatedFlagsFsc else abbreviatedFlagsFsi) tcConfigB) do
         match c with
         | CompilerOption(arg,_,OptionString _,_,_)
-        | CompilerOption(arg,_,OptionStringList _,_,_) -> argList <- argList @ ["-"^arg;"/"^arg]
+        | CompilerOption(arg,_,OptionStringList _,_,_) -> argList <- argList @ ["-"+arg;"/"+arg]
         | _ -> ()
     Set.ofList argList
     
@@ -1009,7 +1016,7 @@ let PostProcessCompilerArgs (abbrevArgs : string Set) (args : string []) =
             arga.[idx] <- args.[i] 
             i <- i+1
         else
-            arga.[idx] <- args.[i] ^ ":" ^ args.[i+1]
+            arga.[idx] <- args.[i] + ":" + args.[i+1]
             i <- i + 2
         idx <- idx + 1
     Array.toList arga.[0 .. (idx - 1)]
@@ -1105,14 +1112,14 @@ let showTermFileCount = ref 0
 let PrintWholeAssemblyImplementation (tcConfig:TcConfig) outfile header expr =
     if tcConfig.showTerms then
         if tcConfig.writeTermsToFiles then 
-            let filename = outfile ^ ".terms"
+            let filename = outfile + ".terms"
             let n = !showTermFileCount
             showTermFileCount := n+1
-            use f = System.IO.File.CreateText (filename ^ "-" ^ string n ^ "-" ^ header)
-            Layout.outL f (Layout.squashTo 192 (DebugPrint.assemblyL expr))
+            use f = System.IO.File.CreateText (filename + "-" + string n + "-" + header)
+            Layout.outL f (Layout.squashTo 192 (DebugPrint.implFilesL expr))
         else 
             dprintf "\n------------------\nshowTerm: %s:\n" header
-            Layout.outL stderr (Layout.squashTo 192 (DebugPrint.assemblyL expr))
+            Layout.outL stderr (Layout.squashTo 192 (DebugPrint.implFilesL expr))
             dprintf "\n------------------\n"
 
 //----------------------------------------------------------------------------
@@ -1206,38 +1213,37 @@ let GetInitialOptimizationEnv (tcImports:TcImports, tcGlobals:TcGlobals) =
     let optEnv = List.fold (AddExternalCcuToOpimizationEnv tcGlobals) optEnv ccuinfos 
     optEnv
    
-let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importMap, isIncrementalFragment, optEnv, ccu:CcuThunk, tassembly:TypedAssembly) =
+let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importMap, isIncrementalFragment, optEnv, ccu:CcuThunk, implFiles) =
     // NOTE: optEnv - threads through 
     //
     // Always optimize once - the results of this step give the x-module optimization 
     // info.  Subsequent optimization steps choose representations etc. which we don't 
     // want to save in the x-module info (i.e. x-module info is currently "high level"). 
-    PrintWholeAssemblyImplementation tcConfig outfile "pass-start" tassembly
+    PrintWholeAssemblyImplementation tcConfig outfile "pass-start" implFiles
 #if DEBUG
-    if tcConfig.showOptimizationData then dprintf "Expression prior to optimization:\n%s\n" (Layout.showL (Layout.squashTo 192 (DebugPrint.assemblyL tassembly)))
+    if tcConfig.showOptimizationData then dprintf "Expression prior to optimization:\n%s\n" (Layout.showL (Layout.squashTo 192 (DebugPrint.implFilesL implFiles)))
     if tcConfig.showOptimizationData then dprintf "CCU prior to optimization:\n%s\n" (Layout.showL (Layout.squashTo 192 (DebugPrint.entityL ccu.Contents)))
 #endif
 
     let optEnv0 = optEnv
-    let (TAssembly(implFiles)) = tassembly
     ReportTime tcConfig ("Optimizations")
+
+    // Only do abstract_big_targets on the first pass!  Only do it when TLR is on!  
+    let optSettings = tcConfig.optSettings 
+    let optSettings = { optSettings with abstractBigTargets = tcConfig.doTLR }
+    let optSettings = { optSettings with reportingPhase = true }
+            
     let results,(optEnvFirstLoop,_,_,_) = 
         ((optEnv0,optEnv0,optEnv0,SignatureHidingInfo.Empty),implFiles) ||> List.mapFold (fun (optEnvFirstLoop,optEnvExtraLoop,optEnvFinalSimplify,hidden) implFile -> 
 
-            // Only do abstract_big_targets on the first pass!  Only do it when TLR is on!  
-            let optSettings = tcConfig.optSettings 
-            let optSettings = { optSettings with abstractBigTargets = tcConfig.doTLR }
-            let optSettings = { optSettings with reportingPhase = true }
-            
             //ReportTime tcConfig ("Initial simplify")
-            let optEnvFirstLoop,implFile,implFileOptData,hidden = 
-                Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvFirstLoop,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
+            let (optEnvFirstLoop,implFile,implFileOptData,hidden), optimizeDuringCodeGen = 
+                Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal,importMap,optEnvFirstLoop,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
 
             let implFile = AutoBox.TransformImplFile tcGlobals importMap implFile 
                             
             // Only do this on the first pass!
-            let optSettings = { optSettings with abstractBigTargets = false }
-            let optSettings = { optSettings with reportingPhase = false }
+            let optSettings = { optSettings with abstractBigTargets = false; reportingPhase = false }
 #if DEBUG
             if tcConfig.showOptimizationData then dprintf "Optimization implFileOptData:\n%s\n" (Layout.showL (Layout.squashTo 192 (Optimizer.moduleInfoL tcGlobals implFileOptData)))
 #endif
@@ -1245,7 +1251,7 @@ let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importM
             let implFile,optEnvExtraLoop = 
                 if tcConfig.extraOptimizationIterations > 0 then 
                     //ReportTime tcConfig ("Extra simplification loop")
-                    let optEnvExtraLoop,implFile, _, _ = Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvExtraLoop,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
+                    let (optEnvExtraLoop,implFile, _, _), _ = Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvExtraLoop,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
                     //PrintWholeAssemblyImplementation tcConfig outfile (sprintf "extra-loop-%d" n) implFile
                     implFile,optEnvExtraLoop
                 else
@@ -1270,20 +1276,21 @@ let ApplyAllOptimizations (tcConfig:TcConfig, tcGlobals, tcVal, outfile, importM
             let implFile,optEnvFinalSimplify =
                 if tcConfig.doFinalSimplify then 
                     //ReportTime tcConfig ("Final simplify pass")
-                    let optEnvFinalSimplify,implFile, _, _ = Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvFinalSimplify,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
+                    let (optEnvFinalSimplify,implFile, _, _),_ = Optimizer.OptimizeImplFile(optSettings,ccu,tcGlobals,tcVal, importMap,optEnvFinalSimplify,isIncrementalFragment,tcConfig.emitTailcalls,hidden,implFile)
                     //PrintWholeAssemblyImplementation tcConfig outfile "post-rec-opt" implFile
                     implFile,optEnvFinalSimplify 
                 else 
                     implFile,optEnvFinalSimplify 
-            (implFile,implFileOptData),(optEnvFirstLoop,optEnvExtraLoop,optEnvFinalSimplify,hidden))
+
+            ((implFile,optimizeDuringCodeGen),implFileOptData),(optEnvFirstLoop,optEnvExtraLoop,optEnvFinalSimplify,hidden))
 
     let implFiles,implFileOptDatas = List.unzip results
     let assemblyOptData = Optimizer.UnionOptimizationInfos implFileOptDatas
-    let tassembly = TAssembly(implFiles)
-    PrintWholeAssemblyImplementation tcConfig outfile "pass-end" tassembly
+    let tassembly = TypedAssemblyAfterOptimization(implFiles)
+    PrintWholeAssemblyImplementation tcConfig outfile "pass-end" (List.map fst implFiles)
     ReportTime tcConfig ("Ending Optimizations")
 
-    tassembly, assemblyOptData,optEnvFirstLoop
+    tassembly, assemblyOptData, optEnvFirstLoop
 
 
 //----------------------------------------------------------------------------
