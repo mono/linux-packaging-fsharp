@@ -28,7 +28,7 @@ override_dh_auto_install:
 	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) dh_auto_install
 
 override_dh_clideps:
-	dh_clideps --exclude-moduleref=mscoree.dll
+	dh_clideps --exclude-moduleref=mscoree.dll --exclude-moduleref=api-ms-win-core-file-l1-1-0.dll
 
 %:
 	dh $@ --with=cli,autoreconf
