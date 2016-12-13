@@ -44,19 +44,6 @@ Description: functional-first programming language - core runtime library
  .
  This package contains the core runtime library for F# binaries.
 
-Package: libfsharp-data-typeproviders4.4-cil
-Architecture: all
-Depends:
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - data integration library
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains a runtime library that automatically binds remote data
- sources such as OData, SQL, or WSDL into strongly-typed objects.
-
 Package: referenceassemblies-fsharp
 Architecture: all
 Depends:
