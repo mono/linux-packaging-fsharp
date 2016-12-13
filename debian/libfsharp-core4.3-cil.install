@@ -1,4 +1,3 @@
-usr/lib/mono/gac/FSharp.Core/4.3.0.*/*       /usr/lib/cli/FSharp.Core-4.3/4.0/
-usr/lib/mono/gac/FSharp.Core/4.3.1.*/*       /usr/lib/cli/FSharp.Core-4.3/4.1/
-usr/lib/mono/gac/FSharp.Core/4.4.0.*/*       /usr/lib/cli/FSharp.Core-4.3/
-usr/lib/mono/gac/policy.*.FSharp.Core/*   /usr/lib/cli/FSharp.Core-4.3     
+usr/lib/mono/gac/FSharp.Core/4.4.0.0*/FSharp.Core.dll*	/usr/lib/mono/fsharp
+usr/lib/mono/gac/FSharp.Core/4.4.0.0*/FSharp.Core.*data	/usr/lib/mono/fsharp
+usr/lib/mono/gac/policy.*.FSharp.Core/*			/usr/lib/mono/fsharp

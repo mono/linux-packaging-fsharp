@@ -56,3 +56,16 @@ Description: functional-first programming language - data integration library
  .
  This package contains a runtime library that automatically binds remote data
  sources such as OData, SQL, or WSDL into strongly-typed objects.
+
+Package: referenceassemblies-fsharp
+Architecture: all
+Depends:
+  fsharp (= ${binary:Version}),
+  ${cli:Depends},
+  ${shlibs:Depends},
+  ${misc:Depends}
+Description: functional-first programming language - reference assemblies
+ F# is a multi-paradigm programming language, supporting functional,
+ imperative, and object-oriented structures.
+ .
+ This package contains F# reference assemblies
