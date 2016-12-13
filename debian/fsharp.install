@@ -8,4 +8,4 @@ usr/lib/mono/fsharp/System.*.dll									/usr/lib/mono/fsharp
 usr/lib/mono/fsharp/*.Targets										/usr/lib/mono/fsharp
 usr/lib/mono/gac/FSharp.Compiler.Interactive.Settings/4.4*/FSharp.Compiler.Interactive.Settings*.dll*	/usr/lib/mono/fsharp
 usr/lib/mono/gac/FSharp.Compiler.Server.Shared/4.4*/FSharp.Compiler.Server.Shared*.dll*			/usr/lib/mono/fsharp
-usr/lib/mono/gac/FSharp.Compiler/4.4*/FSharp.Compiler*.dll*						/usr/lib/mono/fsharp
+usr/lib/mono/fsharp/FSharp.Compiler*.dll*								/usr/lib/mono/fsharp
