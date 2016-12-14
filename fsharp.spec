@@ -27,6 +27,7 @@ Group:          Development/Languages/Other
 Source:         %{name}_%{version}.orig.tar.gz
 BuildRequires:  automake
 BuildRequires:  nuget
+BuildRequires:  referenceassemblies-pcl
 BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
