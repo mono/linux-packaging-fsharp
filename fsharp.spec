@@ -62,6 +62,7 @@ make
 %make_install
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monodroid
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
+cp -a ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/FSharp.Core* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
 
 %files
 %defattr(-,root,root)
