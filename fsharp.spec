@@ -18,7 +18,7 @@
 %global _default_patch_fuzz 2
 
 Name:           fsharp
-Version:        4.0.0.3
+Version:        4.0.1.20
 Release:        0.xamarin.1
 License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
@@ -31,7 +31,6 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
-Patch1:		avoid_nuget_targets.patch
 
 %description
 F# is a mature, open source, functional-first programming language
@@ -43,7 +42,6 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
 
 %build
 autoreconf
@@ -57,51 +55,11 @@ rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
 
 %files
 %defattr(-,root,root)
-%{_bindir}/fsharpc
-%{_bindir}/fsharpi
-%{_bindir}/fsharpiAnyCpu
-%{_prefix}/lib/mono/4.5/FSharp.Build.dll
-%{_prefix}/lib/mono/4.5/FSharp.Build.xml
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.Interactive.Settings.dll
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.Interactive.Settings.xml
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.Server.Shared.dll
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.Server.Shared.xml
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.dll
-%{_prefix}/lib/mono/4.5/FSharp.Compiler.xml
-%{_prefix}/lib/mono/4.5/FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/FSharp.Core.xml
-%{_prefix}/lib/mono/4.5/FSharp.Core.optdata
-%{_prefix}/lib/mono/4.5/FSharp.Core.sigdata
-%{_prefix}/lib/mono/4.5/FSharp.Data.TypeProviders.dll
-%{_prefix}/lib/mono/4.5/FSharp.Data.TypeProviders.xml
-%{_prefix}/lib/mono/4.5/Microsoft.FSharp.Targets
-%{_prefix}/lib/mono/4.5/Microsoft.Portable.FSharp.Targets
-%{_prefix}/lib/mono/4.5/fsc.exe
-%{_prefix}/lib/mono/4.5/fsi.exe
-%{_prefix}/lib/mono/4.5/fsiAnyCpu.exe
-%{_prefix}/lib/mono/4.5/policy.2.0.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.2.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.3.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.4.0.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.4.3.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.3.259.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.3.47.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.3.7.FSharp.Core.dll
-%{_prefix}/lib/mono/4.5/policy.3.78.FSharp.Core.dll
+%{_bindir}/fsharp*
+%{_prefix}/lib/mono/4.5/*
+%{_prefix}/lib/mono/fsharp/
 %{_prefix}/lib/mono/Microsoft*
-%{_prefix}/lib/mono/gac/FSharp.Compiler.Interactive.Settings/
-%{_prefix}/lib/mono/gac/FSharp.Compiler.Server.Shared/
-%{_prefix}/lib/mono/gac/FSharp.Compiler/
-%{_prefix}/lib/mono/gac/FSharp.Core/
-%{_prefix}/lib/mono/gac/FSharp.Data.TypeProviders/
-%{_prefix}/lib/mono/gac/policy.2.0.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.2.3.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.3.3.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.4.0.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.4.3.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.3.259.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.3.47.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.3.7.FSharp.Core/
-%{_prefix}/lib/mono/gac/policy.3.78.FSharp.Core/
+%{_prefix}/lib/mono/gac/FSharp.*/
+%{_prefix}/lib/mono/gac/policy.*.FSharp.Core/
 %{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/
-"%{_prefix}/lib/mono/Reference Assemblies/Microsoft/FSharp/.NETFramework/v4.0/"
+"%{_prefix}/lib/mono/Reference Assemblies/Microsoft/FSharp/"
