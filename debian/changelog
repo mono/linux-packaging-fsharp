@@ -1,3 +1,10 @@
+fsharp (4.0.1.20-0xamarin2) alpha; urgency=medium
+
+  * [e8e34eb] Move mono-runtime-common to pre-depends, so 
+    gacutil doesn't fail from missing machine.config
+
+ -- Jo Shields <joshield@microsoft.com>  Tue, 21 Mar 2017 10:55:29 +0000
+
 fsharp (4.0.1.20-0xamarin1) alpha; urgency=medium
 
   * [f8cfd28] Imported Upstream version 4.0.1.20
