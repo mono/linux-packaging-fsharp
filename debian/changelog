@@ -1,3 +1,9 @@
+fsharp (4.0.1.20-0xamarin3) alpha; urgency=medium
+
+  * [2bf27ac] Re-add FSharp.Build.dll
+
+ -- Jo Shields <joshield@microsoft.com>  Wed, 22 Mar 2017 09:40:20 +0000
+
 fsharp (4.0.1.20-0xamarin2) alpha; urgency=medium
 
   * [e8e34eb] Move mono-runtime-common to pre-depends, so 
