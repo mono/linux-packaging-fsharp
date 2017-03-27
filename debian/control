@@ -43,16 +43,3 @@ Description: functional-first programming language - core runtime library
  imperative, and object-oriented structures.
  .
  This package contains the core runtime library for F# binaries.
-
-Package: referenceassemblies-fsharp
-Architecture: all
-Depends:
-  fsharp (= ${binary:Version}),
-  ${cli:Depends},
-  ${shlibs:Depends},
-  ${misc:Depends}
-Description: functional-first programming language - reference assemblies
- F# is a multi-paradigm programming language, supporting functional,
- imperative, and object-oriented structures.
- .
- This package contains F# reference assemblies

@@ -2,24 +2,5 @@
 45 /usr/lib/mono/fsharp/FSharp.Core.dll
 45 /usr/lib/mono/fsharp/FSharp.Core.sigdata
 45 /usr/lib/mono/fsharp/FSharp.Core.optdata
-
-## The lines above are mandatory for correct functionality
-## The lines below are optional - these replicate the upstream
-## layout, but aren't used by any tools I'm aware of.
-
-# Add the compiler binary, as tools may look for it here
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.2.0.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.2.3.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.3.259.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.3.3.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.3.47.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.3.78.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.3.7.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.4.0.FSharp.Core.dll
-45 /usr/lib/mono/fsharp/0.0.0.0__b03f5f7f11d50a3a/policy.4.3.FSharp.Core.dll
-
-# Compiler infrastructure
-45 /usr/lib/mono/fsharp/FSharp.Compiler.dll
 45 /usr/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll
-45 /usr/lib/mono/fsharp/FSharp.Compiler.Server.Shared.dll
 
