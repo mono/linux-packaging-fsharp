@@ -1,3 +1,20 @@
+4.1.2
+  * [align fsc task and target file](https://github.com/fsharp/fsharp/pull/690)
+  * [use install layout that includes mono/fsharp](https://github.com/fsharp/fsharp/pull/689)
+  * [fix F# Intereactive on Mono 4.9+](https://github.com/fsharp/fsharp/pull/687)
+
+4.1.1
+  * Update compiler tools
+
+4.1.0.2
+  * Include DiaSymReader DLLs in nuget package
+
+4.1.0.0
+  * Updates to FSharp.Core nuget package for F# 4.1
+
+4.0.1.21
+  * Fix [#656](https://github.com/fsharp/fsharp/issues/656)  - error FS0193: internal error: No access to the given key
+
 4.0.1.20
   * Fix #639 - Problems with F# scripts on Mono 
 

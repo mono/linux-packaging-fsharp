@@ -122,6 +122,8 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     let mutable defineConstants : ITaskItem[] = [||]
     let mutable disabledWarnings : string = null
     let mutable documentationFile : string = null
+    let mutable embedAllSources = false
+    let mutable embed : string = null
     let mutable generateInterfaceFile : string = null
     let mutable keyFile : string = null
     let mutable noFramework = false
@@ -136,17 +138,13 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     let mutable referencePath : string = null
     let mutable resources : ITaskItem[] = [||]
     let mutable sources : ITaskItem[] = [||]
+    let mutable sourceLink : string = null
     let mutable targetType : string = null 
-#if FX_ATLEAST_35   
-#else 
     let mutable toolExe : string = "fsc.exe"
-#endif    
     let mutable warningLevel : string = null
     let mutable treatWarningsAsErrors : bool = false
     let mutable warningsAsErrors : string = null
     let mutable toolPath : string = 
-        // We expect to find an fsc.exe next to FSharp.Build.dll. Note FSharp.Build.dll
-        // is not in the GAC, at least on Windows.
         let locationOfThisDll = 
             try Some(System.IO.Path.GetDirectoryName(typeof<FscCommandLineBuilder>.Assembly.Location))
             with _ -> None
@@ -163,14 +161,16 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     let mutable highEntropyVA : bool = false
     let mutable targetProfile : string = null
     let mutable dotnetFscCompilerPath : string = null
+    let mutable skipCompilerExecution : bool  = false
+    let mutable provideCommandLineArgs : bool = false
+    let mutable commandLineArgs : ITaskItem list = []
 
     let mutable capturedArguments : string list = []  // list of individual args, to pass to HostObject Compile()
     let mutable capturedFilenames : string list = []  // list of individual source filenames, to pass to HostObject Compile()
 
-#if CROSS_PLATFORM_COMPILER 
-    // The properties TargetedRuntimeVersion and CopyLocalDependenciesWhenParentReferenceInGac 
-    // are not available to the cross-platform compiler since they are Windows only (not defined in the Mono  
-    // 4.0 XBuild support). So we only set them if available (to avoid a compile-time dependency). 
+#if ENABLE_MONO_SUPPORT
+    // The property YieldDuringToolExecution is not available on Mono.
+    // So we only set it if available (to avoid a compile-time dependency). 
     let runningOnMono = try System.Type.GetType("Mono.Runtime") <> null with e-> false         
     do if not runningOnMono then  
         typeof<ToolTask>.InvokeMember("YieldDuringToolExecution",(BindingFlags.Instance ||| BindingFlags.SetProperty ||| BindingFlags.Public),null,this,[| box true |])  |> ignore 
@@ -197,6 +197,10 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
                 | "EMBEDDED" -> "embedded"
                 | "FULL"     -> "full"
                 | _          -> null)
+        if embedAllSources then
+            builder.AppendSwitch("--embed+")
+        builder.AppendSwitchIfNotNull("--embed:", embed)
+        builder.AppendSwitchIfNotNull("--sourcelink:", sourceLink)
         // NoFramework
         if noFramework then 
             builder.AppendSwitch("--noframework") 
@@ -333,7 +337,7 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.DebugSymbols
         with get() = debugSymbols
         and set(b) = debugSymbols <- b
-    // --debug <none/portable/pdbonly/full>: Emit debugging information
+    // --debug <none/portable/embedded/pdbonly/full>: Emit debugging information
     member fsc.DebugType
         with get() = debugType
         and set(s) = debugType <- s
@@ -349,6 +353,12 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.DocumentationFile
         with get() = documentationFile
         and set(s) = documentationFile <- s
+    member fsc.EmbedAllSources
+        with get() = embedAllSources
+        and  set(s) = embedAllSources <- s
+    member fsc.Embed
+        with get() = embed
+        and set(e) = embed <- e
     // --generate-interface-file <string>: 
     //     Print the inferred interface of the
     //     assembly to a file.
@@ -415,6 +425,10 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.Resources
         with get() = resources
         and set(a) = resources <- a
+    // SourceLink
+    member fsc.SourceLink  
+        with get() = sourceLink 
+        and set(s) = sourceLink <- s
     // source files 
     member fsc.Sources  
         with get() = sources 
@@ -432,14 +446,6 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
     member fsc.VersionFile
         with get() = versionFile
         and set(s) = versionFile <- s
-
-#if FX_ATLEAST_35
-#else
-    // Allow overriding to the executable name "fsc.exe"
-    member fsc.ToolExe
-        with get() = toolExe
-        and set(s) = toolExe<- s
-#endif
 
     // For targeting other folders for "fsc.exe" (or ToolExe if different)
     member fsc.ToolPath
@@ -497,6 +503,19 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
         with get() = dotnetFscCompilerPath
         and set(p) = dotnetFscCompilerPath <- p
 
+    member fsc.SkipCompilerExecution  
+        with get() = skipCompilerExecution
+        and set(p) = skipCompilerExecution <- p
+
+    member fsc.ProvideCommandLineArgs  
+        with get() = provideCommandLineArgs
+        and set(p) = provideCommandLineArgs <- p
+
+    [<Output>]
+    member fsc.CommandLineArgs
+        with get() = List.toArray commandLineArgs
+        and set(p) = commandLineArgs <- (List.ofArray p)
+
     // ToolTask methods
     override fsc.ToolName = "fsc.exe" 
     override fsc.StandardErrorEncoding = if utf8output then System.Text.Encoding.UTF8 else base.StandardErrorEncoding
@@ -510,40 +529,41 @@ type [<Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:Iden
 
     /// Intercept the call to ExecuteTool to handle the host compile case.
     override fsc.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands) =
-        let host = box fsc.HostObject
-        match host with
-        | null -> base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
-        | _ ->
-            let sources = sources|>Array.map(fun i->i.ItemSpec)
+        if provideCommandLineArgs then
+            commandLineArgs <- 
+                fsc.GetCapturedArguments()
+                |> Array.map (fun (arg: string) -> TaskItem(arg) :> ITaskItem)
+                |> Array.toList
+
+        if skipCompilerExecution then
+            0
+        else
+            let host = box fsc.HostObject
+            match host with
+            | null -> base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
+            | _ ->
+                let sources = sources|>Array.map(fun i->i.ItemSpec)
 #if FX_NO_CONVERTER
-            let baseCallDelegate = new Func<int>(fun () -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands) )
+                let baseCallDelegate = new Func<int>(fun () -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands) )
 #else
-            let baseCall = fun (dummy : int) -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
-            // We are using a Converter<int,int> rather than a "unit->int" because it is too hard to
-            // figure out how to pass an F# function object via reflection.  
-            let baseCallDelegate = new System.Converter<int,int>(baseCall)
+                let baseCall = fun (dummy : int) -> fsc.BaseExecuteTool(pathToTool, responseFileCommands, commandLineCommands)
+                // We are using a Converter<int,int> rather than a "unit->int" because it is too hard to
+                // figure out how to pass an F# function object via reflection.  
+                let baseCallDelegate = new System.Converter<int,int>(baseCall)
 #endif
-            try 
-                let ret = 
-                    (host.GetType()).InvokeMember("Compile", BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.InvokeMethod ||| BindingFlags.Instance, null, host, 
-                                                [| baseCallDelegate; box (capturedArguments |> List.toArray); box (capturedFilenames |> List.toArray) |],
-                                                System.Globalization.CultureInfo.InvariantCulture)
-                unbox ret
-            with 
-            
-#if CROSS_PLATFORM_COMPILER 
-            // The type "Microsoft.Build.Exceptions.BuildAbortedException is not available to   
-            // the cross-platform compiler since it is Windows only (not defined in the Mono  
-            // 4.0 XBuild support). So we test for the type using a string comparison. 
-            | :? System.Reflection.TargetInvocationException as tie when (match tie.InnerException with | null -> false | x when x.GetType().Name = "Microsoft.Build.Exceptions.BuildAbortedException" -> true | _ -> false) -> 
-#else
-            | :? System.Reflection.TargetInvocationException as tie when (match tie.InnerException with | :? Microsoft.Build.Exceptions.BuildAbortedException -> true | _ -> false) ->
-#endif
-                fsc.Log.LogError(tie.InnerException.Message, [| |])
-                -1  // ok, this is what happens when VS IDE cancels the build, no need to assert, just log the build-canceled error and return -1 to denote task failed
-            | e ->
-                System.Diagnostics.Debug.Assert(false, "HostObject received by Fsc task did not have a Compile method or the compile method threw an exception. "+(e.ToString()))
-                reraise()
+                try 
+                    let ret = 
+                        (host.GetType()).InvokeMember("Compile", BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.InvokeMethod ||| BindingFlags.Instance, null, host, 
+                                                    [| baseCallDelegate; box (capturedArguments |> List.toArray); box (capturedFilenames |> List.toArray) |],
+                                                    System.Globalization.CultureInfo.InvariantCulture)
+                    unbox ret
+                with 
+                | :? System.Reflection.TargetInvocationException as tie when (match tie.InnerException with | :? Microsoft.Build.Exceptions.BuildAbortedException -> true | _ -> false) ->
+                    fsc.Log.LogError(tie.InnerException.Message, [| |])
+                    -1  // ok, this is what happens when VS IDE cancels the build, no need to assert, just log the build-canceled error and return -1 to denote task failed
+                | e ->
+                    System.Diagnostics.Debug.Assert(false, "HostObject received by Fsc task did not have a Compile method or the compile method threw an exception. "+(e.ToString()))
+                    reraise()
 
     override fsc.GenerateCommandLineCommands() =
         let builder = new FscCommandLineBuilder()

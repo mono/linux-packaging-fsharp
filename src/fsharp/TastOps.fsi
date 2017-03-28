@@ -395,20 +395,20 @@ val recdFieldTysOfExnDefRef : TyconRef -> TType list
 // inference equations, i.e. are "stripped"
 //------------------------------------------------------------------------- 
 
-val destForallTy     : TcGlobals -> TType -> Typars * TType
-val destFunTy        : TcGlobals -> TType -> TType * TType
+val destForallTy      : TcGlobals -> TType -> Typars * TType
+val destFunTy         : TcGlobals -> TType -> TType * TType
 val destAnyTupleTy    : TcGlobals -> TType -> TupInfo * TTypes
 val destRefTupleTy    : TcGlobals -> TType -> TTypes
-val destStructTupleTy    : TcGlobals -> TType -> TTypes
-val destTyparTy      : TcGlobals -> TType -> Typar
-val destAnyParTy     : TcGlobals -> TType -> Typar
-val destMeasureTy    : TcGlobals -> TType -> Measure
-val tryDestForallTy  : TcGlobals -> TType -> Typars * TType
+val destStructTupleTy : TcGlobals -> TType -> TTypes
+val destTyparTy       : TcGlobals -> TType -> Typar
+val destAnyParTy      : TcGlobals -> TType -> Typar
+val destMeasureTy     : TcGlobals -> TType -> Measure
+val tryDestForallTy   : TcGlobals -> TType -> Typars * TType
 
 val isFunTy            : TcGlobals -> TType -> bool
 val isForallTy         : TcGlobals -> TType -> bool
-val isAnyTupleTy          : TcGlobals -> TType -> bool
-val isRefTupleTy          : TcGlobals -> TType -> bool
+val isAnyTupleTy       : TcGlobals -> TType -> bool
+val isRefTupleTy       : TcGlobals -> TType -> bool
 val isStructTupleTy    : TcGlobals -> TType -> bool
 val isUnionTy          : TcGlobals -> TType -> bool
 val isReprHiddenTy     : TcGlobals -> TType -> bool
@@ -416,6 +416,7 @@ val isFSharpObjModelTy : TcGlobals -> TType -> bool
 val isRecdTy           : TcGlobals -> TType -> bool
 val isTyparTy          : TcGlobals -> TType -> bool
 val isAnyParTy         : TcGlobals -> TType -> bool
+val tryAnyParTy        : TcGlobals -> TType -> Typar option
 val isMeasureTy        : TcGlobals -> TType -> bool
 
 val mkAppTy : TyconRef -> TypeInst -> TType
@@ -428,6 +429,8 @@ val destAppTy      : TcGlobals -> TType -> TyconRef * TypeInst
 val tcrefOfAppTy   : TcGlobals -> TType -> TyconRef
 val tyconOfAppTy   : TcGlobals -> TType -> Tycon
 val tryDestAppTy   : TcGlobals -> TType -> TyconRef option
+val tryDestTyparTy : TcGlobals -> TType -> Typar option
+val tryDestFunTy : TcGlobals -> TType -> (TType * TType) option
 val argsOfAppTy    : TcGlobals -> TType -> TypeInst
 val mkInstForAppTy  : TcGlobals -> TType -> TyparInst
 
@@ -650,13 +653,17 @@ type DisplayEnv =
     member AddOpenPath : string list  -> DisplayEnv
     member AddOpenModuleOrNamespace : ModuleOrNamespaceRef   -> DisplayEnv
 
+val tagEntityRefName: xref: EntityRef -> name: string -> StructuredFormat.TaggedText
 
 /// Return the full text for an item as we want it displayed to the user as a fully qualified entity
 val fullDisplayTextOfModRef : ModuleOrNamespaceRef -> string
 val fullDisplayTextOfParentOfModRef : ModuleOrNamespaceRef -> string option
 val fullDisplayTextOfValRef   : ValRef -> string
+val fullDisplayTextOfValRefAsLayout   : ValRef -> StructuredFormat.Layout
 val fullDisplayTextOfTyconRef  : TyconRef -> string
+val fullDisplayTextOfTyconRefAsLayout  : TyconRef -> StructuredFormat.Layout
 val fullDisplayTextOfExnRef  : TyconRef -> string
+val fullDisplayTextOfExnRefAsLayout  : TyconRef -> StructuredFormat.Layout
 val fullDisplayTextOfUnionCaseRef  : UnionCaseRef -> string
 val fullDisplayTextOfRecdFieldRef  : RecdFieldRef -> string
 
@@ -1142,9 +1149,17 @@ val isQuotedExprTy : TcGlobals -> TType -> bool
 val destQuotedExprTy : TcGlobals -> TType -> TType
 val mkQuotedExprTy : TcGlobals -> TType -> TType
 val mkRawQuotedExprTy : TcGlobals -> TType
-val mspec_Type_GetTypeFromHandle : ILGlobals ->  ILMethodSpec
-val fspec_Missing_Value : ILGlobals ->  ILFieldSpec
+
+//-------------------------------------------------------------------------
+// Primitives associated with IL code gen
+//------------------------------------------------------------------------- 
+
+val mspec_Type_GetTypeFromHandle : TcGlobals ->  ILMethodSpec
+val fspec_Missing_Value : TcGlobals ->  ILFieldSpec
+val mkInitializeArrayMethSpec: TcGlobals -> ILMethodSpec 
 val mkByteArrayTy : TcGlobals -> TType
+val mkInvalidCastExnNewobj: TcGlobals -> ILInstr
+
 
 //-------------------------------------------------------------------------
 // Construct calls to some intrinsic functions
@@ -1388,10 +1403,12 @@ val IsGenericValWithGenericContraints: TcGlobals -> Val -> bool
 type Entity with 
     member HasInterface : TcGlobals -> TType -> bool
     member HasOverride : TcGlobals -> string -> TType list -> bool
+    member HasMember : TcGlobals -> string -> TType list -> bool
 
 type EntityRef with 
     member HasInterface : TcGlobals -> TType -> bool
     member HasOverride : TcGlobals -> string -> TType list -> bool
+    member HasMember : TcGlobals -> string -> TType list -> bool
 
 val (|AttribBitwiseOrExpr|_|) : TcGlobals -> Expr -> (Expr * Expr) option
 val (|EnumExpr|_|) : TcGlobals -> Expr -> Expr option
@@ -1401,6 +1418,8 @@ val (|TypeDefOfExpr|_|) : TcGlobals -> Expr -> TType option
 val EvalLiteralExprOrAttribArg: TcGlobals -> Expr -> Expr
 val EvaledAttribExprEquality : TcGlobals -> Expr -> Expr -> bool
 val IsSimpleSyntacticConstantExpr: TcGlobals -> Expr -> bool
+
+val (|ConstToILFieldInit|_|): Const -> ILFieldInit option
 
 val (|ExtractAttribNamedArg|_|) : string -> AttribNamedArg list -> AttribExpr option 
 val (|AttribInt32Arg|_|) : AttribExpr -> int32 option
@@ -1421,6 +1440,7 @@ val DetectAndOptimizeForExpression : TcGlobals -> OptimizeForExpressionOptions -
 
 val TryEliminateDesugaredConstants : TcGlobals -> range -> Const -> Expr option
 
+val MemberIsExplicitImpl : TcGlobals -> ValMemberInfo -> bool
 val ValIsExplicitImpl : TcGlobals -> Val -> bool
 val ValRefIsExplicitImpl : TcGlobals -> ValRef -> bool
 
@@ -1432,3 +1452,5 @@ val mkCoerceIfNeeded : TcGlobals -> tgtTy: TType -> srcTy: TType -> Expr -> Expr
 val (|InnerExprPat|) : Expr -> Expr
 
 val allValsOfModDef : ModuleOrNamespaceExpr -> seq<Val>
+
+val BindUnitVars : TcGlobals -> (Val list * ArgReprInfo list * Expr) -> Val list * Expr

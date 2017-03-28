@@ -3,7 +3,7 @@
   <metadata>
     <id>FSharp.Compiler.Tools</id>
     <version>0.0.0</version>
-    <title>FSharp.Compiler.Tools for F# 4.0</title>
+    <title>FSharp.Compiler.Tools for F# 4.1</title>
     <authors>F# Software Foundation</authors>
     <owners>F# Software Foundation</owners>
     <licenseUrl>https://github.com/fsharp/fsharp/blob/master/LICENSE</licenseUrl>
@@ -11,56 +11,62 @@
     <iconUrl>http://fsharp.org/img/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
-      FSharp.Compiler.Tools for F# 4.0
+      FSharp.Compiler.Tools for F# 4.1
 
       FSharp.Compiler.Tools built by F# Software Foundation
       This package includes the F# compiler and the F# Interactive.
     </description>
-    <summary>FSharp.Compiler.Tools for F# 4.0 - This package includes the F# compiler and the F# Interactive.</summary>
+    <summary>FSharp.Compiler.Tools for F# 4.1 - This package includes the F# compiler and the F# Interactive.</summary>
     <tags>F#, FSharp, FSharp.Core, fsi, fsc</tags>
   </metadata>
   <files>
     <!-- use signed FSharp.Core in package -->
-    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.0.0\FSharp.Core.dll" target="tools\FSharp.Core.dll" />
-    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.0.0\FSharp.Core.optdata" target="tools\FSharp.Core.optdata" />
-    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.0.0\FSharp.Core.sigdata" target="tools\FSharp.Core.sigdata" />
-    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.0.0\FSharp.Core.xml" target="tools\FSharp.Core.xml" />
-    <file src="..\lib\release\fsc.exe" target="tools\fsc.exe" />
-    <file src="..\lib\release\fsc.exe.config" target="tools\fsc.exe.config" />
-    <file src="..\lib\release\fsc.xml" target="tools\fsc.xml" />
-    <file src="..\lib\release\fsi.exe" target="tools\fsi.exe" />
-    <file src="..\lib\release\fsi.exe.config" target="tools\fsi.exe.config" />
-    <file src="..\lib\release\fsi.xml" target="tools\fsi.xml" />
-    <file src="..\lib\release\FSharp.Compiler.dll" target="tools\FSharp.Compiler.dll" />
-    <file src="..\lib\release\FSharp.Compiler.xml" target="tools\FSharp.Compiler.xml" />
-    <file src="..\lib\release\FSharp.Compiler.Server.Shared.dll" target="tools\FSharp.Compiler.Server.Shared.dll" />
-    <file src="..\lib\release\FSharp.Compiler.Server.Shared.xml" target="tools\FSharp.Compiler.Server.Shared.xml" />
-    <file src="..\lib\release\FSharp.Compiler.Interactive.Settings.dll" target="tools\FSharp.Compiler.Interactive.Settings.dll" />
-    <file src="..\lib\release\FSharp.Compiler.Interactive.Settings.xml" target="tools\FSharp.Compiler.Interactive.Settings.xml" />
-    <file src="..\lib\release\fsiAnyCpu.exe" target="tools\fsiAnyCpu.exe" />
-    <file src="..\lib\release\fsiAnyCpu.exe.config" target="tools\fsiAnyCpu.exe.config" />
-    <file src="..\lib\release\fsiAnyCpu.xml" target="tools\fsiAnyCpu.xml" />
-    <file src="..\lib\release\FSharp.Build.dll" target="tools\FSharp.Build.dll" />
-    <file src="..\lib\release\FSharp.Build.xml" target="tools\FSharp.Build.xml" />
-    <file src="..\lib\release\System.Collections.Immutable.dll" target="tools\System.Collections.Immutable.dll" />
-    <file src="..\lib\release\System.Reflection.Metadata.dll" target="tools\System.Reflection.Metadata.dll" />
+    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.1.0\FSharp.Core.dll" target="tools\FSharp.Core.dll" />
+    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.1.0\FSharp.Core.optdata" target="tools\FSharp.Core.optdata" />
+    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.1.0\FSharp.Core.sigdata" target="tools\FSharp.Core.sigdata" />
+    <file src="..\lib\bootstrap\signed\.NETFramework\v4.0\4.4.1.0\FSharp.Core.xml" target="tools\FSharp.Core.xml" />
+    <file src="..\Release\net40\bin\fsc.exe" target="tools\fsc.exe" />
+    <file src="..\Release\net40\bin\fsc.exe.config" target="tools\fsc.exe.config" />
+    <file src="..\Release\net40\bin\fsc.xml" target="tools\fsc.xml" />
+    <file src="..\Release\net40\bin\fsi.exe" target="tools\fsi.exe" />
+    <file src="..\Release\net40\bin\fsi.exe.config" target="tools\fsi.exe.config" />
+    <file src="..\Release\net40\bin\fsi.xml" target="tools\fsi.xml" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.dll" target="tools\FSharp.Compiler.dll" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.xml" target="tools\FSharp.Compiler.xml" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.Server.Shared.dll" target="tools\FSharp.Compiler.Server.Shared.dll" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.Server.Shared.xml" target="tools\FSharp.Compiler.Server.Shared.xml" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.Interactive.Settings.dll" target="tools\FSharp.Compiler.Interactive.Settings.dll" />
+    <file src="..\Release\net40\bin\FSharp.Compiler.Interactive.Settings.xml" target="tools\FSharp.Compiler.Interactive.Settings.xml" />
+    <file src="..\Release\net40\bin\fsiAnyCpu.exe" target="tools\fsiAnyCpu.exe" />
+    <file src="..\Release\net40\bin\fsiAnyCpu.exe.config" target="tools\fsiAnyCpu.exe.config" />
+    <file src="..\Release\net40\bin\fsiAnyCpu.xml" target="tools\fsiAnyCpu.xml" />
+    <file src="..\Release\net40\bin\FSharp.Build.dll" target="tools\FSharp.Build.dll" />
+    <file src="..\Release\net40\bin\FSharp.Build.xml" target="tools\FSharp.Build.xml" />
+    <file src="..\Release\net40\bin\System.Collections.Immutable.dll" target="tools\System.Collections.Immutable.dll" />
+    <file src="..\Release\net40\bin\System.Reflection.Metadata.dll" target="tools\System.Reflection.Metadata.dll" />
+    <file src="..\Release\net40\bin\Microsoft.DiaSymReader.dll" target="tools\Microsoft.DiaSymReader.dll" />
+    <file src="..\Release\net40\bin\Microsoft.DiaSymReader.PortablePdb.dll" target="tools\Microsoft.DiaSymReader.PortablePdb.dll" />
 
     <!-- Microsoft.FSharp.Targets : Must be used un any distribution of F# for Mono+Linux or any case-sensitive file system using MSBuild --> 
 	<!-- Microsoft.FSharp.Targets or Microsoft.FSharp.targets : Used in the Visual F# Tools distribution (on Windows it doesn't matter). -->
 	<!-- Microsoft.FSharp.targets : Used in the source tree as of 08/04/2016 (prior this was Microsoft.FSharp.Targets) -->
 
-    <file src="..\lib\release\Microsoft.FSharp.Targets" target="tools\Microsoft.FSharp.Targets" />
-<!--
-   These are statically linked
-    <file src="..\lib\release\Microsoft.DiaSymReader.dll" target="tools\Microsoft.DiaSymReader.dll" />
-    <file src="..\lib\release\Microsoft.DiaSymReader.PortablePdb.dll" target="tools\Microsoft.DiaSymReader.PortablePdb.dll" />
-    <file src="..\lib\release\System.Collections.Immutable.dll" target="tools\System.Collections.Immutable.dll" />
-    <file src="..\lib\release\System.Reflection.Metadata.dll" target="tools\System.Reflection.Metadata.dll" />
--->
-    <file src="..\lib\release\Microsoft.Build.dll" target="tools\Microsoft.Build.dll" />
-    <file src="..\lib\release\Microsoft.Build.Engine.dll" target="tools\Microsoft.Build.Engine.dll" />
-    <file src="..\lib\release\Microsoft.Build.Framework.dll" target="tools\Microsoft.Build.Framework.dll" />
-    <file src="..\lib\release\Microsoft.Build.Tasks.v12.0.dll" target="tools\Microsoft.Build.Tasks.v12.0.dll" />
-    <file src="..\lib\release\Microsoft.Build.Utilities.v12.0.dll" target="tools\Microsoft.Build.Utilities.v12.0.dll" />
+    <file src="..\Release\net40\bin\Microsoft.FSharp.Targets" target="tools\Microsoft.FSharp.Targets" />
+	
+	<!-- Microsoft.Portable.FSharp.targets: used in source tree -->
+	<!-- Microsoft.Portable.FSharp.Targets: imported by project templates -->
+    <file src="..\Release\net40\bin\Microsoft.Portable.FSharp.targets" target="tools\Microsoft.Portable.FSharp.Targets" />
+	
+    <file src="..\Release\net40\bin\Microsoft.Build.dll" target="tools\Microsoft.Build.dll" />
+    <file src="..\Release\net40\bin\Microsoft.Build.Engine.dll" target="tools\Microsoft.Build.Engine.dll" />
+    <file src="..\Release\net40\bin\Microsoft.Build.Framework.dll" target="tools\Microsoft.Build.Framework.dll" />
+    <file src="..\Release\net40\bin\Microsoft.Build.Tasks.v12.0.dll" target="tools\Microsoft.Build.Tasks.v12.0.dll" />
+    <file src="..\Release\net40\bin\Microsoft.Build.Utilities.v12.0.dll" target="tools\Microsoft.Build.Utilities.v12.0.dll" />
+
+    <!-- Add fsc published as framework dependent netcoreapp -->
+    <file src="..\Release\netcoreapp1.0\bin\**" target="build\netcoreapp1.0" />
+    <!-- Add auto-imported props to locate fsc and FSharp.Build -->
+    <file src=".\build\FSharp.Compiler.Tools.props" target="build\FSharp.Compiler.Tools.props" />
+    <file src=".\buildCrossTargeting\FSharp.Compiler.Tools.props" target="buildCrossTargeting\FSharp.Compiler.Tools.props" />
   </files>
 </package>
