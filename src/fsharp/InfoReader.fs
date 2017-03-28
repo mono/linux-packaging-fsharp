@@ -71,8 +71,10 @@ let GetImmediateIntrinsicMethInfosOfType (optFilter,ad) g amap m typ =
             let mdefs = (match optFilter with None -> mdefs.AsList | Some nm -> mdefs.FindByName nm)
             mdefs |> List.map (fun mdef -> MethInfo.CreateILMeth(amap, m, typ, mdef)) 
         | FSharpOrArrayOrByrefOrTupleOrExnTypeMetadata -> 
-            if not (isAppTy g typ) then []
-            else SelectImmediateMemberVals g optFilter (TrySelectMemberVal g optFilter typ None) (tcrefOfAppTy g typ)
+            match tryDestAppTy g typ with
+            | None -> []
+            | Some tcref ->
+                SelectImmediateMemberVals g optFilter (TrySelectMemberVal g optFilter typ None) tcref
     let minfos = minfos |> List.filter (IsMethInfoAccessible amap m ad)
     minfos
 
@@ -145,13 +147,13 @@ let GetImmediateIntrinsicPropInfosOfType (optFilter,ad) g amap m typ =
             let pdefs = match optFilter with None -> pdefs.AsList | Some nm -> pdefs.LookupByName nm
             pdefs |> List.map (fun pd -> ILProp(g,ILPropInfo(tinfo,pd))) 
         | FSharpOrArrayOrByrefOrTupleOrExnTypeMetadata -> 
-
-            if not (isAppTy g typ) then []
-            else
+            match tryDestAppTy g typ with
+            | None -> []
+            | Some tcref ->
                 let propCollector = new PropertyCollector(g,amap,m,typ,optFilter,ad)
                 SelectImmediateMemberVals g None
                            (fun membInfo vref -> propCollector.Collect(membInfo,vref); None)
-                           (tcrefOfAppTy g typ) |> ignore
+                           tcref |> ignore
                 propCollector.Close()
 
     let pinfos = pinfos |> List.filter (IsPropInfoAccessible g amap m ad)
@@ -280,13 +282,13 @@ type InfoReader(g:TcGlobals, amap:Import.ImportMap) =
              let einfos = ComputeImmediateIntrinsicEventsOfType (optFilter,ad) m typ 
              let rfinfos = GetImmediateIntrinsicRecdOrClassFieldsOfType (optFilter,ad) m typ 
              match acc with 
-             | Some(MethodItem(inheritedMethSets)) when not (List.isEmpty minfos) -> Some(MethodItem (minfos::inheritedMethSets))
-             | _ when not (List.isEmpty minfos) -> Some(MethodItem ([minfos]))
-             | Some(PropertyItem(inheritedPropSets)) when not (List.isEmpty pinfos) -> Some(PropertyItem(pinfos::inheritedPropSets))
-             | _ when not (List.isEmpty pinfos) -> Some(PropertyItem([pinfos]))
-             | _ when not (List.isEmpty finfos) -> Some(ILFieldItem(finfos))
-             | _ when not (List.isEmpty einfos) -> Some(EventItem(einfos))
-             | _ when not (List.isEmpty rfinfos) -> 
+             | Some(MethodItem(inheritedMethSets)) when not (isNil minfos) -> Some(MethodItem (minfos::inheritedMethSets))
+             | _ when not (isNil minfos) -> Some(MethodItem ([minfos]))
+             | Some(PropertyItem(inheritedPropSets)) when not (isNil pinfos) -> Some(PropertyItem(pinfos::inheritedPropSets))
+             | _ when not (isNil pinfos) -> Some(PropertyItem([pinfos]))
+             | _ when not (isNil finfos) -> Some(ILFieldItem(finfos))
+             | _ when not (isNil einfos) -> Some(EventItem(einfos))
+             | _ when not (isNil rfinfos) -> 
                 match rfinfos with
                 | [single] -> Some(RecdFieldItem(single))
                 | _ -> failwith "Unexpected multiple fields with the same name" // Because an explicit name (i.e., nm) was supplied, there will be only one element at most.

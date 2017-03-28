@@ -115,7 +115,7 @@ type WriterState =
   { os: ByteBuffer; 
     oscope: CcuThunk;
     occus: Table<CcuReference>; 
-    otycons: NodeOutTable<EntityData,Tycon>; 
+    otycons: NodeOutTable<EntityData,Entity>; 
     otypars: NodeOutTable<TyparData,Typar>; 
     ovals: NodeOutTable<ValData,Val>;
     ostrings: Table<string>; 
@@ -436,8 +436,7 @@ let p_option f x st =
 // Pickle lazy values in such a way that they can, in some future F# compiler version, be read back
 // lazily. However, a lazy reader is not used in this version because the value may contain the definitions of some
 // OSGN nodes. 
-let p_lazy p x st = 
-    let v = Lazy.force x
+let private p_lazy_impl p v st = 
     let fixupPos1 = st.os.Position
     // We fix these up after
     prim_p_int32 0 st;
@@ -472,6 +471,12 @@ let p_lazy p x st =
     st.os.FixupInt32 fixupPos5 otyparsIdx2;
     st.os.FixupInt32 fixupPos6 ovalsIdx1;
     st.os.FixupInt32 fixupPos7 ovalsIdx2
+
+let p_lazy p x st = 
+    p_lazy_impl p (Lazy.force x) st
+
+let p_maybe_lazy p (x: MaybeLazy<_>) st = 
+    p_lazy_impl p x.Value st
 
 let p_hole () = 
     let h = ref (None : 'T pickler option)
@@ -667,9 +672,9 @@ let pickleObjWithDanglingCcus file g scope p x =
       { os = ByteBuffer.Create 100000; 
         oscope=scope;
         occus= Table<_>.Create "occus"; 
-        otycons=NodeOutTable<_,_>.Create((fun (tc:Tycon) -> tc.Stamp),(fun tc -> tc.LogicalName),(fun tc -> tc.Range),(fun osgn -> osgn.Data),"otycons"); 
-        otypars=NodeOutTable<_,_>.Create((fun (tp:Typar) -> tp.Stamp),(fun tp -> tp.DisplayName),(fun tp -> tp.Range),(fun osgn -> osgn.Data),"otypars"); 
-        ovals=NodeOutTable<_,_>.Create((fun (v:Val) -> v.Stamp),(fun v -> v.LogicalName),(fun v -> v.Range),(fun osgn -> osgn.Data),"ovals");
+        otycons=NodeOutTable<_,_>.Create((fun (tc:Tycon) -> tc.Stamp),(fun tc -> tc.LogicalName),(fun tc -> tc.Range),(fun osgn -> osgn),"otycons"); 
+        otypars=NodeOutTable<_,_>.Create((fun (tp:Typar) -> tp.Stamp),(fun tp -> tp.DisplayName),(fun tp -> tp.Range),(fun osgn -> osgn),"otypars"); 
+        ovals=NodeOutTable<_,_>.Create((fun (v:Val) -> v.Stamp),(fun v -> v.LogicalName),(fun v -> v.Range),(fun osgn -> osgn),"ovals");
         ostrings=Table<_>.Create "ostrings";
         onlerefs=Table<_>.Create "onlerefs";  
         opubpaths=Table<_>.Create "opubpaths";  
@@ -689,9 +694,9 @@ let pickleObjWithDanglingCcus file g scope p x =
      { os = ByteBuffer.Create 100000; 
        oscope=scope;
        occus= Table<_>.Create "occus (fake)"; 
-       otycons=NodeOutTable<_,_>.Create((fun (tc:Tycon) -> tc.Stamp),(fun tc -> tc.LogicalName),(fun tc -> tc.Range),(fun osgn -> osgn.Data),"otycons"); 
-       otypars=NodeOutTable<_,_>.Create((fun (tp:Typar) -> tp.Stamp),(fun tp -> tp.DisplayName),(fun tp -> tp.Range),(fun osgn -> osgn.Data),"otypars"); 
-       ovals=NodeOutTable<_,_>.Create((fun (v:Val) -> v.Stamp),(fun v -> v.LogicalName),(fun v -> v.Range),(fun osgn -> osgn.Data),"ovals");
+       otycons=NodeOutTable<_,_>.Create((fun (tc:Tycon) -> tc.Stamp),(fun tc -> tc.LogicalName),(fun tc -> tc.Range),(fun osgn -> osgn),"otycons"); 
+       otypars=NodeOutTable<_,_>.Create((fun (tp:Typar) -> tp.Stamp),(fun tp -> tp.DisplayName),(fun tp -> tp.Range),(fun osgn -> osgn),"otypars"); 
+       ovals=NodeOutTable<_,_>.Create((fun (v:Val) -> v.Stamp),(fun v -> v.LogicalName),(fun v -> v.Range),(fun osgn -> osgn),"ovals");
        ostrings=Table<_>.Create "ostrings (fake)";
        opubpaths=Table<_>.Create "opubpaths (fake)";
        onlerefs=Table<_>.Create "onlerefs (fake)";
@@ -1510,7 +1515,7 @@ let u_typar_constraints = (u_list_revi u_typar_constraint)
 
 
 #if INCLUDE_METADATA_WRITER
-let p_typar_spec_data (x:TyparData) st = 
+let p_typar_spec_data (x:Typar) st = 
     p_tup5
       p_ident 
       p_attribs
@@ -1537,7 +1542,8 @@ let u_typar_spec_data st =
       typar_flags=TyparFlags(int32 d);
       typar_constraints=e;
       typar_solution=None;
-      typar_xmldoc=g }
+      typar_xmldoc=g;
+      typar_astype= Unchecked.defaultof<_> }
 
 let u_typar_spec st = 
     u_osgn_decl st.itypars u_typar_spec_data st 
@@ -1711,7 +1717,7 @@ and p_recdfield_spec x st =
 and p_rfield_table x st = 
     p_list p_recdfield_spec (Array.toList x.FieldsByIndex) st
 
-and p_entity_spec_data (x:EntityData) st = 
+and p_entity_spec_data (x:Entity) st = 
       p_typar_specs (x.entity_typars.Force(x.entity_range)) st 
       p_string x.entity_logical_name st
       p_option p_string x.entity_compiled_name st
@@ -1727,7 +1733,7 @@ and p_entity_spec_data (x:EntityData) st =
       p_kind x.entity_kind st
       p_int64 (x.entity_flags.PickledBits ||| (if flagBit then EntityFlags.ReservedBitForPickleFormatTyconReprFlag else 0L)) st
       p_option p_cpath x.entity_cpath st
-      p_lazy p_modul_typ x.entity_modul_contents st
+      p_maybe_lazy p_modul_typ x.entity_modul_contents st
       p_exnc_repr x.entity_exn_info st
       p_space 1 space st
 
@@ -1969,7 +1975,7 @@ and u_recdfield_spec st =
 
 and u_rfield_table st = MakeRecdFieldsTable (u_list u_recdfield_spec st)
 
-and u_entity_spec_data st : EntityData = 
+and u_entity_spec_data st : Entity = 
     let x1,x2a,x2b,x2c,x3,(x4a,x4b),x6,x7f,x8,x9,x10,x10b,x11,x12,x13,x14,_space = 
        u_tup17
           u_typar_specs
@@ -2012,7 +2018,7 @@ and u_entity_spec_data st : EntityData =
       entity_kind=x10b;
       entity_flags=EntityFlags(x11);
       entity_cpath=x12;
-      entity_modul_contents= x13;
+      entity_modul_contents=MaybeLazy.Lazy x13;
       entity_exn_info=x14;
       entity_il_repr_cache=newCache();  
       } 
