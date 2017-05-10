@@ -77,4 +77,3 @@ ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll ${RPM
 %{_prefix}/lib/mono/gac/FSharp.*/
 %{_prefix}/lib/mono/gac/policy.*.FSharp.Core/
 %{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/
-"%{_prefix}/lib/mono/Reference Assemblies/Microsoft/FSharp/"
