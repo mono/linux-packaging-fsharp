@@ -18,8 +18,8 @@
 %global _default_patch_fuzz 2
 
 Name:           fsharp
-Version:	4.1.6
-Release:	0.xamarin.5
+Version:	4.1.9
+Release:	0.xamarin.1
 License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
