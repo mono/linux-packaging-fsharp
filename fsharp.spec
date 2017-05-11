@@ -32,6 +32,9 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
+Patch1:		fsharp-enable-jit-tracking-for-portable-pdb.patch
+Patch2:		fsharp-fix-mdb-support.patch
+Patch3:		fsharp-fix-xbuild-check.patch
 
 %define _use_internal_dependency_generator 0
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -52,6 +55,9 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 %build
 autoreconf
