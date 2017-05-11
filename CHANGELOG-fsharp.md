@@ -1,3 +1,12 @@
+4.1.9
+  * Fix duplicate resources on OSX
+
+4.1.8
+  * [Fix regression in Microsoft.Build.FSharp.targets](https://github.com/fsharp/fsharp/pull/707)
+
+4.1.7
+  * [fix binding redirects for System.Collections.Immutable](https://github.com/fsharp/fsharp/issues/699)
+
 4.1.6
   * fix version of library going in /usr/lib/mono/fsharp
 
