@@ -1,30 +1,41 @@
-## Alternative Packagings for the F# Compiler, Core Library & Tools
+## The F# Compiler, Core Library & Tools
 
-The main purpose of this repository is to deliver extra packagings of the F# compiler, core library
-and core tools for use in different settings.  The F# community use this repo and others to publish
-components that augment those available from other vendors, including:
+This repository is the [F# Software Foundation](http://fsharp.org) repository for F#, as described in [the mission statement of the Foundation](http://foundation.fsharp.org/):
 
-* FSharp.Compiler.Tools NuGet package (this repo)
-* FSharp.Core NuGet package (this repo)
-* FSharp.Compiler.Service NuGet package ([derivative repo](http://github.com/fsharp/FSharp.Compiler.Service))
-* “fsharp” Debian Linux packges for F# + Mono ([derivative repo](https://github.com/mono/linux-packaging-fsharp/)) 
-* “fsharp” as bundled in OSX tooling for F# + Mono by Xamarin
-* “fsharp” docker image [related repo](https://github.com/fsprojects/docker-fsharp)
-* “fsharp” homebrew formula, part of [the mono homebrew formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/mono.rb)
+> The F# Software Foundation... maintains a core open-source F# code repository and distributions made available to the public free of charge for use across multiple platforms. This includes the F# compiler, F# language specification, the F# core library and assorted tools and applications.
 
-See notes below for most of these. In theory an unlimited number of other packagings of F# are possible. Please contribute additional notes to this README.md if you are packaging F# for other settings.
+The process for contributing to the F# Compiler, Core Library and Tools is described [here](https://fsharp.github.io/2014/06/18/fsharp-contributions.html). 
+
+The main day-to-day purpose of this repository is to deliver extra packagings of the F# compiler, core library and core tools for use in different settings.  This repo accepts direct contributions related to the cross-platform packaging of F#. Most other contributions to the F# compiler/library/tools go first via the [upstream repository](https://github.com/Microsoft/visualfsharp) which is also used to package the Visual F# Tools and .NET SDK tooling for F#.  This repo mirrors the core implementation of the F# language from the upstream repository. This arrangement ensures that  versions do not diverge, and that very extensive QA is done on all core contributions.
+
+
+The F# community use this repo and others to publish these components:
+
+* FSharp.Compiler.Tools NuGet package (published from this repo)
+
+* FSharp.Compiler.Service NuGet package (published from [derivative repo](http://github.com/fsharp/FSharp.Compiler.Service))
+
+* [Fable](http://fable.io/), the F# compiler for JavaScript, published from its own repo but using FSharp.Compiler.Service NuGet package
+
+* “fsharp” Debian Linux packges for F# + Mono (published from [derivative repo](https://github.com/mono/linux-packaging-fsharp/)) 
+
+* “fsharp” as bundled in macOS tooling for F# + Mono by Xamarin
+
+* “fsharp” docker image (published from [related repo](https://github.com/fsprojects/docker-fsharp))
+
+* “fsharp” homebrew formula (published as part of [the mono homebrew formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/mono.rb))
+
+* other packagings such as: the [F# support in Jupyter Notebooks - iFSharp](https://github.com/fsprojects/IfSharp); the F# support in Azure Functions; and [WebSharper](https://github.com/intellifactory/websharper) all using the FSharp.Compiler.Service NuGet package
+
+
+See notes below for most of these. Because the core logic of F# is made available as [a library component](http://github.com/fsharp/FSharp.Compiler.Service), an unlimited number of other packagings of F# are possible. Please contribute additional notes to this README.md if you are packaging F# for other settings.
 
 ### Contributing to the F# Compiler, Core Library and Tools
 
-Most contributions to the F# compiler/library/tools go first via the  
-repository at https://github.com/Microsoft/visualfsharp.  This ensures that the main
-packaging of F# on Windows (the Visual F# Tools) also includes any contributions that are made, and
-ensures that the versions do not diverge, and that very extensive QA is done.
 
-If you are using Windows, you should fork the https://github.com/Microsoft/visualfsharp repo and contribute directly there. Your contributions will then be merged into this repo.
+If you are using Windows, you should normally fork the [upstream repository](https://github.com/Microsoft/visualfsharp) repo and contribute directly there. Your contributions will then be merged into this repo.
 
-If you are using Linux or OSX, you can  contribute directly to  https://github.com/Microsoft/visualfsharp if you like.
-CI for that repo runs on Linux. Your contributions will then be merged into this repo. Alternatively, you can prepare your contributions by forking this repository (the code is essentially the same). This will give you access to some additional testing
+If you are using Linux or macOS, you can  contribute directly to  [upstream repository](https://github.com/Microsoft/visualfsharp) if you like. Some CI for that repo runs on Linux. Your contributions will then be merged into this repo. Alternatively, you can prepare your contributions by forking this repository (the code is essentially the same). This will give you access to some additional testing
 available from this repo.
 
 
@@ -32,7 +43,7 @@ available from this repo.
 
 The `master` branch is for F# 4.x.  To bootstrap the compiler, binaries built from an earlier version of this project are used. This codebase uses the Apache 2.0 license.
 
-| F#   | Branch        | OSX/Linux | Windows |
+| F#   | Branch        | macOS/Linux | Windows |
 |------|---------------|-----------|---------|
 | 4.1+ | ``master``    | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=master)](https://travis-ci.org/fsharp/fsharp/branches) | [![Build status](https://ci.appveyor.com/api/projects/status/7m5e2yr0snbbr7t9)](https://ci.appveyor.com/project/fsgit/fsharp) |
 | 4.0  | ``fsharp4``   | [![Build Status](https://travis-ci.org/fsharp/fsharp.png?branch=fsharp4)](https://travis-ci.org/fsharp/fsharp/branches) |
@@ -42,18 +53,17 @@ The `master` branch is for F# 4.x.  To bootstrap the compiler, binaries built fr
 
 ### The ``FSharp.Core`` NuGet package
 
-This repo is currently used to make [the FSharp.Core NuGet package](http://www.nuget.org/packages/FSharp.Core). This package includes
+[The FSharp.Core NuGet package](http://www.nuget.org/packages/FSharp.Core) was previously published from this repo.
+With the informal consent of the F# Software Foundation this package is now published by Microsoft.
 * FSharp.Core.dll for .NET Framework/Mono
 * FSharp.Core.dll for .NET Core
 * FSharp.Core.dll for portable profiles
 
-
-The FSharp.Core NuGet package includes all of the FSharp.Core redistributables from Visual F#. In addition, they include assemblies for MonoAndroid and MonoTouch built from this repository.
+The FSharp.Core NuGet package includes all of the FSharp.Core redistributables from Visual F#.
 
 ### The ``FSharp.Compiler.Tools`` NuGet package
 
-This repo is currently used to make [the FSharp.Compiler.Tools NuGet package](http://www.nuget.org/packages/FSharp.Compiler.Tools). This package includes the
-following for both .NET Core and .NET Framework/Mono:
+This repo is currently used to make [the FSharp.Compiler.Tools NuGet package](http://www.nuget.org/packages/FSharp.Compiler.Tools). This package includes the following for both .NET Core and .NET Framework/Mono:
 * the F# compiler `fsc.exe` 
 * F# Interactive `fsi.exe`
 * build support,
@@ -91,11 +101,11 @@ Jo Shields (@directhex) has done much of this work and says:
 
 > Alexander Köplinger  has admin access to Jenkins, SSH access to the Jenkins and repository servers, and has taken care of things for me in my absence in the past (but isn't a Debian packaging expert, so would be trusting that metadata changes are solid)
 
-### F# packaging in Mono + OSX 
+### F# packaging in Mono + macOS 
 
-F# is pacakged as part of Mono on OSX. Jason Imison says:
+F# is packaged as part of Mono on macOS. Jason Imison says:
 
-> We use a system called BockBuild that pushes versions of F# (sometimes with patches) out with Mono for OSX (F# is bundled with mono here, not a separate package).
+> We use a system called BockBuild that pushes versions of F# (sometimes with patches) out with Mono for macOS (F# is bundled with mono here, not a separate package).
 
 > You can see an example build script here (if you have access, ping me if not) https://github.com/xamarin/bockbuild/blob/2017-02/packages/fsharp.py. Unfortunately, you need to know the branch name here – 2017-02 is what is going to be released with VS for Mac aka Mono 4.9.x
 
@@ -103,7 +113,7 @@ F# is pacakged as part of Mono on OSX. Jason Imison says:
 
 @cartermp says: 
 
-> For future reference, [dependencies and code for the F# editing and F# Interactive support in Visual Studio for Mac/Xamaring Studio) is here](https://github.com/mono/monodevelop/blob/edcdc0d8daa4c25bb8ce36e2dd490c8a50439537/main/external/fsharpbinding/paket.dependencies)
+> For future reference, [dependencies and code for the F# editing and F# Interactive support in Visual Studio for Mac/Xamarin Studio is here](https://github.com/mono/monodevelop/blob/edcdc0d8daa4c25bb8ce36e2dd490c8a50439537/main/external/fsharpbinding/paket.dependencies)
 
 ### Package feeds
 
@@ -131,50 +141,35 @@ If using NuGet Package Manager, add the source to the list of available package 
 
 ## Development Guide
 
-### Build Requirements
-
-Building F# on Unix-type platforms requires
-[Mono](http://www.mono-project.com/download/) 4.4 or higher. If you
-get a complaint in subsequent steps about `xbuild` being missing, it means
-you don't have Mono installed.
-
-Building on OS X requires several development tools that are not installed
-by default. Most can be installed via [Homebrew](http://brew.sh/):
-
-	brew install autoconf automake pkg-config
-
-Building on OS X also requires Xcode. If you don't want to install
-the full GUI development environment, the command line tools are sufficient.
-At a shell prompt, say:
-
-	xcode-select --install
-
 
 ### Building on Linux and other Unix systems:
-The usual:
+
+Building F# on Unix-type platforms requires [Mono](http://www.mono-project.com/download/) 5.0 or higher. 
 
 	./autogen.sh --prefix=/usr
 	make
 	sudo make install
 
-By default that makes optimized binaries. To make debug, use ```make CONFIG=debug```
+That build and installs optimized binaries. To make debug, use ```make CONFIG=debug```
 
 
-### Building on OS X
+### Building on macOS
 
-Use a prefix to your version of Mono:
+Building on macOS requires an install of the latest Xamarin tools or Mono package. Use a prefix to your version of Mono:
 
 	./autogen.sh --prefix=/Library/Frameworks/Mono.framework/Versions/Current/
 	make
 	sudo make install
 
-By default that makes optimized binaries. To make debug, use ```make CONFIG=debug```
+That build and installs optimized binaries. To make debug, use ```make CONFIG=debug```
 
 ### Building on Windows
 
+Install [.NET 4.5.1](http://www.microsoft.com/en-us/download/details.aspx?id=40779) and  [MSBuild 12.0](http://www.microsoft.com/en-us/download/details.aspx?id=40760)
+
 Build using:
 
-    build.bat
+    mono\build.bat
 
 This build the proto compiler, then the library, then the final compiler.
 
@@ -201,8 +196,12 @@ If a strong-name signed FSharp.Core.dll is needed then use the one in
 
 To integrate latest changes from https://github.com/Microsoft/visualfsharp, use
 ```
+git checkout -b integrate
 git remote add visualfsharp https://github.com/Microsoft/visualfsharp
 git pull visualfsharp master
+git rm -fr vsintegration
+git rm -fr setup
+git rm -fr tests/fsharpqa
 ```
 
 There are certain guidelines that need to be followed when integrating changes from upstream:
@@ -221,7 +220,7 @@ Historically it is difficult to edit the compiler with Xamarin Studio or MonoDev
 
 ## How to Test and Validate
 
-### Linux and OSX
+### Linux and macOS
 
 Only a subset of the tests are currently enabled.
 

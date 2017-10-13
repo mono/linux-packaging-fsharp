@@ -17,11 +17,10 @@ build_script:
   - cmd: dotnet --info
   - cmd: build.bat
   - cmd: build-netcore.bat
-  - ps: .\appveyor.ps1
+  - ps: .\mono\appveyor.ps1
 
 test: off
 version: '{build}'
 artifacts:
-  - path: lib\release
-    name: release
-  - path: lib\release\*.nupkg
+  - path: release
+  - path: release\*.nupkg
