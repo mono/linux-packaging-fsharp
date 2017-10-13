@@ -1,3 +1,9 @@
+fsharp (4.1.25-0xamarin2) alpha; urgency=medium
+
+  * Packaging bugfix:
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Fri, 13 Oct 2017 17:53:43 +0000
+
 fsharp (4.1.25-0xamarin1) alpha; urgency=medium
 
   * New release - fsharp-4.1.25.tar.gz
