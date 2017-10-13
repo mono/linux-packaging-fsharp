@@ -1,3 +1,25 @@
+4.1.25
+  * [Make F# resources work more like C#](https://github.com/fsharp/fsharp/pull/761)
+  * Fix [Warning regarding WinForms on launch of `fsharpi` on mono](https://github.com/fsharp/fsharp/pull/767)
+
+4.1.24
+  * Build using Mono 5.0 and msbuild
+
+4.1.23
+  * Fix nuget package for FSharp.Compiler.Tools System.ValueTuple.dll
+
+4.1.21
+  * Fix nuget package for FSharp.Compiler.Tools
+
+4.1.19
+  * Integrate changes from visualfsharp
+
+4.1.15
+  * fix regression on binding redirects for System.Collections.Immutable
+
+4.1.10
+  * Integrate visualfsharp to 55ffe91
+
 4.1.9
   * Fix duplicate resources on OSX
 

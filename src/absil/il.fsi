@@ -2,7 +2,11 @@
 
 /// The "unlinked" view of .NET metadata and code.  Central to 
 ///  to Abstract IL library
+#if COMPILER_PUBLIC_API
+module public Microsoft.FSharp.Compiler.AbstractIL.IL 
+#else
 module internal Microsoft.FSharp.Compiler.AbstractIL.IL 
+#endif
 
 open Internal.Utilities
 open System.Collections.Generic
@@ -10,7 +14,8 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 type PrimaryAssembly = 
     | Mscorlib
-    | DotNetCore
+    | System_Runtime
+    | NetStandard
 
     member Name: string
 
@@ -57,7 +62,7 @@ type PrimaryAssembly =
 // ==================================================================== 
 
 // Guids (Note: consider adjusting these to the System.Guid type)
-type Guid = byte[]
+type ILGuid = byte[]
 
 [<StructuralEquality; StructuralComparison>]
 type ILPlatform = 
@@ -69,10 +74,10 @@ type ILPlatform =
 /// points and some other locations. 
 [<Sealed>]
 type ILSourceDocument =
-    static member Create : language: Guid option * vendor: Guid option * documentType: Guid option * file: string -> ILSourceDocument
-    member Language: Guid option
-    member Vendor: Guid option
-    member DocumentType: Guid option
+    static member Create : language: ILGuid option * vendor: ILGuid option * documentType: ILGuid option * file: string -> ILSourceDocument
+    member Language: ILGuid option
+    member Vendor: ILGuid option
+    member DocumentType: ILGuid option
     member File: string
 
 
@@ -261,23 +266,31 @@ type ILGenericVariance =
 /// Type refs, i.e. references to types in some .NET assembly
 [<Sealed>]
 type ILTypeRef =
+
     /// Create a ILTypeRef.
     static member Create : scope: ILScopeRef * enclosing: string list * name: string -> ILTypeRef
 
     /// Where is the type, i.e. is it in this module, in another module in this assembly or in another assembly? 
     member Scope: ILScopeRef
+
     /// The list of enclosing type names for a nested type. If non-nil then the first of these also contains the namespace.
     member Enclosing: string list
+
     /// The name of the type. This also contains the namespace if Enclosing is empty.
     member Name: string
+
     /// The name of the type in the assembly using the '.' notation for nested types.
     member FullName: string
+
     /// The name of the type in the assembly using the '+' notation for nested types.
     member BasicQualifiedName : string
+
     member QualifiedName: string
+
 #if EXTENSIONTYPING
     member QualifiedNameWithNoShortPrimaryAssembly: string
 #endif
+
     interface System.IComparable
     
 /// Type specs and types.  
@@ -295,6 +308,7 @@ type ILTypeSpec =
 
     /// Which type is being referred to?
     member TypeRef: ILTypeRef
+
     /// The type instantiation if the type is generic, otherwise empty
     member GenericArgs: ILGenericArgs
     member Scope: ILScopeRef
@@ -739,7 +753,7 @@ type ILNativeVariant =
 [<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
 type ILNativeType = 
     | Empty
-    | Custom of Guid * string * string * byte[] (* guid,nativeTypeName,custMarshallerName,cookieString *)
+    | Custom of ILGuid * string * string * byte[] (* guid,nativeTypeName,custMarshallerName,cookieString *)
     | FixedSysString of int32
     | FixedArray of int32
     | Currency
@@ -790,9 +804,10 @@ type ILLocals = list<ILLocal>
 [<RequireQualifiedAccess; NoComparison; NoEquality>]
 type ILMethodBody = 
     { IsZeroInit: bool;
-      /// strictly speakin should be a uint16 
+      /// strictly speaking should be a uint16 
       MaxStack: int32; 
       NoInlining: bool;
+      AggressiveInlining: bool;
       Locals: ILLocals;
       Code: ILCode;
       SourceMarker: ILSourceMarker option }
@@ -836,11 +851,12 @@ type ILAttributeNamedArg = string * ILType * bool * ILAttribElem
 /// Custom attributes.  See 'decodeILAttribData' for a helper to parse the byte[] 
 /// to ILAttribElem's as best as possible.  
 type ILAttribute =
-    { Method: ILMethodSpec;
+    { Method: ILMethodSpec;  
       Data: byte[] }
 
 [<NoEquality; NoComparison; Sealed>]
 type ILAttributes =
+    member AsArray : ILAttribute []
     member AsList : ILAttribute list
 
 /// Method parameters and return values.
@@ -1039,6 +1055,7 @@ type ILMethodDef =
       /// .NET 2.0 feature: SafeHandle finalizer must be run.
       IsMustRun: bool; 
       IsNoInline: bool;
+      IsAggressiveInline: bool;
      
       GenericParams: ILGenericParameterDefs;
       CustomAttrs: ILAttributes; }
@@ -1834,6 +1851,9 @@ val rescopeILMethodRef: ILScopeRef -> ILMethodRef -> ILMethodRef
 /// Rescoping. The first argument tells the function how to reference the original scope from 
 /// the new scope. 
 val rescopeILFieldRef: ILScopeRef -> ILFieldRef -> ILFieldRef
+
+/// Unscoping. Clears every scope information, use for looking up IL method references only.
+val unscopeILType: ILType -> ILType
 
 //-----------------------------------------------------------------------
 // The ILCode Builder utility.

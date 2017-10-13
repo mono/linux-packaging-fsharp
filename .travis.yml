@@ -6,12 +6,11 @@ os:
 
 mono:
   - latest
-  - 4.8.0
-  - 4.4.2
+  - 5.0.1
 
 install:
 
-script: ./build-mono.sh && ./test-mono.sh
+script: ./mono/build-mono.sh && ./mono/test-mono.sh
 
 matrix:
   exclude:
