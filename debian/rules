@@ -14,6 +14,10 @@ override_dh_fixperms:
 	find debian -iname *.optdata -type f -exec chmod 644 {} +
 	find debian -iname *.targets -type f -exec chmod 644 {} +
 
+override_dh_auto_clean:
+	# don't clean - broken on newer distros as make distclean can't run before configure
+	true
+
 override_dh_auto_build:
 	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) dh_auto_build
 	#xbuild FsLex/FsLex.fsproj
