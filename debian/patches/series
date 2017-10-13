@@ -1,4 +1,1 @@
 fix-bootstrap-src-targets-path.patch
-fsharp-enable-jit-tracking-for-portable-pdb.patch
-fsharp-fix-mdb-support.patch
-fsharp-fix-xbuild-check.patch
