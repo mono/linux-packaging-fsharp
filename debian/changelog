@@ -1,3 +1,15 @@
+fsharp (4.1.25-0xamarin3) alpha; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [6890c32] Merge branch 'master' of github.com:mono/linux-packaging-
+    fsharp [02dc261] Force BTLS installation, it's not auto-installed on
+    Ubuntu Precise
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Fri, 13 Oct 2017 19:04:17 +0000
+
 fsharp (4.1.25-0xamarin2) alpha; urgency=medium
 
   * Packaging bugfix:
