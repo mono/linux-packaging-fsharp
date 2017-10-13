@@ -32,7 +32,6 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
-Patch3:		fsharp-fix-xbuild-check.patch
 Patch4:		fsharp-install-netsdk-targets.patch
 
 %define _use_internal_dependency_generator 0
@@ -54,7 +53,6 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
-%patch3 -p1
 %patch4 -p1
 
 %build
