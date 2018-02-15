@@ -1,16 +1,14 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 /// Primary relations on types and signatures, with the exception of
 /// constraint solving and method overload resolution.
 module internal Microsoft.FSharp.Compiler.TypeRelations
 
-open Microsoft.FSharp.Compiler 
 open Microsoft.FSharp.Compiler.AbstractIL.Internal 
 open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library 
 open Microsoft.FSharp.Compiler.ErrorLogger
 open Microsoft.FSharp.Compiler.Tast
 open Microsoft.FSharp.Compiler.Tastops
-open Microsoft.FSharp.Compiler.Tastops.DebugPrint
 open Microsoft.FSharp.Compiler.TcGlobals
 open Microsoft.FSharp.Compiler.Infos
 open Microsoft.FSharp.Compiler.PrettyNaming
@@ -143,8 +141,7 @@ let ChooseTyparSolutionAndRange (g: TcGlobals) amap (tp:Typar) =
              match tpc with 
              | TyparConstraint.CoercesTo(x,m) -> 
                  join m x,m
-             | TyparConstraint.MayResolveMember(TTrait(_,nm,_,_,_,_),m) -> 
-                 errorR(Error(FSComp.SR.typrelCannotResolveAmbiguityInOverloadedOperator(DemangleOperatorName nm),m))
+             | TyparConstraint.MayResolveMember(TTrait(_,_,_,_,_,_),m) ->
                  maxSoFar,m
              | TyparConstraint.SimpleChoice(_,m) -> 
                  errorR(Error(FSComp.SR.typrelCannotResolveAmbiguityInPrintf(),m))

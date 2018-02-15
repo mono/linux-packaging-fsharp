@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 module Microsoft.FSharp.Compiler.AbstractIL.IL 
 
@@ -675,27 +675,33 @@ and [<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
         
     member x.QualifiedNameWithNoShortPrimaryAssembly = 
         x.AddQualifiedNameExtensionWithNoShortPrimaryAssembly(x.BasicQualifiedName)
+
     member x.TypeSpec =
       match x with 
       | ILType.Boxed tr | ILType.Value tr -> tr
       | _ -> invalidOp "not a nominal type"
+
     member x.Boxity =
       match x with 
       | ILType.Boxed _ -> AsObject
       | ILType.Value _ -> AsValue
       | _ -> invalidOp "not a nominal type"
+
     member x.TypeRef = 
       match x with 
       | ILType.Boxed tspec | ILType.Value tspec -> tspec.TypeRef
       | _ -> invalidOp "not a nominal type"
+
     member x.IsNominal = 
       match x with 
       | ILType.Boxed _ | ILType.Value _ -> true
       | _ -> false
+
     member x.GenericArgs =
       match x with 
       | ILType.Boxed tspec | ILType.Value tspec -> tspec.GenericArgs
       | _ -> []
+
     member x.IsTyvar =
       match x with 
       | ILType.TypeVar _ -> true | _ -> false
@@ -720,7 +726,7 @@ type ILMethodRef =
       mrefName: string;
       mrefArgs: ILTypes;
       mrefReturn: ILType }
-    member x.EnclosingTypeRef = x.mrefParent
+    member x.DeclaringTypeRef = x.mrefParent
     member x.CallingConv = x.mrefCallconv
     member x.Name = x.mrefName
     member x.GenericArity = x.mrefGenericArity
@@ -731,24 +737,24 @@ type ILMethodRef =
     member x.CallingSignature = mkILCallSig (x.CallingConv,x.ArgTypes,x.ReturnType)
     static member Create(a,b,c,d,e,f) = 
         { mrefParent= a;mrefCallconv=b;mrefName=c;mrefGenericArity=d; mrefArgs=e;mrefReturn=f }
-    override x.ToString() = x.EnclosingTypeRef.ToString() + "::" + x.Name + "(...)"
+    override x.ToString() = x.DeclaringTypeRef.ToString() + "::" + x.Name + "(...)"
 
 
 [<StructuralEquality; StructuralComparison>]
 type ILFieldRef = 
-    { EnclosingTypeRef: ILTypeRef;
+    { DeclaringTypeRef: ILTypeRef;
       Name: string;
       Type: ILType }
-    override x.ToString() = x.EnclosingTypeRef.ToString() + "::" + x.Name
+    override x.ToString() = x.DeclaringTypeRef.ToString() + "::" + x.Name
 
 [<StructuralEquality; StructuralComparison>]
 type ILMethodSpec = 
     { mspecMethodRef: ILMethodRef;
-      mspecEnclosingType: ILType;          
+      mspecDeclaringType: ILType;          
       mspecMethodInst: ILGenericArgs; }     
-    static member Create(a,b,c) = { mspecEnclosingType=a; mspecMethodRef =b; mspecMethodInst=c }
+    static member Create(a,b,c) = { mspecDeclaringType=a; mspecMethodRef =b; mspecMethodInst=c }
     member x.MethodRef = x.mspecMethodRef
-    member x.EnclosingType=x.mspecEnclosingType
+    member x.DeclaringType=x.mspecDeclaringType
     member x.GenericArgs=x.mspecMethodInst
     member x.Name=x.MethodRef.Name
     member x.CallingConv=x.MethodRef.CallingConv
@@ -760,10 +766,10 @@ type ILMethodSpec =
 
 type ILFieldSpec =
     { FieldRef: ILFieldRef;
-      EnclosingType: ILType }         
+      DeclaringType: ILType }         
     member x.FormalType       = x.FieldRef.Type
     member x.Name             = x.FieldRef.Name
-    member x.EnclosingTypeRef = x.FieldRef.EnclosingTypeRef
+    member x.DeclaringTypeRef = x.FieldRef.DeclaringTypeRef
     override x.ToString() = x.FieldRef.ToString()
 
 
@@ -838,13 +844,14 @@ type ILAttribElem =
 type ILAttributeNamedArg =  (string * ILType * bool * ILAttribElem)
 type ILAttribute = 
     { Method: ILMethodSpec;
-      Data: byte[] }
+      Data: byte[] 
+      Elements: ILAttribElem list}
 
 [<NoEquality; NoComparison; Sealed>]
 type ILAttributes(f: unit -> ILAttribute[]) = 
-   let mutable array = InlineDelayInit<_>(f)
-   member x.AsArray = array.Value
-   member x.AsList = x.AsArray |> Array.toList
+    let mutable array = InlineDelayInit<_>(f)
+    member x.AsArray = array.Value
+    member x.AsList = x.AsArray |> Array.toList
 
 type ILCodeLabel = int
 
@@ -1295,7 +1302,7 @@ type ILReturn =
 type ILOverridesSpec = 
     | OverridesSpec of ILMethodRef * ILType
     member x.MethodRef = let (OverridesSpec(mr,_ty)) = x in mr
-    member x.EnclosingType = let (OverridesSpec(_mr,ty)) = x in ty
+    member x.DeclaringType = let (OverridesSpec(_mr,ty)) = x in ty
 
 type ILMethodVirtualInfo = 
     { IsFinal: bool
@@ -1810,10 +1817,10 @@ let mkILMethRef (tref,callconv,nm,gparams,args,rty) =
 
 let mkILMethSpecForMethRefInTy (mref,typ,minst) = 
     { mspecMethodRef=mref;
-      mspecEnclosingType=typ;
+      mspecDeclaringType=typ;
       mspecMethodInst=minst }
 
-let mkILMethSpec (mref, vc, tinst, minst) = mkILMethSpecForMethRefInTy (mref,mkILNamedTy vc mref.EnclosingTypeRef tinst, minst)
+let mkILMethSpec (mref, vc, tinst, minst) = mkILMethSpecForMethRefInTy (mref,mkILNamedTy vc mref.DeclaringTypeRef tinst, minst)
 
 let mk_mspec_in_tref (tref,vc,cc,nm,args,rty,tinst,minst) =
   mkILMethSpec (mkILMethRef ( tref,cc,nm,List.length minst,args,rty),vc,tinst,minst)
@@ -1849,9 +1856,9 @@ let mkILNonGenericCtorMethSpec (tref,args) =
 // Make references to fields
 // -------------------------------------------------------------------- 
 
-let mkILFieldRef(tref,nm,ty) = { EnclosingTypeRef=tref; Name=nm; Type=ty}
+let mkILFieldRef(tref,nm,ty) = { DeclaringTypeRef=tref; Name=nm; Type=ty}
 
-let mkILFieldSpec (tref,ty) = { FieldRef= tref; EnclosingType=ty }
+let mkILFieldSpec (tref,ty) = { FieldRef= tref; DeclaringType=ty }
 
 let mkILFieldSpecInTy (typ:ILType,nm,fty) = 
     mkILFieldSpec (mkILFieldRef (typ.TypeRef,nm,fty), typ)
@@ -2198,7 +2205,7 @@ and rescopeILCallSig scoref  csig =
     mkILCallSig (csig.CallingConv,rescopeILTypes scoref csig.ArgTypes,rescopeILType scoref csig.ReturnType)
 
 let rescopeILMethodRef scoref (x:ILMethodRef) =
-    { mrefParent = rescopeILTypeRef scoref x.EnclosingTypeRef;
+    { mrefParent = rescopeILTypeRef scoref x.DeclaringTypeRef;
       mrefCallconv = x.mrefCallconv;
       mrefGenericArity=x.mrefGenericArity;
       mrefName=x.mrefName;
@@ -2206,7 +2213,7 @@ let rescopeILMethodRef scoref (x:ILMethodRef) =
       mrefReturn= rescopeILType scoref x.mrefReturn }
 
 let rescopeILFieldRef scoref x = 
-    { EnclosingTypeRef = rescopeILTypeRef scoref x.EnclosingTypeRef;
+    { DeclaringTypeRef = rescopeILTypeRef scoref x.DeclaringTypeRef;
       Name= x.Name;
       Type= rescopeILType scoref x.Type }
 
@@ -2270,7 +2277,7 @@ let mkILLocal ty dbgInfo : ILLocal =
 
 type ILFieldSpec with
   member fr.ActualType = 
-      let env = fr.EnclosingType.GenericArgs
+      let env = fr.DeclaringType.GenericArgs
       instILType env fr.FormalType
 
 // -------------------------------------------------------------------- 
@@ -3088,12 +3095,12 @@ let rec decodeCustomAttrElemType (ilg: ILGlobals) bytes sigptr x =
 let rec encodeCustomAttrPrimValue ilg c = 
     match c with 
     | ILAttribElem.Bool b -> [| (if b then 0x01uy else 0x00uy) |]
-    | ILAttribElem.String None 
-    | ILAttribElem.Type None 
+    | ILAttribElem.String None
+    | ILAttribElem.Type None
     | ILAttribElem.TypeRef None
     | ILAttribElem.Null -> [| 0xFFuy |]
     | ILAttribElem.String (Some s) -> encodeCustomAttrString s
-    | ILAttribElem.Char x -> u16AsBytes (uint16 x)
+    | ILAttribElem.Char x ->  u16AsBytes (uint16 x)
     | ILAttribElem.SByte x -> i8AsBytes x
     | ILAttribElem.Int16 x -> i16AsBytes x
     | ILAttribElem.Int32 x -> i32AsBytes x
@@ -3135,9 +3142,9 @@ let mkILCustomAttribMethRef (ilg: ILGlobals) (mspec:ILMethodSpec, fixedArgs: lis
          yield! u16AsBytes (uint16 namedArgs.Length) 
          for namedArg in namedArgs do 
              yield! encodeCustomAttrNamedArg ilg namedArg |]
-
     { Method = mspec;
-      Data = args }
+      Data = args;
+      Elements = fixedArgs @ (namedArgs |> List.map(fun (_,_,_,e) -> e)) }
 
 let mkILCustomAttribute ilg (tref,argtys,argvs,propvs) = 
     mkILCustomAttribMethRef ilg (mkILNonGenericCtorMethSpec (tref,argtys),argvs,propvs)
@@ -3377,10 +3384,10 @@ let decodeILAttribData (ilg: ILGlobals) (ca: ILAttribute) =
           let n,sigptr = sigptr_get_i32 bytes sigptr
           if n = 0xFFFFFFFF then ILAttribElem.Null,sigptr else
           let rec parseElems acc n sigptr = 
-            if n = 0 then List.rev acc else
+            if n = 0 then List.rev acc, sigptr else
             let v,sigptr = parseVal elemTy sigptr
             parseElems (v ::acc) (n-1) sigptr
-          let elems = parseElems [] n sigptr
+          let elems, sigptr = parseElems [] n sigptr 
           ILAttribElem.Array(elemTy,elems), sigptr
       | ILType.Value _ ->  (* assume it is an enumeration *)
           let n,sigptr = sigptr_get_i32 bytes sigptr
@@ -3402,7 +3409,7 @@ let decodeILAttribData (ilg: ILGlobals) (ca: ILAttribute) =
       let et,sigptr = sigptr_get_u8 bytes sigptr
       // We have a named value 
       let ty,sigptr = 
-        if (0x50 = (int et) || 0x55 = (int et)) then
+        if ( (* 0x50 = (int et) || *) 0x55 = (int et)) then
             let qualified_tname,sigptr = sigptr_get_serstring bytes sigptr
             let unqualified_tname, rest = 
                 let pieces = qualified_tname.Split(',')
@@ -3475,20 +3482,20 @@ and refs_of_genparams s b = List.iter (refs_of_genparam s) b
 and refs_of_dloc s ts = refs_of_tref s ts
    
 and refs_of_mref s (x:ILMethodRef) = 
-    refs_of_dloc s x.EnclosingTypeRef  ;
+    refs_of_dloc s x.DeclaringTypeRef  ;
     refs_of_typs s x.mrefArgs;
     refs_of_typ s x.mrefReturn
     
-and refs_of_fref s x = refs_of_tref s x.EnclosingTypeRef; refs_of_typ s x.Type
+and refs_of_fref s x = refs_of_tref s x.DeclaringTypeRef; refs_of_typ s x.Type
 and refs_of_ospec s (OverridesSpec(mref,ty)) = refs_of_mref s mref; refs_of_typ s ty 
 and refs_of_mspec s (x: ILMethodSpec) = 
     refs_of_mref s x.MethodRef;
-    refs_of_typ s x.EnclosingType;
+    refs_of_typ s x.DeclaringType;
     refs_of_inst s x.GenericArgs
 
 and refs_of_fspec s x =
     refs_of_fref s x.FieldRef;
-    refs_of_typ s x.EnclosingType
+    refs_of_typ s x.DeclaringType
 
 and refs_of_typs s l = List.iter (refs_of_typ s) l
   
@@ -3649,7 +3656,7 @@ let computeILRefs modul =
     { AssemblyReferences = Seq.fold (fun acc x -> x::acc) [] s.refsA
       ModuleReferences =  Seq.fold (fun acc x -> x::acc) [] s.refsM }
 
-let tspan = System.TimeSpan(System.DateTime.Now.Ticks - System.DateTime(2000,1,1).Ticks)
+let tspan = System.TimeSpan(System.DateTime.UtcNow.Ticks - System.DateTime(2000,1,1).Ticks)
 
 let parseILVersion (vstr : string) = 
     // matches "v1.2.3.4" or "1.2.3.4". Note, if numbers are missing, returns -1 (not 0).
@@ -3660,7 +3667,7 @@ let parseILVersion (vstr : string) =
     // account for wildcards
     if versionComponents.Length > 2 then
       let defaultBuild = (uint16)tspan.Days % System.UInt16.MaxValue - 1us
-      let defaultRevision = (uint16)(System.DateTime.Now.TimeOfDay.TotalSeconds / 2.0) % System.UInt16.MaxValue - 1us
+      let defaultRevision = (uint16)(System.DateTime.UtcNow.TimeOfDay.TotalSeconds / 2.0) % System.UInt16.MaxValue - 1us
       if versionComponents.[2] = "*" then
         if versionComponents.Length > 3 then
           failwith "Invalid version format"
@@ -3762,11 +3769,11 @@ let ungenericizeTypeName n =
 type ILEventRef =
     { erA: ILTypeRef; erB: string }
     static member Create(a,b) = {erA=a;erB=b}
-    member x.EnclosingTypeRef = x.erA
+    member x.DeclaringTypeRef = x.erA
     member x.Name = x.erB
 
 type ILPropertyRef =
     { prA: ILTypeRef; prB: string }
     static member Create (a,b) = {prA=a;prB=b}
-    member x.EnclosingTypeRef = x.prA
+    member x.DeclaringTypeRef = x.prA
     member x.Name = x.prB

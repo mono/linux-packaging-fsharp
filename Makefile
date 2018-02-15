@@ -1,6 +1,6 @@
 include $(topsrcdir)mono/config.make
 
-.PHONY: restore
+.PHONY: restore build
 
 restore:
 	MONO_ENV_OPTIONS=$(monoopts) mono .nuget/NuGet.exe restore packages.config -PackagesDirectory packages -ConfigFile .nuget/NuGet.Config
@@ -27,17 +27,7 @@ build:
 	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=$(Configuration) /p:TargetDotnetProfile=net40 src/fsharp/FSharp.Compiler.Server.Shared/FSharp.Compiler.Server.Shared.fsproj
 	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=$(Configuration) /p:TargetDotnetProfile=net40 src/fsharp/fsi/Fsi.fsproj
 	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=$(Configuration) /p:TargetDotnetProfile=net40 src/fsharp/fsiAnyCpu/FsiAnyCPU.fsproj
-	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=$(Configuration) /p:TargetDotnetProfile=net40 src/fsharp/FSharp.Core.Unittests/FSharp.Core.Unittests.fsproj
-	$(MAKE) -C mono/policy.2.0.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.2.3.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.3.3.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.3.7.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.3.47.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.3.78.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.3.259.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.4.0.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.4.3.FSharp.Core TargetDotnetProfile=net40 $@
-	$(MAKE) -C mono/policy.4.4.FSharp.Core TargetDotnetProfile=net40 $@
+	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=$(Configuration) /p:TargetDotnetProfile=net40 tests/FSharp.Core.UnitTests/FSharp.Core.Unittests.fsproj
 	mkdir -p $(Configuration)/fsharp30/net40/bin
 	mkdir -p $(Configuration)/fsharp31/net40/bin
 	mkdir -p $(Configuration)/fsharp40/net40/bin
@@ -63,8 +53,6 @@ install:
 	-rm -fr $(DESTDIR)$(monodir)/fsharp
 	-rm -fr $(DESTDIR)$(monodir)/Microsoft\ F#
 	-rm -fr $(DESTDIR)$(monodir)/Microsoft\ SDKs/F#
-	-rm -fr $(DESTDIR)$(monodir)/gac/FSharp.Core
-	-rm -fr $(DESTDIR)$(monodir)/gac/FSharp.Compiler.Private
 	-rm -fr $(DESTDIR)$(monodir)/msbuild/Microsoft/VisualStudio/v/FSharp
 	-rm -fr $(DESTDIR)$(monodir)/msbuild/Microsoft/VisualStudio/v11.0/FSharp
 	-rm -fr $(DESTDIR)$(monodir)/msbuild/Microsoft/VisualStudio/v12.0/FSharp
@@ -81,16 +69,6 @@ install:
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=3.0 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=3.1 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=4.0 install
-	$(MAKE) -C mono/policy.2.0.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.2.3.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.3.3.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.3.7.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.3.47.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.3.78.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.3.259.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.4.0.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.4.3.FSharp.Core TargetDotnetProfile=net40 install
-	$(MAKE) -C mono/policy.4.4.FSharp.Core TargetDotnetProfile=net40 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable47 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable7 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable78 install
@@ -98,7 +76,7 @@ install:
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=monoandroid10+monotouch10+xamarinios10 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=xamarinmacmobile install
 	echo "------------------------------ INSTALLED FILES --------------"
-	ls -xlR $(DESTDIR)$(monodir)/fsharp $(DESTDIR)$(monodir)/msbuild $(DESTDIR)$(monodir)/gac/FSharp* $(DESTDIR)$(monodir)/Microsoft* || true
+	ls -xlR $(DESTDIR)$(monodir)/fsharp $(DESTDIR)$(monodir)/msbuild $(DESTDIR)$(monodir)/xbuild $(DESTDIR)$(monodir)/Reference\ Assemblies $(DESTDIR)$(monodir)/gac/FSharp* $(DESTDIR)$(monodir)/Microsoft* || true
 
 dist:
 	-rm -r fsharp-$(DISTVERSION) fsharp-$(DISTVERSION).tar.bz2

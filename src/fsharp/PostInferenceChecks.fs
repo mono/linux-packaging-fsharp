@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 /// Implements a set of checks on the TAST for a file that can only be performed after type inference
 /// is complete.
@@ -7,7 +7,6 @@ module internal Microsoft.FSharp.Compiler.PostTypeCheckSemanticChecks
 open System.Collections.Generic
 
 open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.AbstractIL
 open Microsoft.FSharp.Compiler.AbstractIL.IL
 open Microsoft.FSharp.Compiler.AbstractIL.Internal
 open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library
@@ -541,7 +540,7 @@ and CheckExpr (cenv:cenv) (env:env) expr (context:ByrefContext) =
                 errorR(Error(FSComp.SR.chkLimitationsOfBaseKeyword(), m))
               if (match vFlags with NormalValUse -> true | _ -> false) && 
                  v.IsConstructor && 
-                 (match v.ActualParent with Parent tcref -> isAbstractTycon tcref.Deref | _ -> false) then 
+                 (match v.DeclaringEntity with Parent tcref -> isAbstractTycon tcref.Deref | _ -> false) then 
                 errorR(Error(FSComp.SR.tcAbstractTypeCannotBeInstantiated(),m))
 
               if isByrefTy cenv.g v.Type &&
@@ -624,7 +623,7 @@ and CheckExpr (cenv:cenv) (env:env) expr (context:ByrefContext) =
         CheckExprsPermitByrefs cenv env rest
 
     | Expr.Op (c,tyargs,args,m) ->
-          CheckExprOp cenv env (c,tyargs,args,m) context
+          CheckExprOp cenv env (c,tyargs,args,m) context expr
 
     // Allow 'typeof<System.Void>' calls as a special case, the only accepted use of System.Void! 
     | TypeOfExpr cenv.g ty when isVoidTy cenv.g ty ->
@@ -734,7 +733,7 @@ and CheckInterfaceImpls cenv env baseValOpt l =
 and CheckInterfaceImpl cenv env baseValOpt (_ty,overrides) = 
     CheckMethods cenv env baseValOpt overrides 
 
-and CheckExprOp cenv env (op,tyargs,args,m) context =
+and CheckExprOp cenv env (op,tyargs,args,m) context expr =
     let limitedCheck() = 
         if env.limited then errorR(Error(FSComp.SR.chkObjCtorsCantUseExceptionHandling(), m))
     List.iter (CheckTypePermitByrefs cenv env m) tyargs
@@ -828,13 +827,13 @@ and CheckExprOp cenv env (op,tyargs,args,m) context =
         CheckTypeInstNoByrefs cenv env m tyargs        
 
     | TOp.ValFieldGetAddr rfref,tyargs,[] ->
-        if noByrefs context && cenv.reportErrors then
+        if noByrefs context && cenv.reportErrors && isByrefLikeTy cenv.g (tyOfExpr cenv.g expr) then
             errorR(Error(FSComp.SR.chkNoAddressStaticFieldAtThisPoint(rfref.FieldName), m)) 
         CheckTypeInstNoByrefs cenv env m tyargs
         // NOTE: there are no arg exprs to check in this case 
 
     | TOp.ValFieldGetAddr rfref,tyargs,[rx] ->
-        if noByrefs context && cenv.reportErrors then
+        if noByrefs context && cenv.reportErrors  && isByrefLikeTy cenv.g (tyOfExpr cenv.g expr) then
             errorR(Error(FSComp.SR.chkNoAddressFieldAtThisPoint(rfref.FieldName), m))
         // This construct is used for &(rx.rfield) and &(rx->rfield). Relax to permit byref types for rx. [See Bug 1263]. 
         CheckTypeInstNoByrefs cenv env m tyargs
@@ -849,7 +848,7 @@ and CheckExprOp cenv env (op,tyargs,args,m) context =
         CheckExprPermitByref cenv env arg1  // allow byref - it may be address-of-struct
 
     | TOp.UnionCaseFieldGetAddr (uref, _idx),tyargs,[rx] ->
-        if noByrefs context && cenv.reportErrors then
+        if noByrefs context && cenv.reportErrors  && isByrefLikeTy cenv.g (tyOfExpr cenv.g expr) then
           errorR(Error(FSComp.SR.chkNoAddressFieldAtThisPoint(uref.CaseName), m))
         CheckTypeInstNoByrefs cenv env m tyargs
         // allow rx to be byref here, for struct unions
@@ -870,12 +869,12 @@ and CheckExprOp cenv env (op,tyargs,args,m) context =
             // permit byref for lhs lvalue of readonly value 
             CheckExprPermitByref cenv env lhs
         | [ I_ldflda (fspec) | I_ldsflda (fspec) ],[lhs] ->
-            if noByrefs context && cenv.reportErrors then
+            if noByrefs context && cenv.reportErrors  && isByrefLikeTy cenv.g (tyOfExpr cenv.g expr) then
                 errorR(Error(FSComp.SR.chkNoAddressFieldAtThisPoint(fspec.Name), m))
             // permit byref for lhs lvalue
             CheckExprPermitByref cenv env lhs
         | [ I_ldelema (_,isNativePtr,_,_) ],lhsArray::indices ->
-            if not(isNativePtr) && noByrefs context && cenv.reportErrors then
+            if noByrefs context && cenv.reportErrors && not isNativePtr && isByrefLikeTy cenv.g (tyOfExpr cenv.g expr) then
                 errorR(Error(FSComp.SR.chkNoAddressOfArrayElementAtThisPoint(), m))
             // permit byref for lhs lvalue 
             CheckExprPermitByref cenv env lhsArray
@@ -982,7 +981,7 @@ and CheckLambdas isTop (memInfo: ValMemberInfo option) cenv env inlined topValIn
     | _ -> 
         // Permit byrefs for let x = ...
         CheckTypePermitByrefs cenv env m ety
-        if not inlined && isByrefLikeTy cenv.g ety then
+        if not inlined && (isByrefLikeTy cenv.g ety || isNativePtrTy cenv.g ety) then
             // allow byref to occur as RHS of byref binding. 
             CheckExprPermitByref cenv env e
         else 
@@ -1158,7 +1157,7 @@ and CheckBinding cenv env alwaysCheckNoReraise (TBind(v,bindRhs,_) as bind) =
 
     // Check accessibility
     if (v.IsMemberOrModuleBinding || v.IsMember) && not v.IsIncrClassGeneratedMember then 
-        let access =  AdjustAccess (IsHiddenVal env.sigToImplRemapInfo v) (fun () -> v.TopValActualParent.CompilationPath) v.Accessibility
+        let access =  AdjustAccess (IsHiddenVal env.sigToImplRemapInfo v) (fun () -> v.TopValDeclaringEntity.CompilationPath) v.Accessibility
         CheckTypeForAccess cenv env (fun () -> NicePrint.stringOfQualifiedValOrMember cenv.denv v) access v.Range v.Type
     
     let env = if v.IsConstructor && not v.IsIncrClassConstructor then { env with limited=true } else env
@@ -1184,9 +1183,9 @@ and CheckBinding cenv env alwaysCheckNoReraise (TBind(v,bindRhs,_) as bind) =
                // Also check the enclosing type for members - for historical reasons, in the TAST member values 
                // are stored in the entity that encloses the type, hence we will not have noticed the ReflectedDefinition
                // on the enclosing type at this point.
-               HasFSharpAttribute cenv.g cenv.g.attrib_ReflectedDefinitionAttribute v.TopValActualParent.Attribs) then 
+               HasFSharpAttribute cenv.g cenv.g.attrib_ReflectedDefinitionAttribute v.TopValDeclaringEntity.Attribs) then 
 
-                if v.IsInstanceMember && v.MemberApparentParent.IsStructOrEnumTycon then
+                if v.IsInstanceMember && v.MemberApparentEntity.IsStructOrEnumTycon then
                     errorR(Error(FSComp.SR.chkNoReflectedDefinitionOnStructMember(),v.Range))
                 cenv.usesQuotations <- true
 
@@ -1265,10 +1264,10 @@ let CheckModuleBinding cenv env (TBind(v,e,_) as bind) =
           // Skip explicit implementations of interface methods
           if ValIsExplicitImpl cenv.g v then () else
           
-          match v.ActualParent with 
+          match v.DeclaringEntity with 
           | ParentNone -> () // this case can happen after error recovery from earlier error
           | Parent _ -> 
-            let tcref = v.TopValActualParent 
+            let tcref = v.TopValDeclaringEntity 
             let hasDefaultAugmentation = 
                 tcref.IsUnionTycon &&
                 match TryFindFSharpAttribute cenv.g cenv.g.attrib_DefaultAugmentationAttribute tcref.Attribs with
@@ -1337,7 +1336,7 @@ let CheckModuleBinding cenv env (TBind(v,e,_) as bind) =
                     if v2.IsExtensionMember && not (valEq v v2) && v.CompiledName = v2.CompiledName then
                         let minfo1 =  FSMeth(cenv.g, generalizedTyconRef tcref, mkLocalValRef v, Some 0UL)
                         let minfo2 =  FSMeth(cenv.g, generalizedTyconRef tcref, mkLocalValRef v2, Some 0UL)
-                        if tyconRefEq cenv.g v.MemberApparentParent v2.MemberApparentParent && 
+                        if tyconRefEq cenv.g v.MemberApparentEntity v2.MemberApparentEntity && 
                            MethInfosEquivByNameAndSig EraseAll true cenv.g cenv.amap v.Range minfo1 minfo2 then 
                             errorR(Duplicate(kind,v.DisplayName,v.Range)))
 
@@ -1379,7 +1378,7 @@ let CheckRecdField isUnion cenv env (tycon:Tycon) (rfield:RecdField) =
         CheckForByrefLikeType cenv env rfield.FormalType (fun () -> errorR(Error(FSComp.SR.chkCantStoreByrefValue(), tycon.Range)))
 
 let CheckEntityDefn cenv env (tycon:Entity) =
-#if EXTENSIONTYPING
+#if !NO_EXTENSIONTYPING
   if not tycon.IsProvidedGeneratedTycon then
 #endif
     let env = { env with reflect = env.reflect || HasFSharpAttribute cenv.g cenv.g.attrib_ReflectedDefinitionAttribute tycon.Attribs }

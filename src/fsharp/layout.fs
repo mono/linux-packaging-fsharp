@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 module Microsoft.FSharp.Compiler.Layout
 
@@ -10,15 +10,9 @@ open Microsoft.FSharp.Core.Printf
 
 #nowarn "62" // This construct is for ML compatibility.
 
-#if COMPILER_PUBLIC_API
 type layout = Internal.Utilities.StructuredFormat.Layout
 type LayoutTag = Internal.Utilities.StructuredFormat.LayoutTag
 type TaggedText = Internal.Utilities.StructuredFormat.TaggedText
-#else
-type internal layout = Internal.Utilities.StructuredFormat.Layout
-type internal LayoutTag = Internal.Utilities.StructuredFormat.LayoutTag
-type internal TaggedText = Internal.Utilities.StructuredFormat.TaggedText
-#endif
 
 type NavigableTaggedText(taggedText: TaggedText, range: Range.range) =
     member val Range = range

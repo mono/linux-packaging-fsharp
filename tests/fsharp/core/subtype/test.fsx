@@ -24,7 +24,7 @@ let check s v1 v2 = test s (v1 = v2)
 
 open System
 open System.IO
-
+open System.Reflection
 open System.Collections.Generic
 
 (* 'a[] :> ICollection<'a> *)
@@ -1705,6 +1705,35 @@ module InliningOnSubTypes1 =
     do check "clkewlijwlkw" (f()) (13, 17) 
 
 
+#if !FX_RESHAPED_REFLECTION
+module StructUnionSingleCase = 
+    [<Struct>]
+    type S = S
+
+    do check "wekew0ewek1" (typeof<S>.IsValueType) true
+    do check "wekew0ewek1b" (typeof<S>.BaseType) typeof<System.ValueType>
+
+    type SAbbrev = S
+
+    do check "wekew0ewek2" (typeof<SAbbrev>.IsValueType) true
+    do check "wekew0ewek2b" (typeof<SAbbrev>.BaseType) typeof<System.ValueType>
+
+    type S0 = S0
+    do check "wekew0ewek3" (typeof<S0>.IsValueType) false
+    do check "wekew0ewek3b" (typeof<S0>.BaseType) typeof<obj>
+
+    [<Struct>]
+    type S2 = | S2
+
+    do check "wekew0ewek4" (typeof<S2>.IsValueType) true
+    do check "wekew0ewek4b" (typeof<S2>.BaseType) typeof<System.ValueType>
+
+    [<Struct>]
+    type S3 = | S2a | S3a
+
+    do check "wekew0ewek5" (typeof<S3>.IsValueType) true
+    do check "wekew0ewek5b" (typeof<S3>.BaseType) typeof<System.ValueType>
+#endif
 
 // See https://github.com/Microsoft/visualfsharp/issues/238
 module GenericPropertyConstraintSolvedByRecord = 
@@ -1761,6 +1790,89 @@ module SRTPFix =
       printfn "%A" <| fmap ((+) 1) (Some 2);
       printfn "%A" <| replace 'q' (test("HI"))
      *)
+
+
+module SRTPFixAmbiguity =
+    // Mini Repro from FSharpPlus https://github.com/gusty/FSharpPlus
+    type Id<'t>(v:'t) = member __.getValue = v
+    type Interface<'t> = abstract member getValue : 't
+
+    type Monad =
+        static member inline InvokeReturn (x:'T) : '``Monad<'T>`` =
+            let inline call (mthd : ^M, output : ^R) = ((^M or ^R) : (static member Return: _ -> _) output)
+            call (Unchecked.defaultof<Monad>, Unchecked.defaultof<'``Monad<'T>``>) x
+        static member Return (_:Interface<'a>) = fun (_:'a) -> Unchecked.defaultof<Interface<'a>> : Interface<'a>
+        static member Return (_:seq<'a>      ) = fun x -> Seq.singleton x                         : seq<'a>
+        static member Return (_:option<'a>   ) = fun x -> Some x                                  : option<'a>
+        static member Return (_:Id<'a>       ) = fun x -> Id x                                    : Id<'a>
+
+        static member inline InvokeBind (source : '``Monad<'T>``) (binder : 'T -> '``Monad<'U>``) : '``Monad<'U>`` =
+            let inline call (mthd : 'M, input : 'I, _output : 'R, f) = ((^M or ^I or ^R) : (static member Bind: _*_ -> _) input, f)
+            call (Unchecked.defaultof<Monad>, source, Unchecked.defaultof<'``Monad<'U>``>, binder)
+        static member Bind (source : Interface<'T>, f : 'T -> Interface<'U>) = f source.getValue    : Interface<'U>
+        static member Bind (source : seq<'T>      , f : 'T -> seq<'U>      ) = Seq.collect f source : seq<'U>
+        static member Bind (source : Id<'T>       , f : 'T -> Id<'U>       ) = f source.getValue    : Id<'U>
+        static member Bind (source :option<'T>    , f : 'T -> _            ) = Option.bind f source : option<'U>
+
+    let inline result (x:'T)                                   = Monad.InvokeReturn x :'``Monad<'T>``
+    let inline (>>=) (x:'``Monad<'T>``) (f:'T->'``Monad<'U>``) = Monad.InvokeBind x f :'``Monad<'U>``
+
+    type ReaderT<'R,'``monad<'T>``> = ReaderT of ('R -> '``monad<'T>``)
+    let runReaderT (ReaderT x) = x : 'R -> '``Monad<'T>``
+    type ReaderT<'R,'``monad<'T>``> with
+        static member inline Return _ = fun (x : 'T) -> ReaderT (fun _ -> result x)                                                   : ReaderT<'R, '``Monad<'T>``> 
+        static member inline Bind (ReaderT (m:_->'``Monad<'T>``), f:'T->_) = ReaderT (fun r -> m r >>= (fun a -> runReaderT (f a) r)) : ReaderT<'R, '``Monad<'U>``>
+
+
+    let test1 : ReaderT<string, option<_>> = ReaderT result >>= result
+    let test2 : ReaderT<string, Id<_>>     = ReaderT result >>= result
+    let test3 : ReaderT<string, seq<_>>    = ReaderT result >>= result
+
+
+// See https://github.com/Microsoft/visualfsharp/issues/4040
+module InferenceRegression4040 = 
+    type Foo() =
+        static let test (t : 'T) : 'T list = 
+            let b : Bar<'T> = new Bar<'T>(t)
+            [b.Value]
+
+        static member Test(t : int) = test t
+
+    and Bar<'U>(value : 'U) =
+        member __.Value = value
+
+    printfn "%A" (Foo.Test 42)
+
+
+// See https://github.com/Microsoft/visualfsharp/issues/4040
+module InferenceRegression4040b = 
+    type Foo() =
+        static let test (t : 'T) : 'T list = 
+            let b : Bar<'T> = new Bar<'T>(t)
+            [b.Value]
+
+        static member Test(t : int) = test t
+
+    and Bar<'T>(value : 'T) =
+        member __.Value = value
+
+    printfn "%A" (Foo.Test 42)
+
+// See https://github.com/Microsoft/visualfsharp/issues/4040
+module InferenceRegression4040C = 
+    type Foo() =
+        static let test (t : 'T) : 'T list = 
+            let b : Bar<'T> = new Bar<'T>(t)
+            [b.Value]
+
+        static member Test(t : int) = test t
+
+    and Bar<'U>(value : 'U) =
+        member __.Value : 'U = value
+
+    printfn "%A" (Foo.Test 42)
+
+
 
 #if TESTS_AS_APP
 let RUN() = !failures
