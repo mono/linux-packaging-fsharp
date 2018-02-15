@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 /// ILX extensions to Abstract IL types and instructions F# 
 module internal Microsoft.FSharp.Compiler.AbstractIL.Extensions.ILX.Types
@@ -44,7 +44,7 @@ type IlxUnionRef =
 
 type IlxUnionSpec = 
     | IlxUnionSpec of IlxUnionRef * ILGenericArgs
-    member EnclosingType : ILType
+    member DeclaringType : ILType
     member GenericArgs : ILGenericArgs
     member Alternatives : IlxUnionAlternative list
     member AlternativesArray : IlxUnionAlternative[]

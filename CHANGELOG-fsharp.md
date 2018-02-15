@@ -1,3 +1,28 @@
+4.1.33
+ * Cherry pick https://github.com/Microsoft/visualfsharp/pull/4348/
+
+4.1.32
+ * Integrate visualfsharp master to bc7ce194a09474b0bfea185ec15300b54e7aaf9e
+
+4.1.31
+  * Integrate visualfsharp master to 31ec0e0fb
+  * Remove .NET Core version of compiler in FSharp.Compiler.Tools (now only for .NET Framework and Mono)
+
+4.1.30
+  * Integrate visualfsharp master to 94c7fe1f15811d9c57c26d49cc2309883b83d338
+
+4.1.29
+  * Integrate visualfsharp master to d903cf6277e40646563f24bbe2790e8a292d5f9b
+
+4.1.28
+  * Remove FSharp.Core from GAC
+
+4.1.27
+  * Integrate visualfsharp master
+
+4.1.26
+  * Tag latest
+
 4.1.25
   * [Make F# resources work more like C#](https://github.com/fsharp/fsharp/pull/761)
   * Fix [Warning regarding WinForms on launch of `fsharpi` on mono](https://github.com/fsharp/fsharp/pull/767)

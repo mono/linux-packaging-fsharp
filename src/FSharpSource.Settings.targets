@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- If Configuration is empty that means we are not being built in VS and so folks need to explicitly pass the different
@@ -18,6 +18,49 @@
     <ConfigurationGroup Condition="'$(ConfigurationGroup)'==''">Debug</ConfigurationGroup>
   </PropertyGroup>
 
+  <!-- Version number computation -->
+  <PropertyGroup>
+    <!-- Put build number 0 and today's date if this was a local build -->
+    <BUILD_BUILDNUMBER Condition="'$(BUILD_BUILDNUMBER)' == ''">$([System.DateTime]::Now.ToString(yyyyMMdd.0))</BUILD_BUILDNUMBER>
+
+    <!--
+    Given $(BUILD_BUILDNUMBER) = '20161225.1'
+
+    Then $(_Build_Year) = 2016
+    Then $(_Build_Month) = 12
+    Then $(_Build_Day) = 25
+    Then $(_Build_Number) = 1
+    Then $(Build_FileVersion) = 2016.12.25.1
+    -->
+    <_Build_Year>$(BUILD_BUILDNUMBER.Substring(0, 4))</_Build_Year>
+    <_Build_Month>$(BUILD_BUILDNUMBER.Substring(4, 2))</_Build_Month>
+    <_Build_Day>$(BUILD_BUILDNUMBER.Substring(6, 2))</_Build_Day>
+    <_Build_Number>$(BUILD_BUILDNUMBER.Substring(9))</_Build_Number>
+    <Build_FileVersion>$(_Build_Year).$(_Build_Month).$(_Build_Day).$(_Build_Number)</Build_FileVersion>
+
+    <FSCoreVersion>4.4.1.0</FSCoreVersion>
+    <MicroBuildAssemblyVersion Condition="'$(MicroBuildAssemblyVersion)' == ''">$(FSCoreVersion)</MicroBuildAssemblyVersion>
+    <MicroBuildAssemblyVersion Condition="'$(UseVsMicroBuildAssemblyVersion)' == 'true'">15.4.1.0</MicroBuildAssemblyVersion>
+
+    <!--
+
+    Given $(BUILD_BUILDNUMBER) = '20161225.1'
+    Given $(MicroBuildAssemblyVersion) = '15.4.1.0'
+
+    Then $(BuildTimeStamp_Day) = 161225
+    Then $(BuildTimeStamp_Number) = 01
+    Then $(BuildTimeStamp) = 16122501
+    Then $(MicroBuildAssemblyVersion_WithoutRevision) = 15.4.1
+    Then $(VsixPackageVersion) = 15.4.1.16122501
+
+    -->
+    <BuildTimeStamp_Day>$(BUILD_BUILDNUMBER.Split('.')[0].Substring(2))</BuildTimeStamp_Day>
+    <BuildTimeStamp_Number>$(BUILD_BUILDNUMBER.Split('.')[1].PadLeft(2, '0'))</BuildTimeStamp_Number>
+    <BuildTimeStamp>$(BuildTimeStamp_Day)$(BuildTimeStamp_Number)</BuildTimeStamp>
+    <MicroBuildAssemblyVersion_WithoutRevision>$(MicroBuildAssemblyVersion.Substring(0, $(MicroBuildAssemblyVersion.LastIndexOf('.'))))</MicroBuildAssemblyVersion_WithoutRevision>
+    <VsixPackageVersion>$(MicroBuildAssemblyVersion_WithoutRevision).$(BuildTimeStamp)</VsixPackageVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <!-- Settings used all the time -->
     <Tailcalls>true</Tailcalls>
@@ -32,13 +75,17 @@
     <WarningsAsErrors />
     <FX_NO_LOADER Condition=" '$(FX_NO_LOADER)'==''">false</FX_NO_LOADER>
 
-    <RoslynVersion>2.0.0</RoslynVersion>
+    <RoslynVersion>2.3.0-beta2-61719-01</RoslynVersion>
     <RoslynVSBinariesVersion>15.0</RoslynVSBinariesVersion>
     <RoslynVSPackagesVersion>15.0.26201</RoslynVSPackagesVersion>
-    <VSSDK_BUILDTOOLS_VERSION>Microsoft.VSSDK.BuildTools.15.0.26201</VSSDK_BUILDTOOLS_VERSION>
+    <SystemCollectionsImmutableVersion>1.3.1</SystemCollectionsImmutableVersion>
+    <VSSDK_BUILDTOOLS_VERSION>Microsoft.VSSDK.BuildTools.15.1.192</VSSDK_BUILDTOOLS_VERSION>
 
-    <MicrosoftVisualStudioThreadingVersion>15.0.240</MicrosoftVisualStudioThreadingVersion>
-    <MicrosoftVisualStudioValidationVersion>15.0.82</MicrosoftVisualStudioValidationVersion>
+    <MicrosoftVisualStudioThreadingVersion>15.3.23</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioValidationVersion>15.3.15</MicrosoftVisualStudioValidationVersion>
+
+    <MicrosoftDiaSymReaderPackageVersion>1.1.0</MicrosoftDiaSymReaderPackageVersion>
+    <MicrosoftDiaSymReaderPortablePdbPackageVersion>1.2.0</MicrosoftDiaSymReaderPortablePdbPackageVersion>
 
     <!-- Always qualify the IntermediateOutputPath by the TargetDotnetProfile if any exists -->
     <IntermediateOutputPath>obj\$(Configuration)\$(TargetDotnetProfile)\</IntermediateOutputPath>
@@ -46,17 +93,44 @@
 
     <MonoPackaging>true</MonoPackaging>
 
-    <FSharpCore41TargetVersion>4.1.18</FSharpCore41TargetVersion>
+    <FSharpCore41TargetVersion>4.1.19</FSharpCore41TargetVersion>
     <FSharpCore41FrozenPortableVersion>4.1.20</FSharpCore41FrozenPortableVersion>
-    <FSharpCore41FrozenPortableTargetVersion>4.1.23</FSharpCore41FrozenPortableTargetVersion>
-    <FSharpCore42TargetVersion>4.2.2</FSharpCore42TargetVersion>
+    <FSharpCore41FrozenPortableTargetVersion>4.1.21</FSharpCore41FrozenPortableTargetVersion>
+    <FSharpCore42TargetVersion>4.2.4</FSharpCore42TargetVersion>
+
+    <NUnitVersion>3.5.0</NUnitVersion>
+    <NUnitFullVersion>3.5.0.0</NUnitFullVersion>
+    <NUnitLibDir>$(FSharpSourcesRoot)\..\packages\NUnit.$(NUnitVersion)\lib\net45</NUnitLibDir>
+    <NUnitToolsLibDir>$(FSharpSourcesRoot)\..\packages\NUnit.ConsoleRunner\$(NUnitVersion)\tools\</NUnitToolsLibDir>
+
+    <MonoPackaging Condition="'$(TargetDotnetProfile)' != 'coreclr' AND '$(OS)' == 'Unix'">true</MonoPackaging>
+
+    <DependencyUptakePackageVersionPropsFile>$(MSBuildThisFileDirectory)..\Tools\dependencyUptake\PackageVersions.props</DependencyUptakePackageVersionPropsFile>
+
+    <!-- Localization -->
+    <DisableLocalization Condition="'$(MonoPackaging)' == 'true'">true</DisableLocalization>
+    <UpdateXlfOnBuild Condition="'$(CI)' != '1'">true</UpdateXlfOnBuild>
+    <XliffTasksVersion>0.2.0-beta-000076</XliffTasksVersion>
+
   </PropertyGroup>
 
+  <Import Project="$(DependencyUptakePackageVersionPropsFile)" Condition="Exists('$(DependencyUptakePackageVersionPropsFile)')" />
+
+  <!-- Default setting. Some get modified later in FSharpSource.targets -->
+  <PropertyGroup>
+    <SkipSigning>false</SkipSigning>
+    <UseOpenSourceSign>true</UseOpenSourceSign>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(FSharpSourcesRoot)\fsharp\msft.pubkey</AssemblyOriginatorKeyFile>
+    <StrongNames>true</StrongNames>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+
+  <!-- On windows, VS packaging -->
   <PropertyGroup Condition="'$(MonoPackaging)' != 'true' AND '$(OS)' != 'Unix'">
     <UseMicroBuild>true</UseMicroBuild> 
     <UseSourceLink Condition = " '$(UseSourceLink)' == '' AND '$(Configuration)'=='Release' ">false</UseSourceLink>
     <UseGatherBinaries>true</UseGatherBinaries>
-    <AddVsSdkAttributesToSomeCoreComponents>true</AddVsSdkAttributesToSomeCoreComponents>
     <VsSDKInstall Condition=" '$(VsSDKInstall)' == '' ">$(MSBuildThisFileDirectory)..\packages\$(VSSDK_BUILDTOOLS_VERSION)\tools\vssdk</VsSDKInstall>
     <VsSDKToolPath Condition=" '$(VsSDKToolPath)' == '' ">$(MSBuildThisFileDirectory)..\packages\$(VSSDK_BUILDTOOLS_VERSION)\tools\vssdk\bin</VsSDKToolPath>
     <VsSDKTargets Condition=" '$(VsSDKTargets)' == '' ">$(MSBuildThisFileDirectory)..\packages\$(VSSDK_BUILDTOOLS_VERSION)\tools\vssdk\Microsoft.VsSDK.targets</VsSDKTargets>
@@ -73,6 +147,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <!-- Settings for Debug mode        -->
     <DebugType>full</DebugType>
+    <DebugType Condition="'$(OS)' == 'Unix'">portable</DebugType> <!-- no longer use MDB on Mono --> 
 
     <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     <ErrorReport Condition=" '$(ErrorReport)' == '' ">prompt</ErrorReport>
@@ -85,6 +160,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <!-- Flags used for Release mode.		-->
     <DebugType>pdbonly</DebugType>
+    <DebugType Condition="'$(OS)' == 'Unix'">portable</DebugType> <!-- no longer use MDB on Mono --> 
 
     <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
     <EmbedAllSource>false</EmbedAllSource>
@@ -96,6 +172,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Proto'">
     <!-- Flags used when running the Proto compiler.		-->
     <DebugType Condition=" '$(DebugType)' == '' ">full</DebugType>
+    <DebugType Condition="'$(OS)' == 'Unix'">portable</DebugType> <!-- no longer use MDB on Mono --> 
     <Optimize>true</Optimize>
     <DefineConstants>DEBUG;NO_STRONG_NAMES;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
@@ -114,7 +191,6 @@
     <DefineConstants Condition="'$(VisualStudioVersion)'=='15.0' AND '$(ProjectLanguage)' == 'VisualBasic'">$(DefineConstants),VS_VERSION_DEV15=True</DefineConstants>
     <DefineConstants Condition="'$(VisualStudioVersion)'=='15.0' AND '$(ProjectLanguage)' != 'VisualBasic'">$(DefineConstants);VS_VERSION_DEV15</DefineConstants>
     <!-- VisualStudioVersion is not defined when using xbuild on Mono. Assume 14.0, the last shipped in-the-box with Mono -->
-    <!-- Note we probably just need to add imports of Microsoft.Common.props -->
     <DefineConstants Condition="'$(VisualStudioVersion)'=='' AND '$(ProjectLanguage)' == 'VisualBasic'">$(DefineConstants),VS_VERSION_DEV14=True</DefineConstants>
     <DefineConstants Condition="'$(VisualStudioVersion)'=='' AND '$(ProjectLanguage)' != 'VisualBasic'">$(DefineConstants);VS_VERSION_DEV14</DefineConstants>
   </PropertyGroup>
@@ -131,23 +207,32 @@
 
   <PropertyGroup>
     <!-- Compiler tool locations.		-->
-    <FsLexToolPath>$(FSharpSourcesRoot)\..\packages\FsLexYacc.7.0.4\build</FsLexToolPath>
-    <FsYaccToolPath>$(FSharpSourcesRoot)\..\packages\FsLexYacc.7.0.4\build</FsYaccToolPath>
+    <FsLexToolPath>$(FSharpSourcesRoot)\..\packages\FsLexYacc.7.0.6\build</FsLexToolPath>
+    <FsYaccToolPath>$(FSharpSourcesRoot)\..\packages\FsLexYacc.7.0.6\build</FsYaccToolPath>
     <FsiToolExe>fsi.exe</FsiToolExe>
     <FsLexToolExe>fslex.exe</FsLexToolExe>
     <FsYaccToolExe>fsyacc.exe</FsYaccToolExe>
 
-
-    <!-- The version of MSBuild assumed byt the F# compiler in the Mono packaging of F# -->
-    <MonoPackagingMSBuildVersionSuffix>v12.0</MonoPackagingMSBuildVersionSuffix>
-    <MonoPackagingMSBuildVersionFull>12.0.0.0</MonoPackagingMSBuildVersionFull>	  
-
     <!-- FSharp.Compiler.Tools is currently only used to get a working FSI.EXE to execute some scripts during the build -->
     <!-- The LKG FSI.EXE requires MSBuild 15 to be installed, which is painful -->
-    <FsiToolPath>$(FSharpSourcesRoot)\..\packages\FSharp.Compiler.Tools.4.1.23\tools</FsiToolPath>
+    <FsiToolPath>$(FSharpSourcesRoot)\..\packages\FSharp.Compiler.Tools.4.1.27\tools</FsiToolPath>
+
+
+    <!-- The version of MSBuild assumed byt the F# compiler in the Mono packaging of F# -->
+    <MonoPackagingMSBuildVersionFull>14.0.0.0</MonoPackagingMSBuildVersionFull>	  
+
   </PropertyGroup>
 
+<!--
+  <Import Project="$(MSBuildThisFileDirectory)..\packages\XliffTasks.$(XliffTasksVersion)\build\XliffTasks.props" Condition="'$(DisableLocalization)' != 'true'" />
+
+  <PropertyGroup>
+    <XlfLanguages>en;$(XlfLanguages)</XlfLanguages>
+  </PropertyGroup>
+
+  <Import Project="$(RestorePackagesPath)\XliffTasks.$(XliffTasksVersion)\build\XliffTasks.targets" Condition="'$(DisableLocalization)' != 'true'" />
   <Import Project="../Tools/Build.Common.props" Condition="'$(TargetDotnetProfile)'=='coreclr'"/>
   <Import Project="$(BuildVersionFilePath)"     Condition="Exists('$(BuildVersionFilePath)')" />
+-->
 
 </Project>

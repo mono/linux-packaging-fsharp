@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 /// Defines the global environment for all type checking.
 ///
@@ -463,16 +463,28 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
 
                     yield nleref.LastItemMangledName, ERefNonLocal nleref  ]
                                                
-  let decodeTupleTy tupInfo l = 
+  let tryDecodeTupleTy tupInfo l = 
       match l with 
       | [t1;t2;t3;t4;t5;t6;t7;marker] -> 
           match marker with 
-          | TType_app(tcref, [t8]) when tyconRefEq tcref v_ref_tuple1_tcr -> mkRawRefTupleTy [t1;t2;t3;t4;t5;t6;t7;t8]
-          | TType_app(tcref, [t8]) when tyconRefEq tcref v_struct_tuple1_tcr -> mkRawStructTupleTy [t1;t2;t3;t4;t5;t6;t7;t8]
-          | TType_tuple (_structness2, t8plus) -> TType_tuple (tupInfo, [t1;t2;t3;t4;t5;t6;t7] @ t8plus)
-          | _ -> TType_tuple (tupInfo, l)
-      | _ -> TType_tuple (tupInfo, l) 
+          | TType_app(tcref, [t8]) when tyconRefEq tcref v_ref_tuple1_tcr -> mkRawRefTupleTy [t1;t2;t3;t4;t5;t6;t7;t8] |> Some
+          | TType_app(tcref, [t8]) when tyconRefEq tcref v_struct_tuple1_tcr -> mkRawStructTupleTy [t1;t2;t3;t4;t5;t6;t7;t8] |> Some
+          | TType_tuple (_structness2, t8plus) -> TType_tuple (tupInfo, [t1;t2;t3;t4;t5;t6;t7] @ t8plus) |> Some
+          | _ -> None
+      | [] -> None
+      | [_] -> None
+      | _ -> TType_tuple (tupInfo, l)  |> Some
       
+
+  let decodeTupleTy tupInfo l = 
+      match tryDecodeTupleTy tupInfo l with 
+      | Some ty -> ty
+      | None -> failwith "couldn't decode tuple ty"
+
+  let decodeTupleTyIfPossible tcref tupInfo l = 
+      match tryDecodeTupleTy tupInfo l with 
+      | Some ty -> ty
+      | None -> TType_app(tcref, l)
 
   let mk_MFCore_attrib nm : BuiltinAttribInfo = 
       AttribInfo(mkILTyRef(IlxSettings.ilxFsharpCoreLibScopeRef (), FSharpLib.Core + "." + nm), mk_MFCore_tcref fslibCcu nm) 
@@ -673,94 +685,122 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
   let addFieldNeverAttrs (fdef:ILFieldDef) = {fdef with CustomAttrs = addNeverAttrs fdef.CustomAttrs}
   let mkDebuggerTypeProxyAttribute (ty : ILType) = mkILCustomAttribute ilg (findSysILTypeRef tname_DebuggerTypeProxyAttribute,  [ilg.typ_Type], [ILAttribElem.TypeRef (Some ty.TypeRef)], [])
 
-    // Build a map that uses the "canonical" F# type names and TyconRef's for these
-    // in preference to the .NET type names. Doing this normalization is a fairly performance critical
-    // piece of code as it is frequently invoked in the process of converting .NET metadata to F# internal
-    // compiler data structures (see import.fs).
-  let betterTyconRefMap = 
-       begin 
-        let entries1 = 
-         [| "Int32"    , v_int_tcr 
-            "IntPtr"   , v_nativeint_tcr 
-            "UIntPtr"  , v_unativeint_tcr
-            "Int16"    , v_int16_tcr 
-            "Int64"    , v_int64_tcr 
-            "UInt16"   , v_uint16_tcr
-            "UInt32"   , v_uint32_tcr
-            "UInt64"   , v_uint64_tcr
-            "SByte"    , v_sbyte_tcr
-            "Decimal"  , v_decimal_tcr
-            "Byte"     , v_byte_tcr
-            "Boolean"  , v_bool_tcr
-            "String"   , v_string_tcr
-            "Object"   , v_obj_tcr
-            "Exception", v_exn_tcr
-            "Char"     , v_char_tcr
-            "Double"   , v_float_tcr
-            "Single"   , v_float32_tcr |] 
-             |> Array.map (fun (nm, tcr) -> 
-                   let ty = mkNonGenericTy tcr 
-                   nm, findSysTyconRef sys nm, (fun _ -> ty)) 
+  let betterTyconEntries = 
+     [| "Int32"    , v_int_tcr 
+        "IntPtr"   , v_nativeint_tcr 
+        "UIntPtr"  , v_unativeint_tcr
+        "Int16"    , v_int16_tcr 
+        "Int64"    , v_int64_tcr 
+        "UInt16"   , v_uint16_tcr
+        "UInt32"   , v_uint32_tcr
+        "UInt64"   , v_uint64_tcr
+        "SByte"    , v_sbyte_tcr
+        "Decimal"  , v_decimal_tcr
+        "Byte"     , v_byte_tcr
+        "Boolean"  , v_bool_tcr
+        "String"   , v_string_tcr
+        "Object"   , v_obj_tcr
+        "Exception", v_exn_tcr
+        "Char"     , v_char_tcr
+        "Double"   , v_float_tcr
+        "Single"   , v_float32_tcr |] 
+            |> Array.map (fun (nm, tcr) -> 
+                let ty = mkNonGenericTy tcr 
+                nm, findSysTyconRef sys nm, (fun _ -> ty)) 
 
-        let entries2 =
-            [| 
-              "FSharpFunc`2" ,       v_fastFunc_tcr      , (fun tinst -> mkFunTy (List.item 0 tinst) (List.item 1 tinst))
-              "Tuple`2"      ,       v_ref_tuple2_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`3"      ,       v_ref_tuple3_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`4"      ,       v_ref_tuple4_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`5"      ,       v_ref_tuple5_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`6"      ,       v_ref_tuple6_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`7"      ,       v_ref_tuple7_tcr    , decodeTupleTy tupInfoRef
-              "Tuple`8"      ,       v_ref_tuple8_tcr    , decodeTupleTy tupInfoRef
-              "ValueTuple`2" ,       v_struct_tuple2_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`3" ,       v_struct_tuple3_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`4" ,       v_struct_tuple4_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`5" ,       v_struct_tuple5_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`6" ,       v_struct_tuple6_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`7" ,       v_struct_tuple7_tcr , decodeTupleTy tupInfoStruct
-              "ValueTuple`8" ,       v_struct_tuple8_tcr , decodeTupleTy tupInfoStruct |] 
+  let decompileTyconEntries =
+        [| 
+            "FSharpFunc`2" ,       v_fastFunc_tcr      , (fun tinst -> mkFunTy (List.item 0 tinst) (List.item 1 tinst))
+            "Tuple`2"      ,       v_ref_tuple2_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`3"      ,       v_ref_tuple3_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`4"      ,       v_ref_tuple4_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`5"      ,       v_ref_tuple5_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`6"      ,       v_ref_tuple6_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`7"      ,       v_ref_tuple7_tcr    , decodeTupleTy tupInfoRef
+            "Tuple`8"      ,       v_ref_tuple8_tcr    , decodeTupleTyIfPossible v_ref_tuple8_tcr tupInfoRef
+            "ValueTuple`2" ,       v_struct_tuple2_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`3" ,       v_struct_tuple3_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`4" ,       v_struct_tuple4_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`5" ,       v_struct_tuple5_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`6" ,       v_struct_tuple6_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`7" ,       v_struct_tuple7_tcr , decodeTupleTy tupInfoStruct
+            "ValueTuple`8" ,       v_struct_tuple8_tcr , decodeTupleTyIfPossible v_struct_tuple8_tcr tupInfoStruct |] 
 
-        let entries = Array.append entries1 entries2
+  let betterEntries = Array.append betterTyconEntries decompileTyconEntries
+
+  let mutable decompileTypeDict = null
+  let mutable betterTypeDict1 = null
+  let mutable betterTypeDict2 = null
+
+  /// This map is indexed by stamps and lazy to avoid dereferencing while setting up the base imports. 
+  let getDecompileTypeDict () = 
+      match decompileTypeDict with 
+      | null -> 
+          let entries = decompileTyconEntries
+          let t = Dictionary.newWithSize entries.Length
+          for _, tcref, builder in entries do
+              if tcref.CanDeref then
+                  t.Add(tcref.Stamp, builder)
+          decompileTypeDict <- t
+          t
+      | t -> t
+
+  /// This map is for use when building FSharp.Core.dll. The backing Tycon's may not yet exist for
+  /// the TyconRef's we have in our hands, hence we can't dereference them to find their stamps.
+  /// So this dictionary is indexed by names. Make it lazy to avoid dereferencing while setting up the base imports. 
+  let getBetterTypeDict1 () = 
+      match betterTypeDict1 with 
+      | null -> 
+          let entries = betterEntries
+          let t = Dictionary.newWithSize entries.Length
+          for nm, tcref, builder in entries do
+              t.Add(nm, fun tcref2 tinst2 -> if tyconRefEq tcref tcref2 then builder tinst2 else TType_app (tcref2, tinst2))
+          betterTypeDict1 <- t
+          t
+      | t -> t
+
+  /// This map is for use in normal times (not building FSharp.Core.dll). It is indexed by stamps
+  /// and lazy to avoid dereferencing while setting up the base imports. 
+  let getBetterTypeDict2 () = 
+      match betterTypeDict2 with 
+      | null -> 
+          let entries = betterEntries
+          let t = Dictionary.newWithSize entries.Length
+          for _, tcref, builder in entries do
+              if tcref.CanDeref then
+                  t.Add(tcref.Stamp, builder)
+          betterTypeDict2 <- t
+          t
+      | t -> t
+
+  /// For logical purposes equate some F# types with .NET types, e.g. TType_tuple == System.Tuple/ValueTuple.
+  /// Doing this normalization is a fairly performance critical piece of code as it is frequently invoked
+  /// in the process of converting .NET metadata to F# internal compiler data structures (see import.fs).
+  let decompileTy (tcref: EntityRef) tinst = 
+      if compilingFslib then 
+          // No need to decompile when compiling FSharp.Core.dll
+          TType_app (tcref, tinst)
+      else
+          let dict = getDecompileTypeDict()
+          let mutable builder = Unchecked.defaultof<_>
+          if dict.TryGetValue(tcref.Stamp, &builder) then builder tinst
+          else TType_app (tcref, tinst)
+
+  /// For cosmetic purposes "improve" some .NET types, e.g. Int32 --> int32. 
+  /// Doing this normalization is a fairly performance critical piece of code as it is frequently invoked
+  /// in the process of converting .NET metadata to F# internal compiler data structures (see import.fs).
+  let improveTy (tcref: EntityRef) tinst = 
         if compilingFslib then 
-            // This map is for use when building FSharp.Core.dll. The backing Tycon's may not yet exist for
-            // the TyconRef's we have in our hands, hence we can't dereference them to find their stamps.
-
-            // So this dictionary is indexed by names.
-            //
-            // Make it lazy to avoid dereferencing while setting up the base imports. 
-            let dict = 
-                lazy (
-                    let dict = Dictionary.newWithSize entries.Length
-                    for nm, tcref, builder in entries do
-                        dict.Add(nm, fun tcref2 tinst -> if tyconRefEq tcref tcref2 then Some(builder tinst) else None)
-                    dict
-                )
-            (fun (tcref: EntityRef) tinst -> 
-                 let dict = dict.Value
-                 let key = tcref.LogicalName
-                 if dict.ContainsKey key then dict.[key] tcref tinst
-                 else None )  
+            let dict = getBetterTypeDict1()
+            let mutable builder = Unchecked.defaultof<_>
+            if dict.TryGetValue(tcref.LogicalName, &builder) then builder tcref tinst
+            else TType_app (tcref, tinst)
         else
-            // This map is for use in normal times (not building FSharp.Core.dll). It is indexed by tcref stamp which is 
-            // faster than the indexing technique used in the case above.
-            //
-            // So this dictionary is indexed by integers.
-            //
-            // Make it lazy to avoid dereferencing while setting up the base imports. 
-            let dict = 
-              lazy
-                let dict = Dictionary.newWithSize entries.Length
-                for _, tcref, builder in entries do
-                  if tcref.CanDeref then
-                    dict.Add(tcref.Stamp, builder)
-                dict
-            (fun tcref2 tinst -> 
-                 let dict = dict.Value
-                 let key = tcref2.Stamp
-                 if dict.ContainsKey key then Some(dict.[key] tinst)
-                 else None)  
-       end
-           
+            let dict = getBetterTypeDict2()
+            let mutable builder = Unchecked.defaultof<_>
+            if dict.TryGetValue(tcref.Stamp, &builder) then builder tinst
+            else TType_app (tcref, tinst)
+
 
   override x.ToString() = "<TcGlobals>"
   member __.ilg=ilg
@@ -1005,7 +1045,6 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
   member val attrib_ProjectionParameterAttribute           = mk_MFCore_attrib "ProjectionParameterAttribute"
   member val attrib_CustomOperationAttribute               = mk_MFCore_attrib "CustomOperationAttribute"
   member val attrib_NonSerializedAttribute                 = tryFindSysAttrib "System.NonSerializedAttribute"
-  member val attrib_SerializableAttribute                 = tryFindSysAttrib "System.SerializableAttribute"
   
   member val attrib_AutoSerializableAttribute              = mk_MFCore_attrib "AutoSerializableAttribute"
   member val attrib_RequireQualifiedAccessAttribute        = mk_MFCore_attrib "RequireQualifiedAccessAttribute"
@@ -1052,7 +1091,10 @@ type public TcGlobals(compilingFslib: bool, ilg:ILGlobals, fslibCcu: CcuThunk, d
   member val attrib_SecuritySafeCriticalAttribute          = findSysAttrib "System.Security.SecuritySafeCriticalAttribute"
   member val attrib_ComponentModelEditorBrowsableAttribute = findSysAttrib "System.ComponentModel.EditorBrowsableAttribute"
 
-  member __.better_tcref_map = betterTyconRefMap
+  member g.improveType tcref tinst = improveTy tcref tinst
+
+  member g.decompileType tcref tinst = decompileTy tcref tinst
+
   member __.new_decimal_info = v_new_decimal_info
   member __.seq_info    = v_seq_info
   member val seq_vref    = (ValRefForIntrinsic v_seq_info) 

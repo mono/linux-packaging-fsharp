@@ -1,11 +1,7 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 
-#if COMPILER_PUBLIC_API
 module public Microsoft.FSharp.Compiler.Interactive.Shell
-#else
-module internal Microsoft.FSharp.Compiler.Interactive.Shell
-#endif
 
 open System.IO
 open Microsoft.FSharp.Compiler
@@ -23,7 +19,6 @@ type FsiValue =
     member FSharpType : FSharpType
 #endif 
 
-#if COMPILER_SERVICE_AS_DLL
 [<Class>]
 type EvaluationEventArgs =
     inherit System.EventArgs
@@ -42,7 +37,6 @@ type EvaluationEventArgs =
 
     /// The details of the expression defined
     member ImplementationDeclaration : FSharpImplementationFileDeclaration
-#endif
 
 [<AbstractClass>]
 type public FsiEvaluationSessionHostConfig = 
@@ -71,10 +65,8 @@ type public FsiEvaluationSessionHostConfig =
     /// stripping things like "/use:file.fsx", "-r:Foo.dll" etc.
     abstract ReportUserCommandLineArgs : string [] -> unit
 
-#if COMPILER_SERVICE_AS_DLL
     /// Hook for listening for evaluation bindings
     member OnEvaluation : IEvent<EvaluationEventArgs>
-#endif
 
 
     ///<summary>
@@ -276,7 +268,6 @@ module Settings =
         /// <summary>Schedule a restart for the event loop.</summary>
         abstract ScheduleRestart : unit -> unit
 
-#if COMPILER_SERVICE_AS_DLL
     [<Sealed>]
     /// <summary>Operations supported by the currently executing F# Interactive session.</summary>
     type InteractiveSettings =
@@ -338,4 +329,3 @@ type CompilerOutputStream  =
     new : unit -> CompilerOutputStream
 
     member Read : unit -> string
-#endif

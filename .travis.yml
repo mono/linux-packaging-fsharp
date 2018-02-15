@@ -1,4 +1,6 @@
 language: csharp
+dist: trusty
+sudo: true
 
 os:
   - linux
@@ -11,13 +13,6 @@ mono:
 install:
 
 script: ./mono/build-mono.sh && ./mono/test-mono.sh
-
-matrix:
-  exclude:
-  - os: osx
-    mono: 4.4.2
-  - os: osx
-    mono: 4.8.0
 
 #  allow_failures:
 #    - os: osx
