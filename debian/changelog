@@ -1,3 +1,14 @@
+fsharp (4.1.33-0xamarin2) alpha; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [8a35ed1] Merge branch 'master' of github.com:mono/linux-packaging-
+    fsharp [8564835] Remove obsolete patch
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Thu, 15 Feb 2018 16:52:48 +0000
+
 fsharp (4.1.33-0xamarin1) alpha; urgency=medium
 
   * New release - fsharp-4.1.33.tar.gz
