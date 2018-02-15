@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 // Convert quoted TAST data structures to structures ready for pickling 
 
@@ -9,7 +9,6 @@ open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Import
 open Microsoft.FSharp.Compiler.Tast
 open Microsoft.FSharp.Compiler.TcGlobals
-open Microsoft.FSharp.Compiler.Tastops
 open Microsoft.FSharp.Compiler.AbstractIL.IL
 
 [<Sealed>]
