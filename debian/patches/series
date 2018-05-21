@@ -1,2 +1,3 @@
+fsharp-string-switchName.patch
 fsharp-portable-pdb.patch
 fix-bootstrap-src-targets-path.patch
