@@ -33,6 +33,7 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
+Patch1:		fsharp-portable-pdb.patch
 
 %define _use_internal_dependency_generator 0
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -53,6 +54,7 @@ platforms.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 autoreconf
