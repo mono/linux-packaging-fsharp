@@ -35,6 +35,7 @@ BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
 Patch1:		fsharp-portable-pdb.patch
 Patch2:		fsharp-string-switchName.patch
+Patch3:		fsharp-GetFileNameWithoutExtension-type-inference.patch
 
 %define _use_internal_dependency_generator 0
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -57,6 +58,7 @@ platforms.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 autoreconf
