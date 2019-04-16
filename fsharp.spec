@@ -59,12 +59,10 @@ platforms.
 %patch3 -p1
 
 %build
-autoreconf
-%configure --libexecdir=%{_prefix}/lib --libdir=%{_prefix}/lib
-make
+make all
 
 %install
-%make_install
+%make_install PREFIX="%{_prefix}" DESTDIR="${RPM_BUILD_ROOT}"
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monodroid
 rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
 mkdir -p ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
