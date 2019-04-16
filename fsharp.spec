@@ -34,7 +34,6 @@ BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
 Patch1:		fsharp-portable-pdb.patch
-Patch2:		fsharp-string-switchName.patch
 Patch3:		fsharp-GetFileNameWithoutExtension-type-inference.patch
 Patch4:		fsharp-path-overloads.patch
 
@@ -58,7 +57,6 @@ platforms.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 %patch3 -p1
 %patch4 -p1
 
