@@ -1,3 +1,7 @@
-fsharp-string-switchName.patch
+fsharp-custom-prefix.patch
+fsharp-msbuild-16-0.patch
+fsharp-GetFileNameWithoutExtension-type-inference.patch
+fsharp-noinstall.patch
+fsharp-IsPathRooted-type-inference.patch
 fsharp-portable-pdb.patch
 fix-bootstrap-src-targets-path.patch
