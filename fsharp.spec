@@ -33,8 +33,12 @@ BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
 BuildArch:      noarch
 Patch0:		fix-bootstrap-src-targets-path.patch
-Patch1:		fsharp-portable-pdb.patch
-Patch3:		fsharp-GetFileNameWithoutExtension-type-inference.patch
+Patch1:		fsharp-IsPathRooted-type-inference.patch
+Patch2:		fsharp-portable-pdb.patch
+Patch3:		fsharp-noinstall.patch
+Patch4:		fsharp-GetFileNameWithoutExtension-type-inference.patch
+Patch5:		fsharp-msbuild-16-0.patch
+Patch6:		fsharp-custom-prefix.patch
 
 %define _use_internal_dependency_generator 0
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -56,7 +60,11 @@ platforms.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 %patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
 
 %build
 make all
