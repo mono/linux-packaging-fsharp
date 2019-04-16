@@ -29,7 +29,7 @@ override_dh_auto_build:
 	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsSrGen.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fssrgen
 
 override_dh_auto_install:
-	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) DESTDIR=$(DEBIAN_DIR)/tmp PREFIX=/usr make install
+	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) DESTDIR=`realpath $(DEBIAN_DIR)/tmp` PREFIX=/usr make install
 
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll --exclude-moduleref=api-ms-win-core-file-l1-1-0.dll
