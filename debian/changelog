@@ -1,3 +1,14 @@
+fsharp (4.5-0xamarin3) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [8d11244] Merge branch 'master' of github.com:mono/linux-packaging-
+    fsharp [8f7707a] Rename to 4.5
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 16 Apr 2019 19:48:29 +0000
+
 fsharp (4.5-0xamarin2) preview; urgency=medium
 
   * Packaging bugfix:
