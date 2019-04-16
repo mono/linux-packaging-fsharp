@@ -4,6 +4,9 @@
 
   <PropertyGroup>
     <FSharpSourcesRoot>$(MSBuildProjectDirectory)\..\..</FSharpSourcesRoot>
+    <ProjectLanguage>FSharp</ProjectLanguage>
+    <UseFSharpProductVersion>true</UseFSharpProductVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <Import Project="$(FSharpSourcesRoot)\FSharpSource.Settings.targets" />
   <PropertyGroup>
@@ -18,8 +21,8 @@
     <OutputType>Exe</OutputType>
     <NoWarn>$(NoWarn);62</NoWarn>
     <AssemblyName>fsc</AssemblyName>
-    <DefineConstants>COMPILER;$(DefineConstants)</DefineConstants>
     <AllowCrossTargeting>true</AllowCrossTargeting>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OtherFlags>$(OtherFlags) --warnon:1182</OtherFlags>
   </PropertyGroup>
 
