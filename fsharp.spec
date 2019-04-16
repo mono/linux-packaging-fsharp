@@ -19,7 +19,7 @@
 
 Name:           fsharp
 Version:	4.5
-Release:	0.xamarin.1
+Release:	0.xamarin.2
 License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
