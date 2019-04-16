@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
 Uploaders: Christopher James Halse Rogers <raof@ubuntu.com>
 Build-Depends: debhelper (>= 8.0.0~),
-  dh-autoreconf,
   msbuild,
   nuget,
   libmono-btls-interface4.0-cil,
