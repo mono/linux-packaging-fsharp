@@ -1,3 +1,25 @@
+10.2.1
+ * Bump versions to match [versioning spec](https://github.com/fsharp/fslang-design/blob/master/tooling/FST-1004-versioning-plan.md)
+
+10.1.2
+ * Bump versions and integrate visualfsharp master
+
+10.1.1
+ * Bump versions
+
+10.1.0
+ * Integrte visualfsharp master
+
+10.0.2
+ * Cherry-pick https://github.com/Microsoft/visualfsharp/pull/4804
+
+10.0.1
+ * Switch to new versioning for F# compiler tools
+ * add FSharp.Compiler.Tools.props back into nuget package
+
+4.1.34
+ * Use strong-name signed FSharp.Compiler.Interactive.Settings.dll in FSharp.Compiler.Tools package
+
 4.1.33
  * Cherry pick https://github.com/Microsoft/visualfsharp/pull/4348/
 

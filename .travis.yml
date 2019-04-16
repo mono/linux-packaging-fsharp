@@ -7,8 +7,10 @@ os:
   - osx
 
 mono:
+  - nightly
   - latest
-  - 5.0.1
+  - 5.10.0
+  - 5.8.0
 
 install:
 

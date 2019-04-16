@@ -1,19 +1,30 @@
 include $(topsrcdir)mono/config.make
 
-.PHONY: restore build
+.PHONY: restore build build-proto
 
 restore:
-	MONO_ENV_OPTIONS=$(monoopts) mono .nuget/NuGet.exe restore packages.config -PackagesDirectory packages -ConfigFile .nuget/NuGet.Config
+	MONO_ENV_OPTIONS=$(monoopts) mono .nuget/NuGet.exe restore packages.config -PackagesDirectory packages -ConfigFile ./NuGet.Config
+	chmod u+x packages/FSharp.Compiler.Tools.4.1.27/tools/fsi.exe 
+	chmod u+x packages/FsLexYacc.7.0.6/build/fslex.exe
+	chmod u+x packages/FsLexYacc.7.0.6/build/fsyacc.exe
 
 # Make the proto using the bootstrap, then make the final compiler using the proto
 # We call MAKE sequentially because we don't want build-final to explicitly depend on build-proto,
 # as that causes a complete recompilation of both proto and final everytime you touch the
 # compiler sources.
 all:
+	@echo -----------
+	@echo prefix=$(prefix)
+	@echo topdir=$(topdir)
+	@echo monodir=$(monodir)
+	@echo monolibdir=$(monolibdir)
+	@echo monobindir=$(monobindir)
+	@echo -----------
+	$(MAKE) restore
 	$(MAKE) build-proto
 	$(MAKE) build
 
-build-proto: restore
+build-proto:
 	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=Proto /p:TargetDotnetProfile=$(TargetDotnetProfile) src/fsharp/FSharp.Build-proto/FSharp.Build-proto.fsproj
 	MONO_ENV_OPTIONS=$(monoopts) $(MSBUILD) /p:Configuration=Proto /p:TargetDotnetProfile=$(TargetDotnetProfile) src/fsharp/Fsc-proto/Fsc-proto.fsproj
 
@@ -31,21 +42,23 @@ build:
 	mkdir -p $(Configuration)/fsharp30/net40/bin
 	mkdir -p $(Configuration)/fsharp31/net40/bin
 	mkdir -p $(Configuration)/fsharp40/net40/bin
+	mkdir -p $(Configuration)/fsharp41/net40/bin
 	cp -p packages/FSharp.Core.3.0.2/lib/net40/* $(Configuration)/fsharp30/net40/bin
 	cp -p packages/FSharp.Core.3.1.2.5/lib/net40/* $(Configuration)/fsharp31/net40/bin
 	cp -p packages/FSharp.Core.4.0.0.1/lib/net40/* $(Configuration)/fsharp40/net40/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/net40/* $(Configuration)/fsharp41/net40/bin
 	mkdir -p $(Configuration)/portable7/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/portable-net45+netcore45/* $(Configuration)/portable7/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/portable-net45+netcore45/* $(Configuration)/portable7/bin
 	mkdir -p $(Configuration)/portable47/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/portable-net45+sl5+netcore45/* $(Configuration)/portable47/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/portable-net45+sl5+netcore45/* $(Configuration)/portable47/bin
 	mkdir -p $(Configuration)/portable78/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/portable-net45+netcore45+wp8/* $(Configuration)/portable78/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/portable-net45+netcore45+wp8/* $(Configuration)/portable78/bin
 	mkdir -p $(Configuration)/portable259/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/portable-net45+netcore45+wpa81+wp8/* $(Configuration)/portable259/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/portable-net45+netcore45+wpa81+wp8/* $(Configuration)/portable259/bin
 	mkdir -p $(Configuration)/monoandroid10+monotouch10+xamarinios10/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/portable-net45+monoandroid10+monotouch10+xamarinios10/* $(Configuration)/monoandroid10+monotouch10+xamarinios10/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/portable-net45+monoandroid10+monotouch10+xamarinios10/* $(Configuration)/monoandroid10+monotouch10+xamarinios10/bin
 	mkdir -p $(Configuration)/xamarinmacmobile/bin
-	cp -p packages/FSharp.Core.4.1.17/lib/xamarinmac20/* $(Configuration)/xamarinmacmobile/bin
+	cp -p packages/FSharp.Core.4.1.18/lib/xamarinmac20/* $(Configuration)/xamarinmacmobile/bin
 
 
 
@@ -69,6 +82,7 @@ install:
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=3.0 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=3.1 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=4.0 install
+	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=net40 FSharpCoreBackVersion=4.1 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable47 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable7 install
 	$(MAKE) -C mono/FSharp.Core TargetDotnetProfile=portable78 install
