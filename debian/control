@@ -33,8 +33,9 @@ Description: functional-first programming language - compiler for the CLI
  .
  This package contains an F# compiler targeting the CLI runtime.
 
-Package: libfsharp-core4.3-cil
+Package: libfsharp-core4.5-cil
 Architecture: all
+Replaces: libfsharp-core4.3-cil
 Depends:
   ${cli:Depends},
   ${shlibs:Depends},
