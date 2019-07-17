@@ -1,3 +1,15 @@
+fsharp (4.1.33-0xamarin9) vs; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [d5c2aab] Merge branch 'master-2018-08' of github.com:mono/linux-
+    packaging-fsharp into master-2018-08 [b6c86bf] Another patch to fix
+    build
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Wed, 17 Jul 2019 17:32:48 +0000
+
 fsharp (4.1.33-0xamarin8) vs; urgency=medium
 
   * Packaging bugfix:
