@@ -1,3 +1,9 @@
+fsharp (5.0.0.0-0xamarin1) preview; urgency=medium
+
+  * New release - fsharp-5.0.0.0.tar.xz
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 08 Dec 2020 13:42:50 +0000
+
 fsharp (4.5-0xamarin12) preview; urgency=medium
 
   * Packaging bugfix:
