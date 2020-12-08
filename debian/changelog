@@ -1,3 +1,15 @@
+fsharp (5.0.0.0-0xamarin2) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [946581e] New build system again, must be Tuesday [0389300] And add
+    fresh ones from mono git [ba15475] Let's just get rid of all the
+    patches
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 08 Dec 2020 13:53:45 +0000
+
 fsharp (5.0.0.0-0xamarin1) preview; urgency=medium
 
   * New release - fsharp-5.0.0.0.tar.xz
