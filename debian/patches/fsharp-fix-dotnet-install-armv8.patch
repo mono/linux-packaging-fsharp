@@ -1,0 +1,26 @@
+Index: xamarin-pkg-fsharp/eng/common/dotnet-install-scripts/dotnet-install.sh
+===================================================================
+--- xamarin-pkg-fsharp.orig/eng/common/dotnet-install-scripts/dotnet-install.sh
++++ xamarin-pkg-fsharp/eng/common/dotnet-install-scripts/dotnet-install.sh
+@@ -332,7 +332,7 @@ get_machine_architecture() {
+     if command -v uname > /dev/null; then
+         CPUName=$(uname -m)
+         case $CPUName in
+-        armv7l)
++        armv*l)
+             echo "arm"
+             return 0
+             ;;
+Index: xamarin-pkg-fsharp/scripts/dotnet-install.sh
+===================================================================
+--- xamarin-pkg-fsharp.orig/scripts/dotnet-install.sh
++++ xamarin-pkg-fsharp/scripts/dotnet-install.sh
+@@ -316,7 +316,7 @@ get_machine_architecture() {
+     if command -v uname > /dev/null; then
+         CPUName=$(uname -m)
+         case $CPUName in
+-        armv7l)
++        armv*l)
+             echo "arm"
+             return 0
+             ;;
