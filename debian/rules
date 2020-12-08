@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 MAKEFILE = $(firstword $(MAKEFILE_LIST))
-DEBIAN_DIR = $(dir $(MAKEFILE))
+DEBIAN_DIR = $(shell realpath $(dir $(MAKEFILE)))
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
