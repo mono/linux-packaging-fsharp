@@ -24,7 +24,10 @@ License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
 Group:          Development/Languages/Other
-Source:         %{name}-%{version}.tar.xz
+Source0:        %{name}-%{version}.tar.xz
+Source1:        wrapper.sh
+Source2:        Microsoft.FSharp.Targets
+Source3:        Microsoft.Portable.FSharp.Targets
 BuildRequires:  automake
 BuildRequires:  nuget
 BuildRequires:  msbuild
@@ -61,14 +64,115 @@ platforms.
 version= ./build.sh -c Release && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
 
 %install
-%make_install PREFIX="%{_prefix}" DESTDIR="${RPM_BUILD_ROOT}"
-rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monodroid
-rm -rf ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/monotouch
-mkdir -p ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/bin/
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.3.0.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.3.1.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.0.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.1.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.3.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.5.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.3.1.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.7.4.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.3.1
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.4.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.259.4.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.7.41.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.41.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.259.41.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/2.3.5.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/2.3.5.1
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/3.47.4.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/3.47.41.0
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
+%{__mkdir_p} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft F#/v4.0"
+%{__mkdir_p} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0"
+%{__mkdir_p} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.1/Framework/v4.0"
+%{__mkdir_p} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.0/Framework/v4.0"
+%{__mkdir_p} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.1/Framework/v4.0"
+sed -e 's#%EXENAME%#fsc.exe#' %{SOURCE1} > ${RPM_BUILD_ROOT}%{_prefix}/bin/fsharpc
+sed -e 's#%EXENAME%#fsi.exe#' %{SOURCE1} > ${RPM_BUILD_ROOT}%{_prefix}/bin/fsharpi
+sed -e 's#%EXENAME%#fsiAnyCpu.exe#' %{SOURCE1} > ${RPM_BUILD_ROOT}%{_prefix}/bin/fsharpiAnyCpu
 ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Core.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
 ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Core.sigdata ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
 ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Core.optdata ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
 ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/4.5/
+%{__cp} artifacts/bin/fsc/Release/net472/fsc.exe ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/fsc.exe.config ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Build.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Build.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Compiler.Private.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Compiler.Private.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Core.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/FSharp.Core.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.Portable.FSharp.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.Build.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.Build.Framework.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.Build.Tasks.Core.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.Build.Utilities.Core.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Buffers.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Collections.Immutable.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Memory.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Numerics.Vectors.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Reflection.Metadata.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Reflection.TypeExtensions.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Resources.Extensions.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Runtime.CompilerServices.Unsafe.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsc/Release/net472/System.Threading.Tasks.Dataflow.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/fsi.exe ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/fsi.exe.config ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsiAnyCpu/Release/net472/fsiAnyCpu.exe ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsiAnyCpu/Release/net472/fsiAnyCpu.exe.config ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.Compiler.Interactive.Settings.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.Compiler.Interactive.Settings.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.Compiler.Server.Shared.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.Compiler.Server.Shared.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.DependencyManager.Nuget.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/FSharp.DependencyManager.Nuget.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/Microsoft.DotNet.DependencyManager.dll ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} artifacts/bin/fsi/Release/net472/Microsoft.DotNet.DependencyManager.xml ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETFramework/v4.0/4.3.0.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.3.0.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETFramework/v4.0/4.3.1.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.3.1.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETFramework/v4.0/4.4.0.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.0.0/
+%{__cp} fsharp-nugets/microsoft.portable.fsharp.core/10.1.0/lib/versions/4.4.1.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.1.0/
+%{__cp} fsharp-nugets/fsharp.core/4.3.4/lib/net45/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.3.0/
+%{__cp} fsharp-nugets/fsharp.core/4.3.4/lib/net45/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETFramework/v4.0/4.4.5.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETCore/3.3.1.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.3.1.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETCore/3.7.4.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.7.4.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETCore/3.78.3.1/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.3.1/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETCore/3.78.4.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.4.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETCore/3.259.4.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.259.4.0/
+%{__cp} fsharp-nugets/microsoft.portable.fsharp.core/10.1.0/lib/profiles/portable-net45+netcore45/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.7.41.0/
+%{__cp} fsharp-nugets/microsoft.portable.fsharp.core/10.1.0/lib/profiles/portable-net45+netcore45+wp8/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.78.41.0/
+%{__cp} fsharp-nugets/microsoft.portable.fsharp.core/10.1.0/lib/profiles/portable-net45+netcore45+wpa81+wp8/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETCore/3.259.41.0/
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETPortable/2.3.5.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/2.3.5.0
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETPortable/2.3.5.1/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/2.3.5.1
+%{__cp} fsharp-nugets/microsoft.visualfsharp.core.redist/1.0.0/content/.NETPortable/3.47.4.0/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/3.47.4.0
+%{__cp} fsharp-nugets/microsoft.portable.fsharp.core/10.1.0/lib/profiles/portable-net45+sl5+netcore45/FSharp.Core.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/fsharp/api/.NETPortable/3.47.41.0
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
+%{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft F#/v4.0"
+%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0"
+%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.1/Framework/v4.0"
+%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.0/Framework/v4.0"
+%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.1/Framework/v4.0"
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
+%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
 
 %files
 %defattr(-,root,root)
