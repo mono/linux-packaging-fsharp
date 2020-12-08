@@ -53,7 +53,20 @@ override_dh_auto_install:
 	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/4.1/Framework/v4.0/
 
 override_dh_clideps:
-	dh_clideps --exclude-moduleref=mscoree.dll --exclude-moduleref=api-ms-win-core-file-l1-1-0.dll
+	dh_clideps \
+		--exclude-moduleref=api-ms-win-core-file-l1-1-0.dll \
+		--exclude-moduleref=clr.dll \
+		--exclude-moduleref=crypt32.dll \
+		--exclude-moduleref=dbghelp.dll \
+		--exclude-moduleref=fusion.dll \
+		--exclude-moduleref=Microsoft.VisualStudio.Setup.Configuration.Native.dll \
+		--exclude-moduleref=mscoree.dll \
+		--exclude-moduleref=mscorwks.dll \
+		--exclude-moduleref=NTDLL.DLL \
+		--exclude-moduleref=ole32.dll \
+		--exclude-moduleref=Ole32 \
+		--exclude-moduleref=rstrtmgr.dll \
+		--exclude-moduleref=sfc.dll
 
 override_dh_makeclilibs:
 	dh_makeclilibs -V
