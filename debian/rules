@@ -3,6 +3,14 @@
 MAKEFILE = $(firstword $(MAKEFILE_LIST))
 DEBIAN_DIR = $(shell realpath $(dir $(MAKEFILE)))
 
+DEB_HOST_ARCH_BITS  := $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
+
+ifeq ($(HOST_ARCH_BITS), 32)
+        LINUX32 := linux32
+else
+        LINUX32 := 
+endif
+
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
@@ -19,7 +27,7 @@ override_dh_auto_clean:
 	true
 
 override_dh_auto_build:
-	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) version= ./build.sh -c Release && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
+	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) version= $(LINUX32) ./build.sh -c Release && version= $(LINUX32) ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
 	#xbuild FsLex/FsLex.fsproj
 	#xbuild FsYacc/FsYacc.fsproj
 	#xbuild lib/bootstrap/src/FsSrGen/FsSrGen.fsproj
