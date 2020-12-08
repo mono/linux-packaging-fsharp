@@ -28,6 +28,7 @@ Source:         %{name}-%{version}.tar.xz
 BuildRequires:  automake
 BuildRequires:  nuget
 BuildRequires:  msbuild
+BuildRequires:  libicu-devel
 BuildRequires:  referenceassemblies-pcl
 BuildRequires:  mono-devel >= 4.0.0
 BuildRequires:  mono-wcf   >= 4.0.0
