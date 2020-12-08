@@ -5,7 +5,7 @@ DEBIAN_DIR = $(shell realpath $(dir $(MAKEFILE)))
 
 DEB_HOST_ARCH_BITS  := $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
 
-ifeq ($(HOST_ARCH_BITS), 32)
+ifeq ($(DEB_HOST_ARCH_BITS), 32)
         LINUX32 := linux32
 else
         LINUX32 := 
