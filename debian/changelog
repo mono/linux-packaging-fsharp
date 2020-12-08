@@ -1,3 +1,15 @@
+fsharp (5.0.0.0-0xamarin4) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [02d1837] Merge branch 'master' of github.com:mono/linux-packaging-
+    fsharp [e397982] Try this another way [dbefa0a] Revert "Setting
+    XDG_CONFIG_HOME breaks the build. What could go wrong?"
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 08 Dec 2020 14:35:10 +0000
+
 fsharp (5.0.0.0-0xamarin3) preview; urgency=medium
 
   * Packaging bugfix:
