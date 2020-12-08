@@ -1,0 +1,13 @@
+Index: xamarin-pkg-fsharp/eng/Versions.props
+===================================================================
+--- xamarin-pkg-fsharp.orig/eng/Versions.props
++++ xamarin-pkg-fsharp/eng/Versions.props
+@@ -5,7 +5,7 @@
+     <!-- opt-in properties -->
+     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
+     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
+-    <UsingToolSourceLink>true</UsingToolSourceLink>
++    <UsingToolSourceLink>false</UsingToolSourceLink>
+     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
+     <UsingToolVSSDK>true</UsingToolVSSDK>
+   </PropertyGroup>
