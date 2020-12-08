@@ -1,3 +1,13 @@
+fsharp (5.0.0.0-0xamarin8) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [0ce0f72] Fix up clideps [fc11281] Rewrite packaging
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 08 Dec 2020 20:48:11 +0000
+
 fsharp (5.0.0.0-0xamarin7) preview; urgency=medium
 
   * Packaging bugfix:
