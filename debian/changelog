@@ -1,3 +1,9 @@
+fsharp (5.0.0.0-0xamarin5) preview; urgency=medium
+
+  * Packaging bugfix:
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Tue, 08 Dec 2020 14:55:30 +0000
+
 fsharp (5.0.0.0-0xamarin4) preview; urgency=medium
 
   [ Xamarin Public Jenkins (auto-signing) ]
