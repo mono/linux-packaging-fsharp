@@ -26,8 +26,8 @@ Url:            http://fsharp.github.io/fsharp/
 Group:          Development/Languages/Other
 Source0:        %{name}-%{version}.tar.xz
 Source1:        wrapper.sh
-Source2:        Microsoft.FSharp.Targets
-Source3:        Microsoft.Portable.FSharp.Targets
+Source2:        Microsoft.FSharp.rtf
+Source3:        Microsoft.Portable.FSharp.rtf
 BuildRequires:  automake
 BuildRequires:  nuget
 BuildRequires:  msbuild
@@ -162,17 +162,20 @@ ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll ${RPM
 %{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
 %{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
 %{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft F#/v4.0"
-%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0"
-%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.1/Framework/v4.0"
-%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.0/Framework/v4.0"
-%{__cp} %{SOURCE2} %{SOURCE3} "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.1/Framework/v4.0"
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
-%{__cp} %{SOURCE2} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/tmp/
+%{__cp} %{SOURCE2} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE2}`.Targets
+%{__cp} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE3}`.Targets
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft F#/v4.0"
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0"
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.1/Framework/v4.0"
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.0/Framework/v4.0"
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/4.1/Framework/v4.0"
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
+%{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
 
 %files
 %defattr(-,root,root)
