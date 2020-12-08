@@ -84,29 +84,29 @@ let ShowGamesPlayed() =
 		let vertRange = 
 			match !funNo with 
 				| 0 -> {new Range with min=0.0F; and max=max 1.0F (float32 (Array.fold max 0 playedCounts)); and name="Players" }
-				| 1 -> {new Range with min=0.0F; and max=max 1.0F (float32 (Array.fold (+) 0 playedCounts)); and name="Cum Players" }
-				| 2 -> {new Range with min=0.0F; and max=100.0F; and name="Cum Players %" }
-				| 3 -> {new Range with min=0.0F; and max=100.0F; and name="Cum Players %" }
+				| 1 -> {new Range with min=0.0F; and max=max 1.0F (float32 (Array.fold (+) 0 playedCounts)); and name="Cumulative Players" }
+				| 2 -> {new Range with min=0.0F; and max=100.0F; and name="Cumulative Players %" }
+				| 3 -> {new Range with min=0.0F; and max=100.0F; and name="Cumulative Players %" }
 				| _ -> raise (new ApplicationException("error"))
 				in
 		let horizRange = {new Range with min=0.0F; and max=500.0F; and name="Played" } in 
 		(vertRange, horizRange)
 		in
 	let drawFun gr t = 
-		let playedCum, total = playedCounts |> Array.fold ( fun (li,cum) i -> let v = cum+i in (v :: li, v ) ) ([],0) in
-		let playedCum = playedCum |> List.rev in
+		let playedCumulative, total = playedCounts |> Array.fold ( fun (li,cumulative) i -> let v = cumulative+i in (v :: li, v ) ) ([],0) in
+		let playedCumulative = playedCumulative |> List.rev in
 		match !funNo with
 			| 0 -> 
 				let ar = playedCounts |> Array.mapi (fun i a -> let x1,x2 = playedPairs.[i] in (float32 x1,float32 x2,a) ) in					
 				Array.sub ar 1 (ar.Length-2) |> DrawBarGraph gr t brush 		
 			| 1 ->
-				let ar = playedCum |> List.toArray |> Array.mapi (fun i a -> let x1,x2 = playedPairs.[i] in (float32 x1,float32 x2,a) ) in					
+				let ar = playedCumulative |> List.toArray |> Array.mapi (fun i a -> let x1,x2 = playedPairs.[i] in (float32 x1,float32 x2,a) ) in					
 				Array.sub ar 1 (ar.Length-2) |> DrawBarGraph gr t brush; 		
  
-				let cum = playedCum |> List.mapi (fun i v -> (edges.[i+1], float v) ) |> List.toArray in	
-				Array.sub cum 1 (cum.Length-2) |> DrawLineGraph gr t 				
+				let cumulative = playedCumulative |> List.mapi (fun i v -> (edges.[i+1], float v) ) |> List.toArray in	
+				Array.sub cumulative 1 (cumulative.Length-2) |> DrawLineGraph gr t 				
 			| 2 -> 
-				let playedPc = playedCum |> List.map ( fun i -> if 0=i  then 0.0 else let y = float i in let t = float total in  
+				let playedPc = playedCumulative |> List.map ( fun i -> if 0=i  then 0.0 else let y = float i in let t = float total in  
 				((y*100.0)/t) ) in	
 				let pc = playedPc |> List.mapi (fun i v -> (edges.[i+1], v) ) |> List.toArray in	
 				Array.sub pc 1 (pc.Length-2) |> DrawLineGraph gr t	
@@ -115,7 +115,7 @@ let ShowGamesPlayed() =
 				let ar = playedCounts |> Array.mapi (fun i a -> let x1,x2 = playedPairs.[i] in (float32 x1,float32 x2, int (float32 a * 100.F/m)) ) in					
 				Array.sub ar 1 (ar.Length-2) |> DrawBarGraph gr t brush;
 
-				let playedPc = playedCum |> List.map ( fun i -> if 0=i  then 0.0 else let y = float i in let t = float total in  
+				let playedPc = playedCumulative |> List.map ( fun i -> if 0=i  then 0.0 else let y = float i in let t = float total in  
 				((y*100.0)/t) ) in	
 				let pc = playedPc |> List.mapi (fun i v -> (edges.[i+1], v) ) |> List.toArray in	
 				Array.sub pc 1 (pc.Length-2) |> DrawLineGraph gr t									 
@@ -128,13 +128,13 @@ let ShowGamesPlayed() =
 
 	let menuFunction = form.Menu.MenuItems.Add("&Function") in 
 	let miHist = new MenuItem("Histogram") in
-	let miCum = new MenuItem("Cumulative") in
+	let miCumulative = new MenuItem("Cumulative") in
 	let miPc = new MenuItem("Cumulative %")in
 	let miPcHist = new MenuItem("Cumulative % (+ Histogram)")in
 
-	menuFunction.MenuItems.AddRange([|miHist;miCum;miPc;miPcHist|]) |> ignore;			
+	menuFunction.MenuItems.AddRange([|miHist;miCumulative;miPc;miPcHist|]) |> ignore;			
 	miHist.Click.Add( fun _ -> funNo := 0; form.Invalidate(true) );
-	miCum.Click.Add( fun _ -> funNo := 1; form.Invalidate(true) ); 
+	miCumulative.Click.Add( fun _ -> funNo := 1; form.Invalidate(true) ); 
 	miPc.Click.Add( fun _ -> funNo := 2; form.Invalidate(true) ); 
 	miPcHist.Click.Add( fun _ -> funNo := 3; form.Invalidate(true) ); 
 	form.Menu.MenuItems.Add(menuFunction) |> ignore;
@@ -250,11 +250,11 @@ let DisplaySample (form:Form) (measure, fileName) =
 	let picture = AddGraph form rangeFun drawFun false in
 	let menuFunction = form.Menu.MenuItems.Add("&Function") in 
 	let miHist = new MenuItem("Histogram") in
-	let miCum = new MenuItem("Cumulative") in
+	let miCumulative = new MenuItem("Cumulative") in
 	let miPc = new MenuItem("Cumulative %") in
-	menuFunction.MenuItems.AddRange([|miHist;miCum;miPc|]) |> ignore;			
+	menuFunction.MenuItems.AddRange([|miHist;miCumulative;miPc|]) |> ignore;			
 	miHist.Click.Add( fun _ -> funNo := 0; form.Invalidate(true) );
-	miCum.Click.Add( fun _ -> funNo := 1; form.Invalidate(true) ); 
+	miCumulative.Click.Add( fun _ -> funNo := 1; form.Invalidate(true) ); 
 	miPc.Click.Add( fun _ -> funNo := 2; form.Invalidate(true) ); 
 	form.Menu.MenuItems.Add(menuFunction) |> ignore
 

@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
-namespace FSharp.Core.UnitTests.FSharp_Core.Microsoft_FSharp_Collections
+namespace FSharp.Core.UnitTests.Collections
 
 open System
-open NUnit.Framework
+open Xunit
 
 open FSharp.Core.UnitTests.LibraryTestFx
 
@@ -15,32 +15,31 @@ type SeqWindowedTestInput<'t> =
         Exception : Type option
     }
 
-[<TestFixture>][<Category "Collections.Seq">][<Category "FSharp.Core.Collections">]
 type SeqModule2() =
 
-    [<Test>]
+    [<Fact>]
     member this.Hd() =
-             
+
         let IntSeq =
             seq { for i in 0 .. 9 do
                     yield i }
-                    
+
         if Seq.head IntSeq <> 0 then Assert.Fail()
-                 
+
         // string Seq
         let strSeq = seq ["first"; "second";  "third"]
         if Seq.head strSeq <> "first" then Assert.Fail()
-         
+
         // Empty Seq
         let emptySeq = Seq.empty
         CheckThrowsArgumentException ( fun() -> Seq.head emptySeq)
-      
+
         // null Seq
         let nullSeq:seq<'a> = null
         CheckThrowsArgumentNullException (fun () ->Seq.head nullSeq) 
         () 
 
-    [<Test>]
+    [<Fact>]
     member this.TryHead() =
         // int Seq     
         let IntSeq =
@@ -61,7 +60,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException (fun () ->Seq.head nullSeq) 
         () 
         
-    [<Test>]
+    [<Fact>]
     member this.Tl() =
         // integer seq  
         let resultInt = Seq.tail <| seq { 1..10 }        
@@ -79,7 +78,7 @@ type SeqModule2() =
         CheckThrowsArgumentException(fun () -> Seq.tail Seq.empty |> Seq.iter (fun _ -> failwith "Should not be reached"))
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Last() =
              
         let IntSeq =
@@ -99,9 +98,59 @@ type SeqModule2() =
         // null Seq
         let nullSeq:seq<'a> = null
         CheckThrowsArgumentNullException (fun () ->Seq.last nullSeq) 
+                
+        
+        // ------ Test for Array -----
+        let IntArr = Array.ofSeq IntSeq                     
+        if Seq.last IntArr <> 9 then Assert.Fail()
+                 
+        // string Array
+        let strArr = Array.ofSeq strSeq 
+        if Seq.last strArr <> "third" then Assert.Fail()
+         
+        // Empty Array
+        let emptyArr = [| |]
+        CheckThrowsArgumentException ( fun() -> Seq.last emptyArr)
+      
+        // null Array
+        let nullArr: array<'a> = null
+        CheckThrowsArgumentNullException (fun () ->Seq.last nullArr) 
+        
+        // ---- Test for IList -----
+        let IntRarr = ResizeArray(IntSeq)
+        if Seq.last IntRarr <> 9 then Assert.Fail()
+                 
+        // string IList
+        let strRarr = ResizeArray(strSeq) 
+        if Seq.last strRarr <> "third" then Assert.Fail()
+         
+        // Empty IList
+        let emptyRarr = ResizeArray<unit>()
+        CheckThrowsArgumentException ( fun() -> Seq.last emptyRarr)
+      
+        // null IList
+        let nullRarr: ResizeArray<unit> = null
+        CheckThrowsArgumentNullException (fun () ->Seq.last nullRarr) 
+        
+        // ---- Test for list -----
+        let Intlist = List.ofSeq(IntSeq)
+        if Seq.last Intlist <> 9 then Assert.Fail()
+                 
+        // string list
+        let strlist = List.ofSeq(strSeq) 
+        if Seq.last strlist <> "third" then Assert.Fail()
+         
+        // Empty list
+        let emptylist: list<unit> = []
+        CheckThrowsArgumentException ( fun() -> Seq.last emptylist)
+      
+        // null list
+        let nullList: list<unit> = Unchecked.defaultof<list<unit>>
+        CheckThrowsArgumentNullException (fun () ->Seq.last nullList) 
         () 
+        
 
-    [<Test>]
+    [<Fact>]
     member this.TryLast() =
              
         let IntSeq =
@@ -116,14 +165,69 @@ type SeqModule2() =
          
         // Empty Seq
         let emptyResult = Seq.tryLast Seq.empty
-        Assert.IsTrue(emptyResult.IsNone)
+        Assert.True(emptyResult.IsNone)
       
         // null Seq
         let nullSeq:seq<'a> = null
-        CheckThrowsArgumentNullException (fun () ->Seq.tryLast nullSeq |> ignore) 
-        () 
+        CheckThrowsArgumentNullException (fun () ->Seq.tryLast nullSeq |> ignore)
+
+        // ------ Test for Array -----
+        let IntArr = Array.ofSeq IntSeq                     
+        let intResult = Seq.tryLast IntArr
+        Assert.AreEqual(9, intResult.Value)
+                 
+        // string Array
+        let strResult = Seq.tryLast (Array.ofSeq (["first"; "second";  "third"]))
+        Assert.AreEqual("third", strResult.Value)
+         
+        // Empty Array
+        let emptyResult = Seq.tryLast Array.empty
+        Assert.True(emptyResult.IsNone)
+      
+        // null Array
+        let nullArr:array<unit> = null
+        CheckThrowsArgumentNullException (fun () -> Seq.tryLast nullArr |> ignore) 
+
+
+        // ------ Test for IList -----
+        let IntRarr = ResizeArray( IntSeq )
+        let intResult = Seq.tryLast IntRarr
+        Assert.AreEqual(9, intResult.Value)
+                 
+        // string IList
+        let strResult = Seq.tryLast (ResizeArray (["first"; "second";  "third"]))
+        Assert.AreEqual("third", strResult.Value)
+         
+        // Empty IList
+        let emptyResult = Seq.tryLast (ResizeArray<unit>())
+        Assert.True(emptyResult.IsNone)
+      
+        // null IList
+        let nullRarr:ResizeArray<unit> = null
+        CheckThrowsArgumentNullException (fun () ->Seq.tryLast nullRarr |> ignore) 
         
-    [<Test>]
+        // ------ Test for list -----
+        let Intlist= List.ofSeq( IntSeq )
+        let intResult = Seq.tryLast Intlist
+        Assert.AreEqual(9, intResult.Value)
+                 
+        // string list
+        let strResult = Seq.tryLast ["first"; "second";  "third"]
+        Assert.AreEqual("third", strResult.Value)
+         
+        // Empty list
+        let emptylist: list<unit> = []
+        let emptyResult = Seq.tryLast emptylist
+        Assert.True(emptyResult.IsNone)
+      
+        // null list
+        let nullList: list<unit> = Unchecked.defaultof<list<unit>>
+        CheckThrowsArgumentNullException (fun () ->Seq.tryLast nullList |> ignore) 
+        () 
+
+
+        
+    [<Fact>]
     member this.ExactlyOne() =
              
         let IntSeq =
@@ -139,18 +243,42 @@ type SeqModule2() =
         // Empty Seq
         let emptySeq = Seq.empty
         CheckThrowsArgumentException ( fun() -> Seq.exactlyOne emptySeq)
-      
+
         // non-singleton Seq
-        let emptySeq = Seq.empty
-        CheckThrowsArgumentException ( fun() -> Seq.exactlyOne [ 0 .. 1 ] |> ignore )
-      
+        let nonSingletonSeq = [ 0 .. 1 ]
+        CheckThrowsArgumentException ( fun() -> Seq.exactlyOne nonSingletonSeq |> ignore )
+
         // null Seq
         let nullSeq:seq<'a> = null
-        CheckThrowsArgumentNullException (fun () ->Seq.exactlyOne nullSeq) 
-        () 
-        
-                
-    [<Test>]
+        CheckThrowsArgumentNullException (fun () -> Seq.exactlyOne nullSeq) 
+        ()
+
+    [<Fact>]
+    member this.TryExactlyOne() =
+        let IntSeq =
+            seq { for i in 7 .. 7 do
+                    yield i }
+
+        Assert.AreEqual(Some 7, Seq.tryExactlyOne IntSeq)
+
+        // string Seq
+        let strSeq = seq ["second"]
+        Assert.AreEqual(Some "second", Seq.tryExactlyOne strSeq)
+
+        // Empty Seq
+        let emptySeq = Seq.empty
+        Assert.AreEqual(None, Seq.tryExactlyOne emptySeq)
+
+        // non-singleton Seq
+        let nonSingletonSeq = [ 0 .. 1 ]
+        Assert.AreEqual(None, Seq.tryExactlyOne nonSingletonSeq)
+
+        // null Seq
+        let nullSeq:seq<'a> = null
+        CheckThrowsArgumentNullException (fun () -> Seq.tryExactlyOne nullSeq |> ignore)
+        ()
+
+    [<Fact>]
     member this.Init() =
 
         let funcInt x = x
@@ -175,7 +303,7 @@ type SeqModule2() =
         VerifySeqsEqual expectedNullSeq init_finiteNull
         () 
         
-    [<Test>]
+    [<Fact>]
     member this.InitInfinite() =
 
         let funcInt x = x
@@ -193,32 +321,32 @@ type SeqModule2() =
         Assert.AreEqual("100",resultstr)
        
        
-    [<Test>]
+    [<Fact>]
     member this.IsEmpty() =
         
         //seq int
         let seqint = seq [1;2;3]
         let is_emptyInt = Seq.isEmpty seqint
         
-        Assert.IsFalse(is_emptyInt)
+        Assert.False(is_emptyInt)
               
         //seq str
         let seqStr = seq["first";"second"]
         let is_emptyStr = Seq.isEmpty  seqStr
 
-        Assert.IsFalse(is_emptyInt)
+        Assert.False(is_emptyInt)
         
         //seq empty
         let seqEmpty = Seq.empty
         let is_emptyEmpty = Seq.isEmpty  seqEmpty
-        Assert.IsTrue(is_emptyEmpty) 
+        Assert.True(is_emptyEmpty) 
         
         //seq null
         let seqnull:seq<'a> = null
         CheckThrowsArgumentNullException (fun () -> Seq.isEmpty seqnull |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Iter() =
         //seq int
         let seqint =  seq [ 1..3]
@@ -247,7 +375,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException (fun () -> Seq.iter funcint nullseq |> ignore)  
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Iter2() =
     
         //seq int
@@ -277,7 +405,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Iteri() =
     
         // seq int
@@ -307,7 +435,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException (fun () -> Seq.iteri funcint nullseq |> ignore)  
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Iteri2() =
 
         //seq int
@@ -350,7 +478,7 @@ type SeqModule2() =
 
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Length() =
 
          // integer seq  
@@ -371,7 +499,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Map() =
 
          // integer Seq
@@ -402,7 +530,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Map2() =
          // integer Seq
         let funcInt x y = x+y
@@ -429,7 +557,7 @@ type SeqModule2() =
         
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Map3() = 
         // Integer seq
         let funcInt a b c = (a + b) * c
@@ -461,7 +589,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.MapFold() =
         // integer Seq
         let funcInt acc x = if x % 2 = 0 then 10*x, acc + 1 else x, acc
@@ -486,7 +614,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.MapFoldBack() =
         // integer Seq
         let funcInt x acc = if acc < 105 then 10*x, acc + 2 else x, acc
@@ -551,37 +679,37 @@ type SeqModule2() =
     member private this.MapWithExceptionTester (map : (int -> int) -> seq<int> -> seq<int>) =
         let raiser x = if x > 0 then raise(NotSupportedException()) else x
         let e = (map raiser [0; 1]).GetEnumerator()
-        Assert.IsTrue(e.MoveNext()) // should not throw
+        Assert.True(e.MoveNext()) // should not throw
         Assert.AreEqual(0, e.Current)
         CheckThrowsNotSupportedException(fun _ -> e.MoveNext() |> ignore)
         Assert.AreEqual(0, e.Current) // should not throw
 
-    [<Test>]
+    [<Fact>]
     member this.MapWithSideEffects () =
         this.MapWithSideEffectsTester Seq.map true
         
-    [<Test>]
+    [<Fact>]
     member this.MapWithException () =
         this.MapWithExceptionTester Seq.map
 
         
-    [<Test>]
+    [<Fact>]
     member this.SingletonCollectWithSideEffects () =
         this.MapWithSideEffectsTester (fun f-> Seq.collect (f >> Seq.singleton)) true
         
-    [<Test>]
+    [<Fact>]
     member this.SingletonCollectWithException () =
         this.MapWithExceptionTester (fun f-> Seq.collect (f >> Seq.singleton))
 
-    [<Test>]
+    [<Fact>]
     member this.SystemLinqSelectWithSideEffects () =
         this.MapWithSideEffectsTester (fun f s -> System.Linq.Enumerable.Select(s, Func<_,_>(f))) false
         
-    [<Test>]
+    [<Fact>]
     member this.SystemLinqSelectWithException () =
         this.MapWithExceptionTester (fun f s -> System.Linq.Enumerable.Select(s, Func<_,_>(f)))
         
-    [<Test>]
+    [<Fact>]
     member this.MapiWithSideEffects () =
         let i = ref 0
         let f _ x = i := !i + 1; x*x
@@ -615,7 +743,7 @@ type SeqModule2() =
         if e.MoveNext() then Assert.Fail()
         Assert.AreEqual(0,!i)
         
-    [<Test>]
+    [<Fact>]
     member this.Map2WithSideEffects () =
         let i = ref 0
         let f x y = i := !i + 1; x*x
@@ -649,7 +777,7 @@ type SeqModule2() =
         if e.MoveNext() then Assert.Fail()
         Assert.AreEqual(0,!i)
         
-    [<Test>]
+    [<Fact>]
     member this.Mapi2WithSideEffects () =
         let i = ref 0
         let f _ x y = i := !i + 1; x*x
@@ -683,7 +811,7 @@ type SeqModule2() =
         if e.MoveNext() then Assert.Fail()
         Assert.AreEqual(0,!i)
 
-    [<Test>]
+    [<Fact>]
     member this.Collect() =
          // integer Seq
         let funcInt x = seq [x+1]
@@ -713,7 +841,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Mapi() =
 
          // integer Seq
@@ -742,7 +870,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Mapi2() =
          // integer Seq
         let funcInt x y z = x+y+z
@@ -778,7 +906,7 @@ type SeqModule2() =
         VerifySeqsEqual (seq [3;6;9;12;15;18;21;24;27;30]) (testSeqLengths shorterSeq longerSeq)
         VerifySeqsEqual (seq [3;6;9;12;15;18;21;24;27;30]) (testSeqLengths longerSeq shorterSeq)
 
-    [<Test>]
+    [<Fact>]
     member this.Indexed() =
 
          // integer Seq
@@ -803,7 +931,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Max() =
          // integer Seq
         let resultInt = Seq.max { 10..20 } 
@@ -824,7 +952,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.MaxBy() =
     
         // integer Seq
@@ -846,7 +974,7 @@ type SeqModule2() =
         
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.MinBy() =
     
         // integer Seq
@@ -869,7 +997,7 @@ type SeqModule2() =
         ()
         
           
-    [<Test>]
+    [<Fact>]
     member this.Min() =
 
          // integer Seq
@@ -889,7 +1017,7 @@ type SeqModule2() =
         
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Item() =
          // integer Seq
         let resultInt = Seq.item 3 { 10..20 }
@@ -914,7 +1042,7 @@ type SeqModule2() =
         for i = 11 to 20 do
            CheckThrowsArgumentException (fun () -> Seq.item i { 10 .. 20 } |> ignore)
 
-    [<Test>]
+    [<Fact>]
     member this.``item should fail with correct number of missing elements``() =
         try
             Seq.item 0 (Array.zeroCreate<int> 0) |> ignore
@@ -928,7 +1056,7 @@ type SeqModule2() =
         with
         | exn when exn.Message.Contains("seq was short by 3 elements") -> ()
 
-    [<Test>]
+    [<Fact>]
     member this.Of_Array() =
          // integer Seq
         let resultInt = Seq.ofArray [|1..10|]
@@ -947,7 +1075,7 @@ type SeqModule2() =
        
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Of_List() =
          // integer Seq
         let resultInt = Seq.ofList [1..10]
@@ -967,7 +1095,7 @@ type SeqModule2() =
         ()
         
           
-    [<Test>]
+    [<Fact>]
     member this.Pairwise() =
          // integer Seq
         let resultInt = Seq.pairwise {1..3}
@@ -987,7 +1115,7 @@ type SeqModule2() =
        
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Reduce() =
          
         // integer Seq
@@ -1006,7 +1134,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException (fun () -> Seq.reduce (fun (x:string) (y:string) -> x.Remove(0,y.Length))  nullSeq  |> ignore)   
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.ReduceBack() =
         // int Seq
         let funcInt x y = x - y
@@ -1035,7 +1163,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Rev() =
         // integer Seq
         let resultInt = Seq.rev (seq [5;4;3;2;1])
@@ -1053,7 +1181,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException (fun () -> Seq.rev nullSeq  |> ignore)
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Scan() =
         // integer Seq
         let funcInt x y = x+y
@@ -1078,7 +1206,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.scan funcInt 5 seqNull |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.ScanBack() =
         // integer Seq
         let funcInt x y = x+y
@@ -1118,7 +1246,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Singleton() =
         // integer Seq
         let resultInt = Seq.singleton 1
@@ -1138,7 +1266,7 @@ type SeqModule2() =
         ()
     
         
-    [<Test>]
+    [<Fact>]
     member this.Skip() =
     
         // integer Seq
@@ -1160,7 +1288,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.skip 1 null |> ignore)
         ()
        
-    [<Test>]
+    [<Fact>]
     member this.Skip_While() =
     
         // integer Seq
@@ -1183,7 +1311,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.skipWhile funcInt null |> ignore)
         ()
        
-    [<Test>]
+    [<Fact>]
     member this.Sort() =
 
         // integer Seq
@@ -1205,7 +1333,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.sort null  |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.SortBy() =
 
         // integer Seq
@@ -1229,7 +1357,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.sortBy funcInt null  |> ignore)
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.SortDescending() =
 
         // integer Seq
@@ -1268,7 +1396,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.sort null  |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.SortByDescending() =
 
         // integer Seq
@@ -1327,7 +1455,7 @@ type SeqModule2() =
 
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Sum() =
     
         // integer Seq
@@ -1367,7 +1495,7 @@ type SeqModule2() =
        
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.SumBy() =
 
         // integer Seq
@@ -1406,7 +1534,7 @@ type SeqModule2() =
        
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Take() =
         // integer Seq
         
@@ -1432,7 +1560,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.take 1 null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.takeWhile() =
         // integer Seq
         let funcInt x = (x < 6)
@@ -1456,7 +1584,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.takeWhile funcInt null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.ToArray() =
         // integer Seq
         let resultInt = Seq.toArray(seq [1;2;4;5;7])
@@ -1478,32 +1606,32 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.toArray null |> ignore)
         ()
         
-    [<Test>]    
+    [<Fact>]    
     member this.ToArrayFromICollection() =
         let inputCollection = ResizeArray(seq [1;2;4;5;7])
         let resultInt = Seq.toArray(inputCollection)
         let expectedInt = [|1;2;4;5;7|]
         Assert.AreEqual(expectedInt,resultInt)        
     
-    [<Test>]    
+    [<Fact>]    
     member this.ToArrayEmptyInput() =
         let resultInt = Seq.toArray(Seq.empty<int>)
         let expectedInt = Array.empty<int>
         Assert.AreEqual(expectedInt,resultInt)        
 
-    [<Test>]    
+    [<Fact>]    
     member this.ToArrayFromArray() =
         let resultInt = Seq.toArray([|1;2;4;5;7|])
         let expectedInt = [|1;2;4;5;7|]
         Assert.AreEqual(expectedInt,resultInt)        
     
-    [<Test>]    
+    [<Fact>]    
     member this.ToArrayFromList() =
         let resultInt = Seq.toArray([1;2;4;5;7])
         let expectedInt = [|1;2;4;5;7|]
         Assert.AreEqual(expectedInt,resultInt)        
 
-    [<Test>]
+    [<Fact>]
     member this.ToList() =
         // integer Seq
         let resultInt = Seq.toList (seq [1;2;4;5;7])
@@ -1523,7 +1651,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.toList null |> ignore)
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Transpose() =
         // integer seq
         VerifySeqsEqual [seq [1; 4]; seq [2; 5]; seq [3; 6]] <| Seq.transpose (seq [seq {1..3}; seq {4..6}])
@@ -1548,7 +1676,7 @@ type SeqModule2() =
         VerifySeqsEqual [seq ["a";"c"]; seq ["b";"d"]] <| Seq.transpose [["a";"b"]; ["c";"d"]]
         VerifySeqsEqual [seq ["a";"c"]; seq ["b";"d"]] <| Seq.transpose (seq { yield ["a";"b"]; yield ["c";"d"] })
 
-    [<Test>]
+    [<Fact>]
     member this.Truncate() =
         // integer Seq
         let resultInt = Seq.truncate 3 (seq [1;2;4;5;7])
@@ -1573,7 +1701,7 @@ type SeqModule2() =
 
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.tryFind() =
         // integer Seq
         let resultInt = Seq.tryFind (fun x -> (x%2=0)) (seq [1;2;4;5;7])
@@ -1600,7 +1728,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.tryFind (fun x -> (x%2=0))  null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.TryFindBack() =
         // integer Seq
         let resultInt = Seq.tryFindBack (fun x -> (x%2=0)) (seq [1;2;4;5;7])
@@ -1626,7 +1754,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.tryFindBack (fun x -> (x%2=0))  null |> ignore)
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.TryFindIndex() =
 
         // integer Seq
@@ -1654,7 +1782,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.tryFindIndex (fun x -> (x % 2 = 0))  null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.TryFindIndexBack() =
 
         // integer Seq
@@ -1681,7 +1809,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.tryFindIndexBack (fun x -> (x % 2 = 0))  null |> ignore)
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.Unfold() =
         // integer Seq
         
@@ -1695,7 +1823,7 @@ type SeqModule2() =
         ()
         
         
-    [<Test>]
+    [<Fact>]
     member this.Windowed() =
 
         let testWindowed config =
@@ -1759,7 +1887,7 @@ type SeqModule2() =
 
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Zip() =
     
         // integer Seq
@@ -1784,7 +1912,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.zip (seq [1..7]) null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.Zip3() =
         // integer Seq
         let resultInt = Seq.zip3 (seq [1..7]) (seq [11..17]) (seq [21..27])
@@ -1809,7 +1937,7 @@ type SeqModule2() =
         CheckThrowsArgumentNullException(fun() -> Seq.zip3 (seq [1..7]) (seq [1..7]) null |> ignore)
         ()
         
-    [<Test>]
+    [<Fact>]
     member this.tryPick() =
          // integer Seq
         let resultInt = Seq.tryPick (fun x-> if x = 1 then Some("got") else None) (seq [1..5])
@@ -1822,7 +1950,7 @@ type SeqModule2() =
         
         // empty Seq   
         let resultEpt = Seq.tryPick (fun x-> if x = 1 then Some("got") else None) Seq.empty
-        Assert.IsNull(resultEpt)
+        Assert.Null(resultEpt)
        
         // null Seq
         let nullSeq : seq<'a> = null 
@@ -1832,7 +1960,7 @@ type SeqModule2() =
    
         ()
 
-    [<Test>]
+    [<Fact>]
     member this.tryItem() =
         // integer Seq
         let resultInt = Seq.tryItem 3 { 10..20 }

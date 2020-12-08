@@ -1,23 +1,25 @@
 ﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
-namespace Microsoft.FSharp.Compiler.SourceCodeServices
+namespace FSharp.Compiler.SourceCodeServices
 
 open System.Collections.Generic
-open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.AccessibilityLogic
-open Microsoft.FSharp.Compiler.CompileOps
-open Microsoft.FSharp.Compiler.Import
-open Microsoft.FSharp.Compiler.InfoReader
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Tast
-open Microsoft.FSharp.Compiler.TcGlobals
-open Microsoft.FSharp.Compiler.NameResolution
+
+open FSharp.Compiler
+open FSharp.Compiler.AccessibilityLogic
+open FSharp.Compiler.CompileOps
+open FSharp.Compiler.Import
+open FSharp.Compiler.InfoReader
+open FSharp.Compiler.NameResolution
+open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.TypedTree
+open FSharp.Compiler.TypedTreeOps
+open FSharp.Compiler.TcGlobals
 
 // Implementation details used by other code in the compiler    
 type internal SymbolEnv = 
-    new: TcGlobals * thisCcu:CcuThunk * thisCcuTyp: ModuleOrNamespaceType option * tcImports: TcImports -> SymbolEnv
-    new: TcGlobals * thisCcu:CcuThunk * thisCcuTyp: ModuleOrNamespaceType option * tcImports: TcImports * amap: ImportMap * infoReader: InfoReader -> SymbolEnv
+    new: TcGlobals * thisCcu: CcuThunk * thisCcuTyp: ModuleOrNamespaceType option * tcImports: TcImports -> SymbolEnv
+    new: TcGlobals * thisCcu: CcuThunk * thisCcuTyp: ModuleOrNamespaceType option * tcImports: TcImports * amap: ImportMap * infoReader: InfoReader -> SymbolEnv
     member amap: ImportMap
     member g: TcGlobals
 
@@ -25,17 +27,20 @@ type internal SymbolEnv =
 type public FSharpAccessibility = 
     internal new: Accessibility * ?isProtected: bool -> FSharpAccessibility
 
-    /// Indicates the symbol has public accessibility
-    member IsPublic : bool
+    /// Indicates the symbol has public accessibility.
+    member IsPublic: bool
 
-    /// Indicates the symbol has private accessibility
-    member IsPrivate : bool
+    /// Indicates the symbol has private accessibility.
+    member IsPrivate: bool
 
-    /// Indicates the symbol has internal accessibility
-    member IsInternal : bool
+    /// Indicates the symbol has internal accessibility.
+    member IsInternal: bool
+
+    /// Indicates the symbol has protected accessibility.
+    member IsProtected: bool
 
     /// The underlying Accessibility
-    member internal Contents : Accessibility
+    member internal Contents: Accessibility
 
 
 /// Represents the information needed to format types and other information in a style
@@ -44,8 +49,10 @@ type public FSharpAccessibility =
 /// Acquired via GetDisplayEnvAtLocationAlternate and similar methods. May be passed 
 /// to the Format method on FSharpType and other methods.
 type [<Class>] public FSharpDisplayContext = 
-    internal new : denv: (TcGlobals -> Tastops.DisplayEnv) -> FSharpDisplayContext
+    internal new : denv: (TcGlobals -> DisplayEnv) -> FSharpDisplayContext
     static member Empty: FSharpDisplayContext
+
+    member WithShortTypeNames: bool -> FSharpDisplayContext
 
 /// Represents a symbol in checked F# source code or a compiled .NET component. 
 ///
@@ -82,7 +89,7 @@ type [<Class>] public FSharpSymbol =
 
     /// Return true if two symbols are effectively the same when referred to in F# source code text.  
     /// This sees through signatures (a symbol in a signature will be considered effectively the same as 
-    /// the matching symbol in an implementation).  In addition, other equivalances are applied
+    /// the matching symbol in an implementation).  In addition, other equivalences are applied
     /// when the same F# source text implies the same declaration name - for example, constructors 
     /// are considered to be effectively the same symbol as the corresponding type definition.
     ///
@@ -252,6 +259,10 @@ and [<Class>] public FSharpEntity =
     /// Get the in-memory XML documentation for the entity, used when code is checked in-memory
     member XmlDoc: IList<string>
 
+    /// Get the elaborated XML documentation for the entity, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
+
       /// Get the XML documentation signature for the entity, used for .xml file lookup for compiled code
     member XmlDocSig: string
 
@@ -377,6 +388,9 @@ and [<Class>] public FSharpUnionCase =
     /// Get the range of the name of the case 
     member DeclarationLocation : range
 
+    /// Indicates if the union case has field definitions
+    member HasFields: bool
+
     /// Get the data carried by the case. 
     member UnionCaseFields: IList<FSharpField>
 
@@ -388,6 +402,10 @@ and [<Class>] public FSharpUnionCase =
 
     /// Get the in-memory XML documentation for the union case, used when code is checked in-memory
     member XmlDoc: IList<string>
+
+    /// Get the elaborated XML documentation for the union case, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
 
     /// Get the XML documentation signature for .xml file lookup for the union case, used for .xml file lookup for compiled code 
     member XmlDocSig: string
@@ -401,7 +419,20 @@ and [<Class>] public FSharpUnionCase =
     /// Indicates if the union case is for a type in an unresolved assembly 
     member IsUnresolved : bool
 
+/// A subtype of FSharpSymbol that represents a record or union case field as seen by the F# language
+and [<Class>] public FSharpAnonRecordTypeDetails =
+    
+    /// The assembly where the compiled form of the anonymous type is defined
+    member Assembly : FSharpAssembly
 
+    /// Names of any enclosing types of the compiled form of the anonymous type (if the anonymous type was defined as a nested type)
+    member EnclosingCompiledTypeNames : string list
+
+    /// The name of the compiled form of the anonymous type
+    member CompiledName : string 
+
+    /// The sorted labels of the anonymous type
+    member SortedFieldNames : string[]
 
 /// A subtype of FSharpSymbol that represents a record or union case field as seen by the F# language
 and [<Class>] public FSharpField =
@@ -410,8 +441,20 @@ and [<Class>] public FSharpField =
     internal new : SymbolEnv * RecdFieldRef -> FSharpField
     internal new : SymbolEnv * UnionCaseRef * int -> FSharpField
 
-    /// Get the declaring entity of this field
-    member DeclaringEntity: FSharpEntity
+    /// Get the declaring entity of this field, if any. Fields from anonymous types do not have a declaring entity
+    member DeclaringEntity: FSharpEntity option
+
+    /// Is this a field from an anonymous record type?
+    member IsAnonRecordField: bool
+
+    /// If the field is from an anonymous record type then get the details of the field including the index in the sorted array of fields
+    member AnonRecordFieldDetails: FSharpAnonRecordTypeDetails * FSharpType[] * int
+
+    /// Indicates if the field is declared in a union case
+    member IsUnionCaseField: bool
+
+    /// Returns the declaring union case symbol  
+    member DeclaringUnionCase: FSharpUnionCase option
 
     /// Indicates if the field is declared 'static'
     member IsMutable: bool
@@ -437,6 +480,10 @@ and [<Class>] public FSharpField =
 
     /// Get the in-memory XML documentation for the field, used when code is checked in-memory
     member XmlDoc: IList<string>
+
+    /// Get the elaborated XML documentation for the field, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
 
     /// Get the XML documentation signature for .xml file lookup for the field, used for .xml file lookup for compiled code
     member XmlDocSig: string
@@ -488,6 +535,10 @@ and [<Class>] public FSharpGenericParameter =
     /// Get the in-memory XML documentation for the type parameter, used when code is checked in-memory
     member XmlDoc : IList<string>
        
+    /// Get the elaborated XML documentation for the type parameter, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
+
     /// Indicates if this is a statically resolved type variable
     member IsSolveAtCompileTime : bool 
 
@@ -799,6 +850,10 @@ and [<Class>] public FSharpMemberOrFunctionOrValue =
     /// Get the in-memory XML documentation for the value, used when code is checked in-memory
     member XmlDoc: IList<string>
 
+    /// Get the elaborated XML documentation for the value, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
+
     /// XML documentation signature for the value, used for .xml file lookup for compiled code
     member XmlDocSig: string
 
@@ -880,6 +935,10 @@ and [<Class>] public FSharpActivePatternCase =
     /// Get the in-memory XML documentation for the active pattern case, used when code is checked in-memory
     member XmlDoc: IList<string>
 
+    /// Get the elaborated XML documentation for the active pattern case, used when code is checked in-memory,
+    /// after any checking and processing to XML performed by the F# compiler
+    member ElaboratedXmlDoc: IList<string>
+
       /// XML documentation signature for the active pattern case, used for .xml file lookup for compiled code
     member XmlDocSig: string
 
@@ -933,6 +992,12 @@ and [<Class>] public FSharpType =
 
     /// Indicates if the type is a function type. The GenericArguments property returns the domain and range of the function type.
     member IsFunctionType : bool
+
+    /// Indicates if the type is an anonymous record type. The GenericArguments property returns the type instantiation of the anonymous record type
+    member IsAnonRecordType: bool
+
+    /// Get the details of the anonymous record type.
+    member AnonRecordTypeDetails: FSharpAnonRecordTypeDetails
 
     /// Indicates if the type is a variable type, whether declared, generalized or an inference type parameter  
     member IsGenericParameter : bool
@@ -1010,16 +1075,22 @@ and [<Class>] public FSharpAttribute =
 [<Sealed>]
 type public FSharpOpenDeclaration =
 
-    internal new : longId: Ident list * range: range option * modules: FSharpEntity list * appliedScope: range * isOwnNamespace: bool -> FSharpOpenDeclaration
+    internal new : target: SynOpenDeclTarget * range: range option * modules: FSharpEntity list * types: FSharpType list * appliedScope: range * isOwnNamespace: bool -> FSharpOpenDeclaration
 
-    /// Idents.
-    member LongId: Ident list 
+    /// The syntactic target of the declaration
+    member LongId: Ident list
+
+    /// The syntactic target of the declaration
+    member Target: SynOpenDeclTarget
       
     /// Range of the open declaration.
     member Range: range option
 
     /// Modules or namespaces which is opened with this declaration.
     member Modules: FSharpEntity list 
+      
+    /// Types whose static members and nested types is opened with this declaration.
+    member Types: FSharpType list 
       
     /// Scope in which open declaration is visible.
     member AppliedScope: range 
@@ -1032,7 +1103,7 @@ type public FSharpOpenDeclaration =
 type public FSharpSymbolUse = 
 
     // For internal use only
-    internal new : g:TcGlobals * denv: Tastops.DisplayEnv * symbol:FSharpSymbol * itemOcc:ItemOccurence * range: range -> FSharpSymbolUse
+    internal new : g:TcGlobals * denv: DisplayEnv * symbol:FSharpSymbol * itemOcc:ItemOccurence * range: range -> FSharpSymbolUse
 
     /// The symbol referenced
     member Symbol : FSharpSymbol 
@@ -1068,3 +1139,5 @@ type public FSharpSymbolUse =
     /// The range of text representing the reference to the symbol
     member RangeAlternate: range
 
+    /// Indicates if the FSharpSymbolUse is declared as private
+    member IsPrivateToFile: bool 

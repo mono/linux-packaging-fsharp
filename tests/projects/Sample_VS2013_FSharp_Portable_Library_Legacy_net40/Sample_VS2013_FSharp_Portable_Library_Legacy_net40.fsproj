@@ -22,7 +22,6 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Sample_VS2013_FSharp_Portable_Library_Legacy_net40.XML</DocumentationFile>
     <DocumentationFile>bin\Debug\Sample_VS2013_FSharp_Portable_Library_Legacy_net40.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -32,7 +31,6 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Sample_VS2013_FSharp_Portable_Library_Legacy_net40.XML</DocumentationFile>
     <DocumentationFile>bin\Release\Sample_VS2013_FSharp_Portable_Library_Legacy_net40.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
@@ -61,7 +59,6 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
