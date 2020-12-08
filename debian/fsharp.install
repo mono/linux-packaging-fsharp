@@ -1,11 +1,39 @@
-usr/bin/fsharpc
-usr/bin/fsharpi
-usr/lib/mono/Microsoft?F#
-usr/lib/mono/Microsoft?SDKs
-usr/lib/mono/xbuild
-usr/lib/mono/fsharp/fs*.exe										/usr/lib/mono/fsharp
-usr/lib/mono/fsharp/fs*.exe.config										/usr/lib/mono/fsharp
-usr/lib/mono/fsharp/System.*.dll									/usr/lib/mono/fsharp
-usr/lib/mono/fsharp/FSharp.Build.dll*									/usr/lib/mono/fsharp
-usr/lib/mono/fsharp/*.Targets										/usr/lib/mono/fsharp
-usr/lib/mono/fsharp/FSharp.Compiler*.dll*								/usr/lib/mono/fsharp
+artifacts/bin/fsc/Release/net472/fsc.exe*					/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/FSharp.Build.*					/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/FSharp.Compiler.Private.*			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp.Targets			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.Portable.FSharp.Targets		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.Build.dll				/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.Build.Framework.dll			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.Build.Tasks.Core.dll			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.Build.Utilities.Core.dll		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Buffers.dll				/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Collections.Immutable.dll		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Memory.dll				/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Numerics.Vectors.dll			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Reflection.Metadata.dll			/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Reflection.TypeExtensions.dll		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Resources.Extensions.dll		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Runtime.CompilerServices.Unsafe.dll	/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/System.Threading.Tasks.Dataflow.dll		/usr/lib/mono/fsharp/
+artifacts/bin/fsi/Release/net472/fsi.exe*					/usr/lib/mono/fsharp/
+artifacts/bin/fsiAnyCpu/Release/net472/fsiAnyCpu.exe*				/usr/lib/mono/fsharp/
+artifacts/bin/fsi/Release/net472/FSharp.Compiler.Interactive.Settings.*		/usr/lib/mono/fsharp/
+artifacts/bin/fsi/Release/net472/FSharp.Compiler.Server.Shared.*		/usr/lib/mono/fsharp/
+artifacts/bin/fsi/Release/net472/FSharp.DependencyManager.Nuget.*		/usr/lib/mono/fsharp/
+artifacts/bin/fsi/Release/net472/Microsoft.DotNet.DependencyManager.*		/usr/lib/mono/fsharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp/
+artifacts/bin/fsc/Release/net472/Microsoft.FSharp*.NetSdk.*			/usr/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v11.0/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v12.0/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp/
+debian/Microsoft.*FSharp.Targets						/usr/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp/
+debian/tmpprefix/fsharpc							/usr/bin/
+debian/tmpprefix/fsharpi							/usr/bin/
+debian/tmpprefix/fsharpiAnyCpu							/usr/bin/

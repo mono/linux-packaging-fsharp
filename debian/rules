@@ -17,10 +17,10 @@ export DH_OPTIONS
 override_dh_fixperms:
 	dh_fixperms
 	# Fix permissions of non-executable cruft
-	find debian -iname *.xml -type f -exec chmod 644 {} +
-	find debian -iname *.sigdata -type f -exec chmod 644 {} +
-	find debian -iname *.optdata -type f -exec chmod 644 {} +
-	find debian -iname *.targets -type f -exec chmod 644 {} +
+	find debian -iname \*.xml -type f -exec chmod 644 {} +
+	find debian -iname \*.sigdata -type f -exec chmod 644 {} +
+	find debian -iname \*.optdata -type f -exec chmod 644 {} +
+	find debian -iname \*.targets -type f -exec chmod 644 {} +
 
 override_dh_auto_clean:
 	# don't clean - broken on newer distros as make distclean can't run before configure
@@ -28,6 +28,10 @@ override_dh_auto_clean:
 
 override_dh_auto_build:
 	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) version= $(LINUX32) ./build.sh -c Release && version= $(LINUX32) ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
+	mkdir -p $(DEBIAN_DIR)/tmpprefix/
+	sed -e 's#%EXENAME%#fsc.exe#' $(DEBIAN_DIR)/wrapper.sh > $(DEBIAN_DIR)/tmpprefix/fsharpc
+	sed -e 's#%EXENAME%#fsi.exe#' $(DEBIAN_DIR)/wrapper.sh > $(DEBIAN_DIR)/tmpprefix/fsharpi
+	sed -e 's#%EXENAME%#fsiAnyCpu.exe#' $(DEBIAN_DIR)/wrapper.sh > $(DEBIAN_DIR)/tmpprefix/fsharpiAnyCpu
 	#xbuild FsLex/FsLex.fsproj
 	#xbuild FsYacc/FsYacc.fsproj
 	#xbuild lib/bootstrap/src/FsSrGen/FsSrGen.fsproj
@@ -37,7 +41,16 @@ override_dh_auto_build:
 	#sed -e 's#@DIR@/@TOOL@#/usr/lib/cli/fsharp/FsSrGen.exe#' -e 's/--exename:$$(basename $$0) //' launcher.in > lib/release/fssrgen
 
 override_dh_auto_install:
-	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) DESTDIR=`realpath $(DEBIAN_DIR)/tmp` PREFIX=/usr make install
+	mkdir -p debian/fsharp/usr/lib/mono/Microsoft\ F#/v4.0/
+	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ F#/v4.0/
+	mkdir -p debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/3.0/Framework/v4.0/
+	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/3.0/Framework/v4.0/
+	mkdir -p debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/3.1/Framework/v4.0/
+	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/3.1/Framework/v4.0/
+	mkdir -p debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/4.0/Framework/v4.0/
+	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/4.0/Framework/v4.0/
+	mkdir -p debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/4.1/Framework/v4.0/
+	cp debian/Microsoft.*FSharp.Targets debian/fsharp/usr/lib/mono/Microsoft\ SDKs/F#/4.1/Framework/v4.0/
 
 override_dh_clideps:
 	dh_clideps --exclude-moduleref=mscoree.dll --exclude-moduleref=api-ms-win-core-file-l1-1-0.dll
