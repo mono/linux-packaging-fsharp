@@ -37,33 +37,33 @@ module CompilerStackOverflowOnOperatorOverloading_FSharp_1_0_6164 =
 module ActivePatternsShouldNotBeAllowedOnMembers = 
 
     // No error in this class, static works great
-    type FooBar() = 
-        static member (|Foo|Bar|) (x, y) =
+    type FooBir() = 
+        static member (|Foo|Bir|) (x, y) =
             match x = y with
             | true -> Foo
-            | false -> Bar
+            | false -> Bir
     
         member x.doSomething y =
             match x, y with
             | Foo -> ()  // compiles!  How is 'Foo' in scope?
-            | Bar -> ()
+            | Bir -> ()
     
     match 1,2 with
-    | FooBar.Foo -> printfn "hi"  // The field, constructor or member 'Foo' is not defined
+    | FooBir.Foo -> printfn "hi"  // The field, constructor or member 'Foo' is not defined
     | _ -> ()
     
-    type FooBar2() = 
-        member x.(|Foo|Bar|) y =
+    type FooBir2() = 
+        member x.(|Foo|Bir|) y =
             match x = y with
             | true -> Foo
-            | false -> Bar
+            | false -> Bir
 
         // compiler error on "Foo"    
         member x.doSomething y =
-            let r = x.``|Foo|Bar|``  y   // compiles!
+            let r = x.``|Foo|Bir|``  y   // compiles!
             match r with
-            | Foo -> () // The type 'Choice<unit,unit>' is not compatible with the type 'FooBar2'
-            | Bar -> ()
+            | Foo -> () // The type 'Choice<unit,unit>' is not compatible with the type 'FooBir2'
+            | Bir -> ()
 
 module CheckThatNoConstraintPropagationHappensForTypeParameters = 
     type C<'T when 'T :> System.IComparable>() =

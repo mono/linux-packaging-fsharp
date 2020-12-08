@@ -1,29 +1,31 @@
 // Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
-namespace Microsoft.FSharp.Compiler.SourceCodeServices
+namespace FSharp.Compiler.SourceCodeServices
 
-open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library 
+open FSharp.Compiler.AbstractIL.Internal.Library
+open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.Text
+open FSharp.Compiler.XmlDoc
 
 /// Represent an Xml documentation block in source code
 type XmlDocable =
     | XmlDocable of line:int * indent:int * paramNames:string list
 
 module XmlDocParsing =
-    open Microsoft.FSharp.Compiler.Range
-    open Microsoft.FSharp.Compiler.Ast
         
     let (|ConstructorPats|) = function
         | Pats ps -> ps
         | NamePatPairs(xs, _) -> List.map snd xs
 
-    let rec digNamesFrom = function
+    let rec digNamesFrom pat =
+        match pat with
         | SynPat.Named(_innerPat,id,_isTheThisVar,_access,_range) -> [id.idText]
         | SynPat.Typed(pat,_type,_range) -> digNamesFrom pat
         | SynPat.Attrib(pat,_attrs,_range) -> digNamesFrom pat
         | SynPat.LongIdent(_lid,_idOpt,_typDeclsOpt,ConstructorPats pats,_access,_range) -> 
             pats |> List.collect digNamesFrom 
-        | SynPat.Tuple(pats,_range)
-        | SynPat.StructTuple(pats,_range) -> pats |> List.collect digNamesFrom 
+        | SynPat.Tuple(_,pats,_range) -> pats |> List.collect digNamesFrom 
         | SynPat.Paren(pat,_range) -> digNamesFrom pat
         | SynPat.OptionalVal (id, _) -> [id.idText]
         | SynPat.Or _           // no one uses ors in fun decls
@@ -39,21 +41,19 @@ module XmlDocParsing =
         | SynPat.InstanceMember _
         | SynPat.FromParseError _ -> []
 
-    let getXmlDocablesImpl(sourceCodeLinesOfTheFile: string [], input: ParsedInput option) =
+    let getXmlDocablesImpl(sourceText: ISourceText, input: ParsedInput option) =
         let indentOf (lineNum: int) =
             let mutable i = 0
-            let line = sourceCodeLinesOfTheFile.[lineNum-1] // -1 because lineNum reported by xmldocs are 1-based, but array is 0-based
+            let line = sourceText.GetLineString(lineNum-1) // -1 because lineNum reported by xmldocs are 1-based, but array is 0-based
             while i < line.Length && line.Chars(i) = ' ' do
                 i <- i + 1
             i
 
         let isEmptyXmlDoc (preXmlDoc: PreXmlDoc) =
-            match preXmlDoc.ToXmlDoc() with 
-            | XmlDoc [||] -> true
-            | XmlDoc [|x|] when x.Trim() = "" -> true
-            | _ -> false
+            preXmlDoc.ToXmlDoc(false, None).IsEmpty
 
-        let rec getXmlDocablesSynModuleDecl = function
+        let rec getXmlDocablesSynModuleDecl decl =
+            match decl with 
             | SynModuleDecl.NestedModule(_,  _, synModuleDecls, _, _) -> 
                 (synModuleDecls |> List.collect getXmlDocablesSynModuleDecl)
             | SynModuleDecl.Let(_, synBindingList, range) -> 
@@ -120,12 +120,12 @@ module XmlDocParsing =
                     let paramNames = digNamesFrom synPat 
                     [XmlDocable(line,indent,paramNames)]
                 else []
-            | SynMemberDefn.AbstractSlot(ValSpfn(synAttributes, _, _, _, SynValInfo(args, _), _, _, preXmlDoc, _, _, _), _, range) -> 
+            | SynMemberDefn.AbstractSlot(ValSpfn(synAttributes, _, _, _, synValInfo, _, _, preXmlDoc, _, _, _), _, range) -> 
                 if isEmptyXmlDoc preXmlDoc then
                     let fullRange = synAttributes |> List.fold (fun r a -> unionRanges r a.Range) range
                     let line = fullRange.StartLine 
                     let indent = indentOf line
-                    let paramNames = args |> List.collect (fun az -> az |> List.choose (fun (SynArgInfo(_synAttributes, _, idOpt)) -> match idOpt with | Some id -> Some(id.idText) | _ -> None))
+                    let paramNames = synValInfo.ArgNames
                     [XmlDocable(line,indent,paramNames)]
                 else []
             | SynMemberDefn.Interface(_synType, synMemberDefnsOption, _range) -> 
@@ -147,7 +147,7 @@ module XmlDocParsing =
 
         and getXmlDocablesInput input =
             match input with
-            | ParsedInput.ImplFile(ParsedImplFileInput(modules = symModules))-> 
+            | ParsedInput.ImplFile (ParsedImplFileInput (modules = symModules))-> 
                 symModules |> List.collect getXmlDocablesSynModuleOrNamespace
             | ParsedInput.SigFile _ -> []
 
@@ -185,7 +185,7 @@ module XmlDocComment =
         res
 
 module XmlDocParser =
+
     /// Get the list of Xml documentation from current source code
-    let getXmlDocables (sourceCodeOfTheFile, input) =
-        let sourceCodeLinesOfTheFile = String.getLines sourceCodeOfTheFile
-        XmlDocParsing.getXmlDocablesImpl (sourceCodeLinesOfTheFile, input)
+    let getXmlDocables (sourceText: ISourceText, input) =
+        XmlDocParsing.getXmlDocablesImpl (sourceText, input)

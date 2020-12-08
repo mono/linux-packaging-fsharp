@@ -96,5 +96,6 @@
 		<Reference Include="System.Core" />
 		<Reference Include="System.Numerics" />
 	</ItemGroup>
+	<Import Project="tools\FSharp.SRGen.targets" />
 
 </Project>
