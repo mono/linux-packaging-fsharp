@@ -24,7 +24,7 @@ License:        Apache-2.0
 Summary:        F# compiler, core library and core tools
 Url:            http://fsharp.github.io/fsharp/
 Group:          Development/Languages/Other
-Source:         %{name}-%{version}.tar.gz
+Source:         %{name}-%{version}.tar.xz
 BuildRequires:  automake
 BuildRequires:  nuget
 BuildRequires:  msbuild
