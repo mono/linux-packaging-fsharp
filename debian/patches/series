@@ -1,4 +1,3 @@
-disable-sourcelink
 fsharp-fix-dotnet-install-armv8.patch
 fsharp-portable-pdb.patch
 fsharp-netfx-multitarget.patch
