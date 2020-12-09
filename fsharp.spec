@@ -165,8 +165,8 @@ ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll ${RPM
 %{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
 %{__cp} artifacts/bin/fsc/Release/net472/Microsoft.FSharp.*NetSdk.* ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
 %{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/tmp/
-%{__cp} %{SOURCE2} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE2}`.Targets
-%{__cp} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE3}`.Targets
+%{__cp} %{SOURCE2} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE2} .rtf`.Targets
+%{__cp} %{SOURCE3} ${RPM_BUILD_ROOT}%{_prefix}/tmp/`basename %{SOURCE3} .rtf`.Targets
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft F#/v4.0"
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.0/Framework/v4.0"
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets "${RPM_BUILD_ROOT}%{_prefix}/lib/mono/Microsoft SDKs/F#/3.1/Framework/v4.0"
@@ -178,6 +178,7 @@ ln -sf %{_prefix}/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll ${RPM
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v14.0/FSharp
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v15.0/FSharp
 %{__cp} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets ${RPM_BUILD_ROOT}%{_prefix}/lib/mono/xbuild/Microsoft/VisualStudio/v16.0/FSharp
+%{__rm} ${RPM_BUILD_ROOT}%{_prefix}/tmp/*.Targets
 
 %files
 %defattr(-,root,root)
