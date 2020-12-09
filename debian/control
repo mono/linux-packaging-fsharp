@@ -6,6 +6,7 @@ Uploaders: Christopher James Halse Rogers <raof@ubuntu.com>
 Build-Depends: debhelper (>= 8.0.0~),
   msbuild,
   nuget,
+  curl,
   libmono-btls-interface4.0-cil,
   ca-certificates-mono,
   referenceassemblies-pcl,
