@@ -1,0 +1,34 @@
+Index: xamarin-pkg-fsharp/FSharpBuild.Directory.Build.props
+===================================================================
+--- xamarin-pkg-fsharp.orig/FSharpBuild.Directory.Build.props
++++ xamarin-pkg-fsharp/FSharpBuild.Directory.Build.props
+@@ -7,6 +7,14 @@
+     <BUILD_IN_FSHARP_REPOSITORY>true</BUILD_IN_FSHARP_REPOSITORY>
+   </PropertyGroup>
+ 
++  <!-- passing properties via build.sh does not work -->
++  <PropertyGroup>
++    <EnableSourceLink>false</EnableSourceLink>
++    <DisableSourceLinkUrlTranslation>true</DisableSourceLinkUrlTranslation>
++    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
++    <UsingToolSourceLink>false</UsingToolSourceLink>
++  </PropertyGroup>
++
+   <!-- directory locations -->
+   <PropertyGroup>
+     <FSharpSourcesRoot>$(RepoRoot)src</FSharpSourcesRoot>
+Index: xamarin-pkg-fsharp/FSharpBuild.Directory.Build.targets
+===================================================================
+--- xamarin-pkg-fsharp.orig/FSharpBuild.Directory.Build.targets
++++ xamarin-pkg-fsharp/FSharpBuild.Directory.Build.targets
+@@ -116,10 +116,6 @@
+     <Copy SourceFiles="@(CopyVsixResources)" DestinationFolder="$(IntermediateOutputPath)\resources\Resources" Condition="'$(IntermediateFilesHash)' != '$(IntermediateResourceFilesHash)'" />
+   </Target>
+ 
+-  <PropertyGroup>
+-    <CoreBuildDependsOn>$(CoreBuildDependsOn);PrefixRepoToReleaseNotes</CoreBuildDependsOn>
+-  </PropertyGroup>
+-
+   <Target Name="PrefixRepoToReleaseNotes"
+           BeforeTargets="InitializeStandardNuspecProperties"
+           DependsOnTargets="InitializeSourceControlInformationFromSourceControlManager"
