@@ -1,3 +1,14 @@
+fsharp (5.0.0.0-0xamarin12) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [bfcb2d8] Export home again [53d96f6] Explicitly require curl to
+    build
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Wed, 09 Dec 2020 18:22:56 +0000
+
 fsharp (5.0.0.0-0xamarin11) preview; urgency=medium
 
   [ Xamarin Public Jenkins (auto-signing) ]
