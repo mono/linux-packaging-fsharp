@@ -1,3 +1,14 @@
+fsharp (5.0.0.0-0xamarin10) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [b2bd5d1] Try disabling SourceLink another way [ebf4539] Revert
+    "Disable SourceLink"
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Wed, 09 Dec 2020 13:54:00 +0000
+
 fsharp (5.0.0.0-0xamarin9) preview; urgency=medium
 
   * Packaging bugfix:
