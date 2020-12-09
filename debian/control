@@ -20,6 +20,7 @@ XS-Testsuite: autopkgtest
 Package: fsharp
 Architecture: all
 Depends:
+  libfsharp-core5.0-cil (= ${source:Version}),
   ${cli:Depends},
   ${shlibs:Depends},
   ${misc:Depends},
