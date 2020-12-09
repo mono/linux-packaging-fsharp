@@ -61,7 +61,7 @@ platforms.
 %patch1 -p1
 
 %build
-version= ./build.sh -c Release /p:EnableSourceLink=false && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
+version= ./build.sh -c Release && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
 
 %install
 %{__mkdir_p} ${RPM_BUILD_ROOT}%{_prefix}/bin/
