@@ -60,7 +60,7 @@ platforms.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch1 -p2
+%patch2 -p1
 
 %build
 version= ./build.sh -c Release && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
