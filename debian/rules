@@ -27,7 +27,7 @@ override_dh_auto_clean:
 	true
 
 override_dh_auto_build:
-	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) version= $(LINUX32) ./build.sh -c Release /p:EnableSourceLink=false && version= $(LINUX32) ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
+	HOME=$(DEBIAN_DIR) XDG_CONFIG_HOME=$(DEBIAN_DIR) version= $(LINUX32) ./build.sh -c Release && version= $(LINUX32) ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
 	mkdir -p $(DEBIAN_DIR)/tmpprefix/
 	sed -e 's#%EXENAME%#fsc.exe#' $(DEBIAN_DIR)/wrapper.sh > $(DEBIAN_DIR)/tmpprefix/fsharpc
 	sed -e 's#%EXENAME%#fsi.exe#' $(DEBIAN_DIR)/wrapper.sh > $(DEBIAN_DIR)/tmpprefix/fsharpi
