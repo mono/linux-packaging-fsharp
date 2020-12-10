@@ -1,6 +1,4 @@
 # Core library
 45 /usr/lib/mono/fsharp/FSharp.Core.dll
-45 /usr/lib/mono/fsharp/FSharp.Core.sigdata
-45 /usr/lib/mono/fsharp/FSharp.Core.optdata
 45 /usr/lib/mono/fsharp/FSharp.Compiler.Interactive.Settings.dll
 
