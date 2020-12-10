@@ -1,3 +1,14 @@
+fsharp (5.0.0.0-0xamarin15) preview; urgency=medium
+
+  [ Xamarin Public Jenkins (auto-signing) ]
+  * Packaging bugfix:
+
+  [ Ubuntu ]
+  * [78e4e64] No more sigdata/optdata [c3e4142] Explicit dependency on
+    cli-common, since we use installcliframework
+
+ -- Xamarin Public Jenkins (auto-signing) <releng@xamarin.com>  Thu, 10 Dec 2020 14:52:02 +0000
+
 fsharp (5.0.0.0-0xamarin14) preview; urgency=medium
 
   * Packaging bugfix:
