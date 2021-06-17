@@ -1,0 +1,244 @@
+From aa59aac950ebe36daf58fabbc085813c007f38ad Mon Sep 17 00:00:00 2001
+From: "Brett V. Forsgren" <brettfo@microsoft.com>
+Date: Wed, 7 Oct 2020 10:28:02 -0700
+Subject: [PATCH 1/2] remove myget restore sources
+
+---
+ INTERNAL.md                                   |  3 ---
+ NuGet.config                                  |  5 ----
+ eng/Versions.props                            | 11 ++------
+ scripts/init-tools.sh                         |  2 +-
+ .../DependencyManagerInteractiveTests.fs      | 25 ++++++++-----------
+ .../FSharpScriptTests.fs                      | 11 ++++----
+ 6 files changed, 19 insertions(+), 38 deletions(-)
+
+Index: linux-packaging-fsharp/INTERNAL.md
+===================================================================
+--- linux-packaging-fsharp.orig/INTERNAL.md
++++ linux-packaging-fsharp/INTERNAL.md
+@@ -70,7 +70,4 @@ a package from every build of `main` to 
+ a package from every build of the branch that corresponds to the current Visual Studio preview to the
+ [Preview VSIX feed](README.md#using-nightly-releases-in-visual-studio).
+ 
+-[MyGet package uploader](https://dev.azure.com/dnceng/internal/_release?_a=releases&definitionId=69).  Uploads various
+-packages for internal consumption.  Feed URL is `https://dotnet.myget.org/F/fsharp/api/v3/index.json`.
+-
+ [Internal source mirror](https://dev.azure.com/dnceng/internal/_git/dotnet-fsharp).
+Index: linux-packaging-fsharp/NuGet.config
+===================================================================
+--- linux-packaging-fsharp.orig/NuGet.config
++++ linux-packaging-fsharp/NuGet.config
+@@ -8,21 +8,13 @@
+     <clear />
+     <add key="dotnet-core" value="https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json" />
+     <add key="dotnet-eng" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json" />
++    <add key="dotnet-tools" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" />
+     <add key="dotnet5" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json" />
+     <add key="dotnet5-transport" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5-transport/nuget/v3/index.json" />
+     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+-    <add key="fsharp-daily" value="https://www.myget.org/F/fsharp-daily/api/v3/index.json" />
+-    <add key="roslyn-master-nightly" value="https://dotnet.myget.org/F/roslyn-master-nightly/api/v3/index.json" />
+-    <add key="roslyn-tools" value="https://dotnet.myget.org/F/roslyn-tools/api/v3/index.json" />
+-    <add key="roslyn" value="https://dotnet.myget.org/F/roslyn/api/v3/index.json" />
+-    <add key="symreader-converter" value="https://dotnet.myget.org/F/symreader-converter/api/v3/index.json" />
+-    <add key="interactive-window" value="https://dotnet.myget.org/F/interactive-window/api/v3/index.json" />
+-    <add key="vs-devcore" value="https://myget.org/F/vs-devcore/api/v3/index.json" />
+-    <add key="vs-editor" value="https://myget.org/F/vs-editor/api/v3/index.json" />
+     <add key="vssdk" value="https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json" />
+     <add key="vs-impl" value="https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json" />
+-    <add key="roslyn_concord" value="https://myget.org/F/roslyn_concord/api/v3/index.json" />
+-    <add key="gRPC repository" value="https://grpc.jfrog.io/grpc/api/nuget/v3/grpc-nuget-dev" />
++    <add key="vs-buildservices" value="https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-buildservices/nuget/v3/index.json" />
+   </packageSources>
+   <disabledPackageSources>
+     <clear />
+Index: linux-packaging-fsharp/eng/Versions.props
+===================================================================
+--- linux-packaging-fsharp.orig/eng/Versions.props
++++ linux-packaging-fsharp/eng/Versions.props
+@@ -62,20 +62,9 @@
+     <!-- default package sources -->
+     <RestoreSources Condition="'$(DotNetBuildOffline)' != 'true'">
+       $(RestoreSources);
+-      https://www.myget.org/F/fsharp-daily/api/v3/index.json;
+-      https://dotnet.myget.org/F/roslyn-master-nightly/api/v3/index.json;
+-      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+-      https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json;
+-      https://dotnet.myget.org/F/roslyn-tools/api/v3/index.json;
+       https://api.nuget.org/v3/index.json;
+-      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
+-      https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
+-      https://dotnet.myget.org/F/interactive-window/api/v3/index.json;
+-      https://myget.org/F/vs-devcore/api/v3/index.json;
+-      https://myget.org/F/vs-editor/api/v3/index.json;
+       https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json;
+       https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json;
+-      https://myget.org/F/roslyn_concord/api/v3/index.json;
+     </RestoreSources>
+     <!-- version numbers from files -->
+     <RoslynVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\RoslynPackageVersion.txt').Trim())</RoslynVersion>
+@@ -116,7 +105,7 @@
+     <MicrosoftCodeAnalysisExternalAccessFSharpVersion>$(RoslynVersion)</MicrosoftCodeAnalysisExternalAccessFSharpVersion>
+     <MicrosoftCodeAnalysisWorkspacesCommonVersion>$(RoslynVersion)</MicrosoftCodeAnalysisWorkspacesCommonVersion>
+     <MicrosoftCodeAnalysisCSharpVersion>$(RoslynVersion)</MicrosoftCodeAnalysisCSharpVersion>
+-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.17</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
++    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.28</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+     <MicrosoftVisualStudioLanguageServicesVersion>$(RoslynVersion)</MicrosoftVisualStudioLanguageServicesVersion>
+     <!-- Microsoft Build packages -->
+     <MicrosoftBuildOverallPackagesVersion>16.6</MicrosoftBuildOverallPackagesVersion>
+@@ -185,7 +174,7 @@
+     <FsCheckVersion>3.0.0-alpha4</FsCheckVersion>
+     <FSharpDataTypeProvidersVersion>4.3.0.0</FSharpDataTypeProvidersVersion>
+     <MicrosoftCompositionVersion>1.0.30</MicrosoftCompositionVersion>
+-    <MicrosoftMSXMLVersion>8.0.0-alpha</MicrosoftMSXMLVersion>
++    <MicrosoftMSXMLVersion>8.0.0</MicrosoftMSXMLVersion>
+     <MicrosoftNetCompilersVersion>2.7.0</MicrosoftNetCompilersVersion>
+     <MicrosoftNETCoreAppRefVersion>3.1.0</MicrosoftNETCoreAppRefVersion>
+     <MicrosoftNETCoreILDAsmVersion>5.0.0-preview.7.20364.11</MicrosoftNETCoreILDAsmVersion>
+Index: linux-packaging-fsharp/scripts/init-tools.sh
+===================================================================
+--- linux-packaging-fsharp.orig/scripts/init-tools.sh
++++ linux-packaging-fsharp/scripts/init-tools.sh
+@@ -9,7 +9,7 @@ __DOTNET_PATH=$__TOOLRUNTIME_DIR/dotnetc
+ __DOTNET_CMD=$__DOTNET_PATH/dotnet
+ __DOTNET_VERSION=$(cat $__scriptpath/../DotnetCLIVersion.txt)
+ 
+-if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
++if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json; fi
+ __BUILD_TOOLS_PACKAGE_VERSION=$(cat $__scriptpath/../BuildToolsVersion.txt)
+ 
+ 
+Index: linux-packaging-fsharp/tests/FSharp.Compiler.Private.Scripting.UnitTests/DependencyManagerInteractiveTests.fs
+===================================================================
+--- linux-packaging-fsharp.orig/tests/FSharp.Compiler.Private.Scripting.UnitTests/DependencyManagerInteractiveTests.fs
++++ linux-packaging-fsharp/tests/FSharp.Compiler.Private.Scripting.UnitTests/DependencyManagerInteractiveTests.fs
+@@ -252,10 +252,9 @@ TorchSharp.Tensor.LongTensor.From([| 0L 
+     [<Fact>]
+     member __.``Use Dependency Manager to restore packages with native dependencies, build and run script that depends on the results``() =
+         let packagemanagerlines = [|
+-            "r", "RestoreSources=https://dotnet.myget.org/F/dotnet-corefxlab/api/v3/index.json"
+             "r", "Microsoft.ML,version=1.4.0-preview"
+             "r", "Microsoft.ML.AutoML,version=0.16.0-preview"
+-            "r", "Microsoft.Data.DataFrame,version=0.1.1-e191008-1"
++            "r", "Microsoft.Data.Analysis,version=0.4.0"
+         |]
+ 
+         let reportError =
+@@ -306,7 +305,7 @@ $(REFERENCES)
+ open System
+ open System.IO
+ open System.Linq
+-open Microsoft.Data
++open Microsoft.Data.Analysis
+ 
+ let Shuffle (arr:int[]) =
+     let rnd = Random()
+@@ -318,9 +317,9 @@ let Shuffle (arr:int[]) =
+     arr
+ 
+ let housingPath = ""housing.csv""
+-let housingData = DataFrame.ReadCsv(housingPath)
+-let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.RowCount) - 1)).ToArray()))
+-let testSize = int (float (housingData.RowCount) * 0.1)
++let housingData = DataFrame.LoadCsv(housingPath)
++let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.Rows.Count) - 1)).ToArray()))
++let testSize = int (float (housingData.Rows.Count) * 0.1)
+ let trainRows = randomIndices.[testSize..]
+ let testRows = randomIndices.[..testSize]
+ let housing_train = housingData.[trainRows]
+@@ -349,10 +348,9 @@ printfn ""%A"" result
+     [<Fact>]
+     member __.``Use NativeResolver to resolve native dlls.``() =
+         let packagemanagerlines = [|
+-            "r", "RestoreSources=https://dotnet.myget.org/F/dotnet-corefxlab/api/v3/index.json"
+             "r", "Microsoft.ML,version=1.4.0-preview"
+             "r", "Microsoft.ML.AutoML,version=0.16.0-preview"
+-            "r", "Microsoft.Data.DataFrame,version=0.1.1-e191008-1"
++            "r", "Microsoft.Data.Analysis,version=0.4.0"
+         |]
+ 
+         let reportError =
+@@ -392,7 +390,7 @@ $(REFERENCES)
+ open System
+ open System.IO
+ open System.Linq
+-open Microsoft.Data
++open Microsoft.Data.Analysis
+ 
+ let Shuffle (arr:int[]) =
+     let rnd = Random()
+@@ -404,9 +402,9 @@ let Shuffle (arr:int[]) =
+     arr
+ 
+ let housingPath = ""housing.csv""
+-let housingData = DataFrame.ReadCsv(housingPath)
+-let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.RowCount) - 1)).ToArray()))
+-let testSize = int (float (housingData.RowCount) * 0.1)
++let housingData = DataFrame.LoadCsv(housingPath)
++let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.Rows.Count) - 1)).ToArray()))
++let testSize = int (float (housingData.Rows.Count) * 0.1)
+ let trainRows = randomIndices.[testSize..]
+ let testRows = randomIndices.[..testSize]
+ let housing_train = housingData.[trainRows]
+@@ -432,10 +430,9 @@ printfn ""%A"" result
+     [<Fact>]
+     member __.``Use AssemblyResolver to resolve assemblies``() =
+         let packagemanagerlines = [|
+-            "r", "RestoreSources=https://dotnet.myget.org/F/dotnet-corefxlab/api/v3/index.json"
+             "r", "Microsoft.ML,version=1.4.0-preview"
+             "r", "Microsoft.ML.AutoML,version=0.16.0-preview"
+-            "r", "Microsoft.Data.DataFrame,version=0.1.1-e191008-1"
++            "r", "Microsoft.Data.Analysis,version=0.4.0"
+         |]
+ 
+         let reportError =
+Index: linux-packaging-fsharp/tests/FSharp.Compiler.Private.Scripting.UnitTests/FSharpScriptTests.fs
+===================================================================
+--- linux-packaging-fsharp.orig/tests/FSharp.Compiler.Private.Scripting.UnitTests/FSharpScriptTests.fs
++++ linux-packaging-fsharp/tests/FSharp.Compiler.Private.Scripting.UnitTests/FSharpScriptTests.fs
+@@ -186,15 +186,14 @@ stacktype.Name = "Stack"
+     [<Fact>]
+     member __.``ML - use assembly with native dependencies``() =
+         let code = @"
+-#r ""nuget:RestoreSources=https://dotnet.myget.org/F/dotnet-corefxlab/api/v3/index.json""
+ #r ""nuget:Microsoft.ML,version=1.4.0-preview""
+ #r ""nuget:Microsoft.ML.AutoML,version=0.16.0-preview""
+-#r ""nuget:Microsoft.Data.DataFrame,version=0.1.1-e191008-1""
++#r ""nuget:Microsoft.Data.Analysis,version=0.4.0""
+ 
+ open System
+ open System.IO
+ open System.Linq
+-open Microsoft.Data
++open Microsoft.Data.Analysis
+ 
+ let Shuffle (arr:int[]) =
+     let rnd = Random()
+@@ -206,9 +205,9 @@ let Shuffle (arr:int[]) =
+     arr
+ 
+ let housingPath = ""housing.csv""
+-let housingData = DataFrame.ReadCsv(housingPath)
+-let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.RowCount) - 1)).ToArray()))
+-let testSize = int (float (housingData.RowCount) * 0.1)
++let housingData = DataFrame.LoadCsv(housingPath)
++let randomIndices = (Shuffle(Enumerable.Range(0, (int (housingData.Rows.Count) - 1)).ToArray()))
++let testSize = int (float (housingData.Rows.Count) * 0.1)
+ let trainRows = randomIndices.[testSize..]
+ let testRows = randomIndices.[..testSize]
+ let housing_train = housingData.[trainRows]
+Index: linux-packaging-fsharp/README.md
+===================================================================
+--- linux-packaging-fsharp.orig/README.md
++++ linux-packaging-fsharp/README.md
+@@ -71,6 +71,10 @@ Alternatively, if you _really_ want to l
+ * Set your feed to the preview feed: https://dotnet.myget.org/F/fsharp-preview/vsix
+ * Install a VSIX manually from the preview feed: https://dotnet.myget.org/feed/fsharp-preview/package/vsix/VisualFSharp
+ 
++## Per-build NuGet packages
++
++Per-build verions of our NuGet packages are available via this URL: `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json `
++
+ ## Branches
+ 
+ These are the branches in use:
