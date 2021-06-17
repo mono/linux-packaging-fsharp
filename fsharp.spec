@@ -39,6 +39,7 @@ BuildArch:      noarch
 Patch0:		fsharp-netfx-multitarget.patch
 Patch1:		fsharp-portable-pdb.patch
 Patch2:         fsharp-disable-sourcelink.patch
+Patch3:         no-more-myget.patch
 
 %define _use_internal_dependency_generator 0
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -61,6 +62,7 @@ platforms.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 version= ./build.sh -c Release && version= ./.dotnet/dotnet restore setup/Swix/Microsoft.FSharp.SDK/Microsoft.FSharp.SDK.csproj --packages fsharp-nugets
